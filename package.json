@@ -1,0 +1,51 @@
+{
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev:nuxt": "pnpm --filter playground-nuxt dev",
+    "dev:next": "pnpm --filter playground-next dev",
+    "build": "esr ./scripts/build.ts",
+    "publish": "esr ./scripts/publish.ts",
+    "version_sync": "esr ./scripts/version-sync.ts",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "pnpm eslint && pnpm stylelint",
+    "lint:no-fix": "pnpm eslint:no-fix && pnpm stylelint:no-fix",
+    "eslint": "eslint packages --fix",
+    "eslint:no-fix": "eslint packages",
+    "stylelint": "stylelint packages/**/*.{html,css,sass,scss} --fix",
+    "stylelint:no-fix": "stylelint packages/**/*.{html,css,sass,scss}",
+    "postinstall": "husky install",
+    "prepublishOnly": "pinst --disable",
+    "postpublish": "pinst --enable"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/owlsdepartment/flyva"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.0.0",
+    "@commitlint/config-conventional": "^19.0.0",
+    "@types/node": "^22.0.0",
+    "esbuild": "^0.25.0",
+    "esbuild-runner": "^2.2.2",
+    "eslint": "^9.0.0",
+    "husky": "^9.0.0",
+    "pinst": "^3.0.0",
+    "prettier": "^3.5.0",
+    "sass": "^1.85.0",
+    "typescript": "^5.8.0",
+    "vitepress": "^1.6.4"
+  },
+  "packageManager": "pnpm@10.33.0+sha512.10568bb4a6afb58c9eb3630da90cc9516417abebd3fabbe6739f0ae795728da1491e9db5a544c76ad8eb7570f5c4bb3d6c637b2cb41bfdcdb47fa823c8649319",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "esbuild",
+      "sharp",
+      "unrs-resolver"
+    ]
+  }
+}

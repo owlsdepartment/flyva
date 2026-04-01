@@ -1,0 +1,40 @@
+---
+description: Flyva monorepo structure, package relationships, and core architecture
+alwaysApply: true
+---
+
+# Flyva — Project Overview
+
+Flyva is a library for seamless page transitions, with framework-specific adapters for Next.js and Nuxt.
+
+## Monorepo structure (pnpm workspaces)
+
+```
+packages/shared    → @flyva/shared   (framework-agnostic core)
+packages/next      → @flyva/next     (React/Next.js adapter)
+packages/nuxt      → @flyva/nuxt     (Vue/Nuxt adapter)
+playground/next    → playground-next (Next.js test app)
+playground/nuxt    → playground-nuxt (Nuxt test app)
+```
+
+## Package dependency graph
+
+- `@flyva/next` depends on `@flyva/shared` (workspace:*)
+- `@flyva/nuxt` depends on `@flyva/shared` (workspace:*)
+- Playgrounds depend on their respective package
+
+## Core architecture
+
+`PageTransitionManager` (shared) orchestrates the lifecycle:
+`prepare → beforeLeave → leave → afterLeave → [navigate] → beforeEnter → enter → afterEnter`
+
+Each framework adapter provides:
+1. A reactive primitive that bridges the framework's reactivity (React refs / Vue refs) to the shared `Reactive<T>` interface
+2. Components that wire into the framework's router (FlyvaLink, FlyvaRoot for Next; flyva-link, flyva-page for Nuxt)
+3. Composables/hooks that expose the manager and transition control
+
+## Key conventions
+
+- Workspace deps use `"workspace:*"` protocol
+- The folder `page-tansition-manager` is intentionally misspelled (legacy) — do not rename without a coordinated migration
+- Root scripts: `pnpm dev:nuxt`, `pnpm dev:next` to run playgrounds

@@ -1,0 +1,3 @@
+'use client';
+
+export * from '@flyva/shared/page-tansition-manager';

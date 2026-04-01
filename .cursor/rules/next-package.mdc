@@ -1,0 +1,34 @@
+---
+description: Rules for the React/Next.js adapter package
+globs: packages/next/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# @flyva/next
+
+## File structure
+
+```
+packages/next/
+├── index.ts                     # barrel: re-exports common + runtime
+├── common/index.ts              # re-exports from @flyva/shared
+├── runtime/
+│   ├── composables/             # React hooks (useFlyva*, useRefStack, useRefState)
+│   ├── components/              # FlyvaRoot, FlyvaLink, FlyvaTransitionWrapper
+│   └── page-transition-manager/ # 'use client' re-export of shared manager
+└── utils/
+    └── refReactiveFactory.ts    # bridges useRefState → ReactiveFactory
+```
+
+## Conventions
+
+- Every file that uses React hooks or browser APIs must have `'use client';` as the first line
+- Import shared types from `@flyva/shared` or `@flyva/shared/page-tansition-manager`, not relative `../../shared`
+- Components use `forwardRef` when they wrap native elements (e.g. FlyvaLink wraps `<Link>`)
+- Avoid external runtime deps — no lodash, no classnames. Destructure/inline instead
+- `FlyvaRoot` uses a module-level singleton for the manager to survive React re-renders
+- `useRefStack` maintains a global `Map` — it is NOT React state. Transitions access it imperatively via `globalGetRefStackItem`
+
+## Peer dependencies
+
+The package peer-depends on `next >=14`, `react >=18`, `react-dom >=18`. Don't import APIs exclusive to a single Next.js version.

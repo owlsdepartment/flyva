@@ -1,0 +1,15 @@
+{
+  "name": "playground-nuxt",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxi dev",
+    "build": "nuxi build",
+    "generate": "nuxi generate"
+  },
+  "dependencies": {
+    "@flyva/shared": "workspace:*",
+    "animejs": "^4.0.0",
+    "nuxt": "^4.4.0"
+  }
+}

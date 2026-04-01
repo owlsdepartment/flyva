@@ -1,0 +1,8 @@
+{
+	"extends": "../../playground/nuxt/.nuxt/tsconfig.json",
+	"include": [
+	  "./shims.d.ts",
+	  // missing in the playground
+	  "./"
+, "../shared/page-tansition-manager"	]
+  }

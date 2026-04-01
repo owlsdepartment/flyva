@@ -1,0 +1,29 @@
+---
+description: Rules for playground apps used to test the library
+globs: playground/**/*.{ts,tsx,vue}
+alwaysApply: false
+---
+
+# Playgrounds
+
+Playgrounds are minimal apps that exercise the library features. They are private workspace packages — never published.
+
+## Next.js playground (`playground/next`)
+
+- Uses `@flyva/next` and `@flyva/shared` as workspace deps
+- Layout wraps content in `<FlyvaRoot>` with a transitions map
+- Content area uses `data-flyva-content` attribute for transition targeting
+- Page transitions live in `src/page-transitions/` — each is a class implementing `PageTransition`
+- Navigation uses `<FlyvaLink>` from the library — test default and named transitions
+- Uses anime.js (`animejs`) for animations inside transitions
+
+## Nuxt playground (`playground/nuxt`)
+
+- References the Nuxt module directly: `modules: ['../../packages/nuxt/module']`
+- Config key: `flyva` in `nuxt.config.ts`
+- Transitions live in a folder specified by `transitionsDir` config
+- Uses auto-imported composables (`useFlyvaTransition`, `useFlyvaState`)
+
+## When modifying library code
+
+Always verify changes work in the relevant playground. Transition classes implement the `PageTransition` interface from `@flyva/shared`.

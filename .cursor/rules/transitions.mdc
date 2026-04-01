@@ -1,0 +1,52 @@
+---
+description: How to write page transitions for flyva
+globs: "**/page-transitions/**/*.ts"
+alwaysApply: false
+---
+
+# Writing Page Transitions
+
+A transition is a class implementing the `PageTransition` interface from `@flyva/shared`.
+
+## Lifecycle order
+
+```
+prepare()      → async, runs immediately on link click (before navigation)
+beforeLeave()  → sync setup before leave animation
+leave()        → async, the actual leave animation
+afterLeave()   → sync cleanup after leave, before navigation
+--- navigation happens ---
+beforeEnter()  → sync setup before enter animation
+enter()        → async, the actual enter animation
+afterEnter()   → sync final cleanup, manager resets state
+cleanup()      → called after afterEnter and when a new transition starts
+```
+
+## Targeting content
+
+Query `[data-flyva-content]` to get the transitioning content element:
+```ts
+this.content = document.querySelector('[data-flyva-content]');
+```
+
+## Using refStack
+
+Access registered refs from any component via `globalGetRefStackItem`:
+```ts
+import { globalGetRefStackItem } from '@flyva/next';
+
+const hero = globalGetRefStackItem<HTMLElement>('hero');
+if (hero?.current) { /* animate it */ }
+```
+
+## Blocking interaction during transition
+
+Toggle `document.body.classList.add/remove('flyva-transition-active')` in beforeLeave/afterEnter. The consuming app should style this class with a fixed overlay.
+
+## Context object
+
+Every lifecycle method receives `PageTransitionContext`:
+- `name` — transition key
+- `trigger` — the element or string that initiated the transition
+- `options` — arbitrary options passed from `FlyvaLink` (commonly `fromHref`, `toHref`)
+- `el` — trigger element if it was a DOM element

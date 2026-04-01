@@ -1,0 +1,29 @@
+---
+description: Rules for the framework-agnostic shared package
+globs: packages/shared/**/*.ts
+alwaysApply: false
+---
+
+# @flyva/shared
+
+This package must have **zero** framework dependencies — no React, no Vue, no Node-specific APIs.
+
+## Reactive abstraction
+
+```ts
+type Reactive<T> = { value: T };
+type ReactiveFactory = <V>(initialValue?: V) => Reactive<V>;
+```
+
+`PageTransitionManager` accepts a `ReactiveFactory` at construction. Each framework adapter supplies its own factory:
+- React: `useRefState` (Proxy-based ref that triggers re-renders)
+- Vue: Nuxt's `ref()` via `refReactiveFactory`
+
+## PageTransition interface
+
+Lifecycle methods are all optional. `condition` gates whether a transition runs. The rest follow the lifecycle order. `cleanup` is called after `afterEnter` and on re-run.
+
+## Editing rules
+
+- Keep types generic — avoid `any` where possible, use generics
+- Every public type/class must be re-exported from the barrel `index.ts`

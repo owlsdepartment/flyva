@@ -34,24 +34,26 @@ const project = projectData[slug] ?? {
 
 <template>
 	<div class="page work-detail">
-		<section class="work-detail-hero" data-work-hero>
-			<h1>{{ project.title }}</h1>
-			<p class="work-detail-intro">{{ project.description }}</p>
-		</section>
-
-		<section class="section">
-			<p class="work-detail-body">{{ project.body }}</p>
-		</section>
-
-		<section class="section">
-			<FlyvaLink
-				to="/work"
-				flyva-transition="slideTransition"
-				:flyva-options="{ direction: 'left' }"
-				class="back-link"
-			>
-				← Back to Work
-			</FlyvaLink>
-		</section>
+		<div class="page-content">
+			<section class="work-detail-hero" data-work-hero>
+				<h1>{{ project.title }}</h1>
+				<p class="work-detail-intro">{{ project.description }}</p>
+			</section>
+	
+			<section class="section">
+				<p class="work-detail-body">{{ project.body }}</p>
+			</section>
+	
+			<section class="section">
+				<FlyvaLink
+					to="/work"
+					flyva-transition="slideTransition"
+					:flyva-options="{ direction: 'left' }"
+					class="back-link"
+				>
+					← Back to Work
+				</FlyvaLink>
+			</section>
+		</div>
 	</div>
 </template>

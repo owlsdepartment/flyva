@@ -9,28 +9,30 @@ const projects = [
 
 <template>
 	<div class="page">
-		<section class="section">
-			<h1>Work</h1>
-			<p>
-				Click a project card below — the card will <strong>expand</strong> into
-				the detail view using a FLIP-style shared element transition.
-			</p>
-		</section>
-
-		<section class="section">
-			<div class="card-grid">
-				<FlyvaLink
-					v-for="project in projects"
-					:key="project.slug"
-					:to="`/work/${project.slug}`"
-					flyva-transition="expandTransition"
-					class="work-card"
-					:data-work-card="project.slug"
-				>
-					<h3>{{ project.title }}</h3>
-					<p>{{ project.description }}</p>
-				</FlyvaLink>
-			</div>
-		</section>
+		<div class="page-content">
+			<section class="section">
+				<h1>Work</h1>
+				<p>
+					Click a project card below — the card will <strong>expand</strong> into
+					the detail view using a FLIP-style shared element transition.
+				</p>
+			</section>
+	
+			<section class="section">
+				<div class="card-grid">
+					<FlyvaLink
+						v-for="project in projects"
+						:key="project.slug"
+						:to="`/work/${project.slug}`"
+						flyva-transition="expandTransition"
+						class="work-card"
+						:data-work-card="project.slug"
+					>
+						<h3>{{ project.title }}</h3>
+						<p>{{ project.description }}</p>
+					</FlyvaLink>
+				</div>
+			</section>
+		</div>
 	</div>
 </template>

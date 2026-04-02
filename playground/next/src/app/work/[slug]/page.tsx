@@ -36,25 +36,27 @@ export default function WorkDetail() {
 
 	return (
 		<div className="page work-detail">
-			<section className="work-detail-hero" data-work-hero>
-				<h1>{project.title}</h1>
-				<p className="work-detail-intro">{project.description}</p>
-			</section>
+			<div className="page-content">
+				<section className="work-detail-hero" data-work-hero>
+					<h1>{project.title}</h1>
+					<p className="work-detail-intro">{project.description}</p>
+				</section>
 
-			<section className="section">
-				<p className="work-detail-body">{project.body}</p>
-			</section>
+				<section className="section">
+					<p className="work-detail-body">{project.body}</p>
+				</section>
 
-			<section className="section">
-				<FlyvaLink
-					href="/work"
-					flyvaTransition="slideTransition"
-					flyvaOptions={{ direction: 'left' }}
-					className="back-link"
-				>
-					← Back to Work
-				</FlyvaLink>
-			</section>
+				<section className="section">
+					<FlyvaLink
+						href="/work"
+						flyvaTransition="slideTransition"
+						flyvaOptions={{ direction: 'left' }}
+						className="back-link"
+					>
+						← Back to Work
+					</FlyvaLink>
+				</section>
+			</div>
 		</div>
 	);
 }

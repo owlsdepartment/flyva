@@ -7,7 +7,6 @@ import { FlyvaConfig, FlyvaConfigContext } from '../../composables';
 import { FlyvaManagerContext } from '../../composables/useFlyvaManager';
 import type { RefState } from '../../composables/useRefState';
 import { PageTransition, PageTransitionManager } from '../../page-transition-manager';
-import { FlyvaTransitionWrapper } from '../flyva-transition-wrapper';
 
 let singleton: PageTransitionManager | null = null;
 
@@ -27,9 +26,7 @@ export function FlyvaRoot<T extends Record<string, PageTransition> = Record<stri
 		<div className="flyva-root">
 			<FlyvaConfigContext.Provider value={configWithDefaults}>
 				<FlyvaManagerContext.Provider value={manager}>
-					<FlyvaTransitionWrapper>
-						{children}
-					</FlyvaTransitionWrapper>
+					{children}
 				</FlyvaManagerContext.Provider>
 			</FlyvaConfigContext.Provider>
 		</div>

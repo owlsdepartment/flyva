@@ -2,66 +2,69 @@ import { animate } from 'animejs';
 
 import type { PageTransition, PageTransitionContext } from '@flyva/shared';
 
-class SlideTransitionClass implements PageTransition {
-	private content: HTMLElement | null = null;
-	private direction: 'left' | 'right' = 'right';
+class SlideOverTransitionClass implements PageTransition {
+	concurrent = true;
 
-	async prepare(context: PageTransitionContext) {
-		this.content = document.querySelector('[data-flyva-content]');
-		this.direction = context.options?.direction === 'left' ? 'left' : 'right';
+	async prepare() {
+		document.body.style.overflow = 'hidden';
 	}
 
-	beforeLeave() {
-		if (!this.content) return;
+	async leave(context: PageTransitionContext) {
+		const old = context.current as HTMLElement;
+		if (!old) return;
 
-		document.body.classList.add('flyva-transition-active');
-		this.content.style.pointerEvents = 'none';
-		this.content.style.overflow = 'hidden';
-	}
+		console.log('leave', old)
 
-	async leave() {
-		if (!this.content) return;
+		const scrollTop = document.documentElement.scrollTop;
+		Object.assign(old.style, {
+			transformOrigin: `50% ${scrollTop}px`,
+			transform: 'scale(1)',
+		});
 
-		await animate(this.content, {
-			translateX: this.direction === 'right' ? '-100%' : '100%',
-			opacity: 0,
-			duration: 500,
-			ease: 'inCubic',
+		await animate(old, {
+			opacity: 0.3,
+			transformOrigin: `50% ${scrollTop}px`,
+			transform: 'scale(0.9)',
+			duration: 400,
+			ease: 'inOut',
 		});
 	}
 
-	afterLeave() {
-		if (!this.content) return;
-		this.content.style.pointerEvents = '';
-		this.content.style.overflow = '';
+	beforeEnter(context: PageTransitionContext) {
+		const next = context.next as HTMLElement;
+		if (!next) return;
+
+		Object.assign(next.style, {
+			position: 'fixed',
+			top: '0',
+			left: '0',
+			width: '100%',
+			height: '100%',
+			overflow: 'auto',
+			transform: 'translateY(100%)',
+		});
 	}
 
-	beforeEnter() {
-		this.content = document.querySelector('[data-flyva-content]');
-		if (!this.content) return;
+	async enter(context: PageTransitionContext) {
+		const next = context.next as HTMLElement;
+		if (!next) return;
 
-		this.content.style.transform = `translateX(${this.direction === 'right' ? '100%' : '-100%'})`;
-		this.content.style.opacity = '0';
-	}
-
-	async enter() {
-		if (!this.content) return;
-
-		await animate(this.content, {
-			translateX: '0%',
-			opacity: 1,
-			duration: 500,
+		await animate(next, {
+			translateY: '0%',
+			duration: 700,
 			ease: 'outCubic',
 		});
-	}
 
-	afterEnter() {
-		document.body.classList.remove('flyva-transition-active');
+		const old = context.current as HTMLElement;
+		if (old) old.style.display = 'none';
+
+		window.scrollTo(0, 0);
+		next.style.cssText = '';
 	}
 
 	cleanup() {
-		this.content = null;
+		document.body.style.overflow = '';
 	}
 }
 
-export const slideTransition = new SlideTransitionClass();
+export const slideTransition = new SlideOverTransitionClass();

@@ -65,9 +65,14 @@ const FlyvaLink = forwardRef<HTMLAnchorElement, PropsWithChildren<FlyvaLinkProps
 			toHref: extractPath(href),
 			...(resolvedOptions ?? {}),
 		}, rootEl.current ?? e.target as HTMLElement);
-		await transition.leave();
 
-		router.push(href);
+		if (transition.isConcurrent) {
+			transition.leave();
+			router.push(href);
+		} else {
+			await transition.leave();
+			router.push(href);
+		}
 	}
 
 	return (

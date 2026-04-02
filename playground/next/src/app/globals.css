@@ -31,8 +31,11 @@ body {
 /* ---- nav ---- */
 
 .nav {
-	position: sticky;
+	position: fixed;
 	top: 0;
+	left: 0; 
+	right: 0;
+	height: 62px;
 	z-index: 100;
 	display: flex;
 	align-items: center;
@@ -87,6 +90,12 @@ body {
 /* ---- layout ---- */
 
 .page {
+	min-height: 100dvh;
+	padding-top: 62px;
+	background-color: var(--bg);
+}
+
+.page-content {
 	max-width: 720px;
 	margin: 0 auto;
 	padding: 64px 32px 96px;

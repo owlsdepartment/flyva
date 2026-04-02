@@ -20,6 +20,8 @@ export class PageTransitionManager<
 		: PageTransitionOptions;
 	protected _trigger: PageTransitionTrigger = 'internal';
 	protected _stage: Reactive<PageTransitionStage>;
+	protected _currentContent?: Element;
+	protected _nextContent?: Element;
 
 	constructor(protected transitions: T, protected reactiveFactory: ReactiveFactory<unknown, R>) {
 		this._isRunning = this.reactiveFactory(false);
@@ -46,6 +48,14 @@ export class PageTransitionManager<
 
 	get readyPromise() {
 		return this._readyPromise ?? Promise.resolve();
+	}
+
+	get currentContent() {
+		return this._currentContent;
+	}
+
+	get nextContent() {
+		return this._nextContent;
 	}
 
 	run<K extends keyof T>(
@@ -105,6 +115,13 @@ export class PageTransitionManager<
 		this._runningName.value = undefined;
 		this._isRunning.value = false;
 		this._stage.value = 'none';
+		this._currentContent = undefined;
+		this._nextContent = undefined;
+	}
+
+	setContentElements(current?: Element, next?: Element) {
+		this._currentContent = current;
+		this._nextContent = next;
 	}
 
 	getInstance<K extends keyof T>(name: K) {
@@ -115,9 +132,11 @@ export class PageTransitionManager<
 		return {
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 			name: this._runningName.value! as string,
-			options: this._currentOptions as O, // Ensure correct type assertion
+			options: this._currentOptions as O,
 			trigger: this._trigger,
 			el,
+			current: this._currentContent,
+			next: this._nextContent,
 		};
 	}
 }

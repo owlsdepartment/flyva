@@ -8,6 +8,6 @@ export interface FlyvaLinkRawProps {
 	onTransitionStart?: () => void;
 }
 
-export interface FlyvaLinkProps extends LinkProps, FlyvaLinkRawProps {
+export interface FlyvaLinkProps extends LinkProps, FlyvaLinkRawProps, Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, keyof LinkProps> {
 	ref?: React.Ref<HTMLAnchorElement | null>;
 }

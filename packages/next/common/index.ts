@@ -1,1 +1,1 @@
-export * from '@flyva/shared/page-tansition-manager';
+export * from '@flyva/shared';

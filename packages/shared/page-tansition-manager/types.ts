@@ -9,9 +9,13 @@ export interface PageTransitionContext<O = PageTransitionOptions> {
 	trigger: PageTransitionTrigger;
 	options: O;
 	el?: Element;
+	current?: Element;
+	next?: Element;
 }
 
 export interface PageTransition<O = PageTransitionOptions> {
+	concurrent?: boolean;
+
 	condition?(context: PageTransitionContext<O>): Promise<boolean> | boolean;
 
 	prepare?(context: PageTransitionContext<O>): Promise<void>;

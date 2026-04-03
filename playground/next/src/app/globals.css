@@ -300,31 +300,6 @@ body {
 	opacity: 0.7;
 }
 
-/* ---- flyva FLIP clone ---- */
-
-.flyva-clone {
-	background: var(--card-bg);
-	border: 1px solid var(--border);
-	border-radius: var(--radius);
-	padding: 24px;
-	box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
-}
-
-.flyva-clone h3 {
-	font-size: 16px;
-	font-weight: 700;
-	letter-spacing: -0.03em;
-	line-height: 130%;
-	margin-bottom: 0.375em;
-	color: var(--fg);
-}
-
-.flyva-clone p {
-	font-size: 13px;
-	color: var(--muted);
-	line-height: 160%;
-}
-
 /* ---- flyva transition overlay ---- */
 
 .flyva-transition-active::after {

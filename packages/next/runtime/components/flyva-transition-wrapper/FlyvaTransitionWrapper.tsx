@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { PropsWithChildren, useEffect, useRef } from 'react';
+import { PropsWithChildren, useEffect, useLayoutEffect, useRef } from 'react';
 
 import { useFlyvaTransition, getCapturedClone } from '../../composables';
 import { useFlyvaManager } from '../../composables/useFlyvaManager';
@@ -21,7 +21,7 @@ export function FlyvaTransitionWrapper({ children }: PropsWithChildren) {
 		}
 	});
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		if (isMount.current) {
 			isMount.current = false;
 			return;
@@ -34,7 +34,6 @@ export function FlyvaTransitionWrapper({ children }: PropsWithChildren) {
 		const clone = getCapturedClone() as HTMLDivElement | null;
 
 		if (clone && contentRef.current) {
-			contentRef.current.parentNode?.insertBefore(clone, contentRef.current);
 			cloneRef.current = clone;
 			manager.setContentElements(clone, contentRef.current);
 		} else if (contentRef.current) {
@@ -47,6 +46,12 @@ export function FlyvaTransitionWrapper({ children }: PropsWithChildren) {
 			if (cloneRef.current) {
 				cloneRef.current.remove();
 				cloneRef.current = null;
+			}
+
+			const parent = contentRef.current?.parentElement;
+			if (parent?.dataset.flyvaRelative !== undefined) {
+				parent.style.position = '';
+				delete parent.dataset.flyvaRelative;
 			}
 
 			if (contentRef.current) {

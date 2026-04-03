@@ -47,7 +47,7 @@ class ExpandTransitionClass implements PageTransition {
 	async leave() {
 		if (!this.content || !this.clone) return;
 
-		const page = this.content.querySelector('.page') ?? this.content;
+		const page = this.content.querySelector('.page-content') ?? this.content;
 		const pageRect = page.getBoundingClientRect();
 		const pageStyle = getComputedStyle(page);
 		const padTop = parseFloat(pageStyle.paddingTop) || 0;
@@ -121,7 +121,6 @@ class ExpandTransitionClass implements PageTransition {
 
 		if (this.clone && hero) {
 			const heroRect = hero.getBoundingClientRect();
-
 			await createTimeline()
 				.add(this.clone, {
 					top: `${heroRect.top}px`,

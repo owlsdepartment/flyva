@@ -8,6 +8,17 @@ let initializedManually = false;
 let hasTransitioned = false;
 let _capturedClone: Element | null = null;
 
+const CLONE_CSS = '.flyva-clone,.flyva-clone *{animation-play-state:paused!important;transition:none!important}';
+let _styleInjected = false;
+
+function injectCloneStyles() {
+	if (_styleInjected || typeof document === 'undefined') return;
+	const style = document.createElement('style');
+	style.textContent = CLONE_CSS;
+	document.head.appendChild(style);
+	_styleInjected = true;
+}
+
 export function getCapturedClone(): Element | null {
 	const clone = _capturedClone;
 	_capturedClone = null;
@@ -23,7 +34,15 @@ export function useFlyvaTransition() {
 		await flyvaManager.run(name, options, el);
 
 		if (flyvaManager.runningInstance?.concurrent && flyvaManager.currentContent) {
+			injectCloneStyles();
+
 			_capturedClone = flyvaManager.currentContent.cloneNode(true) as Element;
+			(_capturedClone as HTMLElement).classList.add('flyva-clone');
+
+			const parent = flyvaManager.currentContent.parentNode as HTMLElement | null;
+			if (parent) {
+				parent.insertBefore(_capturedClone, flyvaManager.currentContent);
+			}
 		}
 	}
 

@@ -13,8 +13,6 @@ class SlideOverTransitionClass implements PageTransition {
 		const old = context.current as HTMLElement;
 		if (!old) return;
 
-		console.log('leave', old)
-
 		const scrollTop = document.documentElement.scrollTop;
 		Object.assign(old.style, {
 			transformOrigin: `50% ${scrollTop}px`,

@@ -18,6 +18,14 @@
 				>
 					Work <span class="nav-badge">slide</span>
 				</FlyvaLink>
+
+				<FlyvaLink
+					to="/overlay"
+					flyva-transition="overlayTransition"
+					:class="{ active: $route.path === '/overlay' }"
+				>
+					Overlay <span class="nav-badge">detached</span>
+				</FlyvaLink>
 			</div>
 		</nav>
 

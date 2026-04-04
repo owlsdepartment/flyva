@@ -1,3 +1,4 @@
+export * from './useDetachedRoot';
 export * from './useFlyvaConfig';
 export * from './useFlyvaManager';
 export * from './useFlyvaTransition';

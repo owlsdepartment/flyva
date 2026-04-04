@@ -1,5 +1,11 @@
 export default defineNuxtConfig({
 	modules: ['../../packages/nuxt/module'],
+	build: {
+		transpile: ['../../packages/nuxt'],
+	},
+	vite: {
+		vueJsx: true,
+	},
 	flyva: {
 		defaultKey: 'defaultTransition',
 		transitionsDir: 'page-transitions',

@@ -26,6 +26,7 @@
     "typescript": "^5.8.0"
   },
   "peerDependencies": {
-    "nuxt": ">=3.14.0"
+    "nuxt": ">=3.14.0",
+    "vue": ">=3.4.0"
   }
 }

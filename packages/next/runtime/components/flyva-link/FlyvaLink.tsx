@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { forwardRef, PropsWithChildren, useImperativeHandle, useRef } from 'react';
 
-import { useFlyvaConfig, useFlyvaTransition } from '../../composables';
+import { useFlyvaConfig, useFlyvaTransition } from '../../hooks';
 import type { FlyvaLinkProps } from './types';
 
 function normalizeUrl(url: string): string {

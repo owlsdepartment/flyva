@@ -13,7 +13,7 @@ packages/next/
 ├── index.ts                     # barrel: re-exports common + runtime
 ├── common/index.ts              # re-exports from @flyva/shared
 ├── runtime/
-│   ├── composables/             # React hooks (useFlyva*, useRefStack, useRefState)
+│   ├── hooks/                   # React hooks (useFlyva*, useDetachedRoot, useRefStack, useRefState)
 │   ├── components/              # FlyvaRoot, FlyvaLink, FlyvaTransitionWrapper
 │   └── page-transition-manager/ # 'use client' re-export of shared manager
 └── utils/

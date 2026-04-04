@@ -3,8 +3,8 @@
 import { usePathname } from 'next/navigation';
 import { PropsWithChildren, useEffect, useLayoutEffect, useRef } from 'react';
 
-import { useFlyvaTransition, getCapturedClone } from '../../composables';
-import { useFlyvaManager } from '../../composables/useFlyvaManager';
+import { useFlyvaTransition, getCapturedClone } from '../../hooks';
+import { useFlyvaManager } from '../../hooks/useFlyvaManager';
 
 export function FlyvaTransitionWrapper({ children }: PropsWithChildren) {
 	const pathname = usePathname();

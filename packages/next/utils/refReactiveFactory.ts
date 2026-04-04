@@ -2,7 +2,7 @@
 
 import type { Reactive, ReactiveFactory } from '@flyva/shared';
 
-import { useRefState } from '../runtime/composables/useRefState';
+import { useRefState } from '../runtime/hooks/useRefState';
 
 export const refReactiveFactory: ReactiveFactory = <T>(initialValue: T) =>
 	// eslint-disable-next-line react-hooks/rules-of-hooks

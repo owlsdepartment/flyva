@@ -25,6 +25,14 @@ export function Nav() {
 				>
 					Work <span className="nav-badge">slide</span>
 				</FlyvaLink>
+
+				<FlyvaLink
+					href="/overlay"
+					flyvaTransition="overlayTransition"
+					className={pathname === '/overlay' ? 'active' : ''}
+				>
+					Overlay <span className="nav-badge">detached</span>
+				</FlyvaLink>
 			</div>
 		</nav>
 	);

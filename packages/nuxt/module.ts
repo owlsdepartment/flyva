@@ -44,7 +44,12 @@ export default defineNuxtModule<ModuleOptions>({
 		const readFileList = () => {
 			return fs
 				.readdirSync(objectDirectory)
-				.filter(file => file.endsWith('.js') || file.endsWith('.ts'))
+				.filter(
+					file =>
+						file.endsWith('.js') ||
+						file.endsWith('.ts') ||
+						file.endsWith('.tsx')
+				)
 				.reduce((acc, file) => {
 					acc[file] = path.join(objectDirectory, file);
 					return acc;
@@ -55,7 +60,7 @@ export default defineNuxtModule<ModuleOptions>({
 
 		const loadTemplates = () => {
 			Object.entries(readFileList()).forEach(([name, path]) => {
-				const objectName = name.replace(/\.(js|ts)$/, '');
+				const objectName = name.replace(/\.(js|ts|tsx)$/, '');
 
 				if (objectName === 'index') return;
 				if (loadedTemplates.includes(objectName)) return;
@@ -80,7 +85,7 @@ export default defineNuxtModule<ModuleOptions>({
 				const files = readFileList();
 
 				for (const [name] of Object.entries(files)) {
-					const objectName = name.replace(/\.(js|ts)$/, '');
+					const objectName = name.replace(/\.(js|ts|tsx)$/, '');
 
 					if (objectName === 'index') continue;
 
@@ -115,7 +120,14 @@ export default defineNuxtModule<ModuleOptions>({
 		});
 
 		addImports(
-			['useFlyvaTransition', 'useFlyvaState', 'useRefStack', 'globalGetRefStackItem', 'globalGetRefStack'].map(key => ({
+			[
+				'useDetachedRoot',
+				'useFlyvaTransition',
+				'useFlyvaState',
+				'useRefStack',
+				'globalGetRefStackItem',
+				'globalGetRefStack',
+			].map(key => ({
 				name: key,
 				as: key,
 				from: resolve('runtime/composables'),

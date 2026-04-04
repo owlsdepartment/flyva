@@ -3,9 +3,9 @@
 import { PropsWithChildren } from 'react';
 
 import { refReactiveFactory } from '../../../utils/refReactiveFactory';
-import { FlyvaConfig, FlyvaConfigContext } from '../../composables';
-import { FlyvaManagerContext } from '../../composables/useFlyvaManager';
-import type { RefState } from '../../composables/useRefState';
+import { FlyvaConfig, FlyvaConfigContext } from '../../hooks';
+import { FlyvaManagerContext } from '../../hooks/useFlyvaManager';
+import type { RefState } from '../../hooks/useRefState';
 import { PageTransition, PageTransitionManager } from '../../page-transition-manager';
 
 let singleton: PageTransitionManager | null = null;

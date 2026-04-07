@@ -1,4 +1,4 @@
-import { Reactive, ReactiveFactory } from '../types';
+import type { Reactive, ReactiveFactory } from '../types';
 import type {
 	PageTransition,
 	PageTransitionContext,

@@ -4,7 +4,7 @@ export default defineNuxtConfig({
 		transpile: ['../../packages/nuxt'],
 	},
 	vite: {
-		vueJsx: true,
+		vueJsx: {},
 	},
 	flyva: {
 		defaultKey: 'defaultTransition',

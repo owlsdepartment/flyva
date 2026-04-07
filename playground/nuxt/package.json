@@ -3,13 +3,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "nuxi dev",
+    "dev": "nuxi dev --port 3100",
     "build": "nuxi build",
     "generate": "nuxi generate"
   },
   "dependencies": {
+    "@flyva/nuxt": "workspace:*",
     "@flyva/shared": "workspace:*",
     "animejs": "^4.0.0",
-    "nuxt": "^4.4.0"
+    "nuxt": "^4.4.0",
+    "vue": "^3.4.0"
   }
 }

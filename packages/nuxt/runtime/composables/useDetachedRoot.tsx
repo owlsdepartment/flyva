@@ -23,12 +23,11 @@ function createRefMap<T extends Record<string, unknown>>(): RefMap<T> {
 				throw new TypeError('DetachedRoot refs use string keys only');
 			}
 			const key = prop as keyof T;
-			let r = store[key];
-			if (!r) {
-				r = ref(null) as Ref<T[typeof key]>;
-				store[key] = r;
-			}
-			return r;
+			const existing = store[key];
+			if (existing) return existing;
+			const created = ref(null) as Ref<T[typeof key]>;
+			store[key] = created;
+			return created;
 		},
 	});
 }

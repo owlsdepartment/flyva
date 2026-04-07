@@ -148,6 +148,9 @@ export default defineNuxtModule<ModuleOptions>({
 				from: '@flyva/shared',
 			},
 		]);
+
+		nuxt.options.alias['@flyva/nuxt'] = resolve('.');
+		nuxt.options.alias['@flyva/nuxt/*'] = resolve('.') + '/*';
 	},
 });
 

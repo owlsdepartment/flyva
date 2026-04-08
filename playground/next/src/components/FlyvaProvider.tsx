@@ -3,9 +3,11 @@
 import { FlyvaRoot } from '@flyva/next';
 import { PropsWithChildren } from 'react';
 
-import { defaultTransition, expandTransition, overlayTransition, slideTransition } from '@/page-transitions';
+import { cssFadeTransition, cssSlideTransition, defaultTransition, expandTransition, overlayTransition, slideTransition } from '@/page-transitions';
 
 const transitions = {
+	cssFadeTransition,
+	cssSlideTransition,
 	defaultTransition,
 	expandTransition,
 	overlayTransition,

@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { PropsWithChildren, useEffect, useLayoutEffect, useRef } from 'react';
 
-import { useFlyvaTransition, getCapturedClone } from '../../hooks';
+import { useFlyvaTransition, getCapturedClone, resolveDomSwap, isVtActive } from '../../hooks';
 import { useFlyvaManager } from '../../hooks/useFlyvaManager';
 
 export function FlyvaTransitionWrapper({ children }: PropsWithChildren) {
@@ -27,8 +27,23 @@ export function FlyvaTransitionWrapper({ children }: PropsWithChildren) {
 			return;
 		}
 
+		if (isVtActive()) {
+			if (contentRef.current) {
+				manager.setContentElements(undefined, contentRef.current);
+			}
+			resolveDomSwap();
+			return;
+		}
+
 		if (contentRef.current) {
 			contentRef.current.style.cssText = '';
+		}
+
+		const isCssMode = manager.runningInstance?.cssMode === true;
+		const runningName = manager.runningName as string | undefined;
+
+		if (isCssMode && runningName && contentRef.current) {
+			contentRef.current.classList.add(`${runningName}-enter-from`);
 		}
 
 		const clone = getCapturedClone() as HTMLDivElement | null;

@@ -66,7 +66,9 @@ const FlyvaLink = forwardRef<HTMLAnchorElement, PropsWithChildren<FlyvaLinkProps
 			...(resolvedOptions ?? {}),
 		}, rootEl.current ?? e.target as HTMLElement);
 
-		if (transition.isConcurrent) {
+		if (transition.isViewTransition) {
+			await transition.leaveWithViewTransition(() => router.push(href));
+		} else if (transition.isConcurrent) {
 			transition.leave();
 			router.push(href);
 		} else {

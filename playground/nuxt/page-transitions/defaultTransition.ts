@@ -9,52 +9,68 @@ import type {
 class DefaultTransitionClass implements PageTransition {
 	private content: HTMLElement | null = null;
 
-	async prepare() {
-		this.content = document.querySelector('[data-flyva-content]');
+	private shell(): HTMLElement | null {
+		return document.querySelector('[data-flyva-content]');
 	}
 
-	beforeLeave() {
-		if (!this.content) return;
+	private fadeTarget(
+		context: PageTransitionContext,
+		which: 'leave' | 'enter'
+	): HTMLElement | null {
+		if (which === 'leave') {
+			return (context.current as HTMLElement) ?? this.content ?? this.shell();
+		}
+		return (context.next as HTMLElement) ?? (context.el as HTMLElement) ?? this.content ?? this.shell();
+	}
+
+	async prepare() {
+		this.content = this.shell();
+	}
+
+	beforeLeave(context: PageTransitionContext) {
+		const target = this.fadeTarget(context, 'leave');
+		if (!target) return;
 
 		document.body.classList.add('flyva-transition-active');
-		this.content.style.pointerEvents = 'none';
+		target.style.pointerEvents = 'none';
 	}
 
-	async leave() {
-		if (!this.content) return;
+	async leave(context: PageTransitionContext) {
+		const target = this.fadeTarget(context, 'leave');
+		if (!target) return;
 
 		const hero = globalGetRefStackItem<HTMLElement>('hero');
 
-		console.log('[globalGetRefStackItem]', hero, hero?.value);
-
 		if (hero?.value) {
-			await animate(hero.value, { scale: 0.75, opacity: 0, duration: 300, ease: 'inQuad' });
+			await animate(hero.value, { scale: 0.75, opacity: 0, duration: 320, ease: 'inCubic' });
 		}
 
-		await animate(this.content, { opacity: 0, duration: 400, ease: 'inQuad' });
+		await animate(target, { opacity: 0, duration: 420, ease: 'inCubic' });
 	}
 
-	afterLeave() {
-		if (!this.content) return;
-		this.content.style.pointerEvents = '';
+	afterLeave(context: PageTransitionContext) {
+		const target = this.fadeTarget(context, 'leave');
+		if (!target) return;
+		target.style.pointerEvents = '';
 	}
 
-	beforeEnter() {
-		this.content = document.querySelector('[data-flyva-content]');
-		if (!this.content) return;
+	beforeEnter(context: PageTransitionContext) {
+		this.content = this.shell();
+		const target = this.fadeTarget(context, 'enter');
+		if (!target) return;
 
-		this.content.style.opacity = '0';
+		target.style.opacity = '0';
 	}
 
-	async enter() {
-		if (!this.content) return;
+	async enter(context: PageTransitionContext) {
+		const target = this.fadeTarget(context, 'enter');
+		if (!target) return;
 
-		await animate(this.content, { opacity: 1, duration: 400, ease: 'outQuad' });
+		await animate(target, { opacity: 1, duration: 560, ease: 'outCubic' });
 	}
 
 	afterEnter(context: PageTransitionContext) {
 		document.body.classList.remove('flyva-transition-active');
-		console.log('[flyva] defaultTransition complete →', context.options?.toHref);
 	}
 
 	cleanup() {

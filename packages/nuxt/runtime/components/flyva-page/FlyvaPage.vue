@@ -1,7 +1,9 @@
 <script lang="ts" setup>
 import { computed, type TransitionProps } from 'vue';
-import { useNuxtApp } from 'nuxt/app';
+import { useNuxtApp, useRuntimeConfig } from 'nuxt/app';
 import { useFlyvaState } from '../../composables';
+import { isVtActive, resolveDomSwap } from '../../composables/useFlyvaVtState';
+import { applyCssStageClasses } from '../../../../shared/view-transition';
 
 defineOptions({ inheritAttrs: false });
 
@@ -9,19 +11,33 @@ const { getEnterPromise, getLeavePromise, start, finish } = useFlyvaState();
 
 const nuxtApp = useNuxtApp();
 const { $flyvaManager } = nuxtApp;
+const config = useRuntimeConfig().public;
 
 let resolveLeave: (() => void) | null = null;
 
 const isConcurrent = computed(() => $flyvaManager.runningInstance?.concurrent === true);
+const isCssMode = computed(() => $flyvaManager.runningInstance?.cssMode === true);
 
 nuxtApp.hook('page:loading:start', () => {
 	resolveLeave = start();
 });
 
 nuxtApp.hook('page:start', async () => {
+	if (isVtActive()) {
+		resolveLeave?.();
+		resolveLeave = null;
+		return;
+	}
+
 	if (!$flyvaManager.isRunning) {
-		const config = nuxtApp.$config.public.flyva;
-		$flyvaManager.run(config?.defaultKey ?? 'defaultTransition', {});
+		const flyvaConfig = config.flyva;
+		$flyvaManager.run(flyvaConfig?.defaultKey ?? 'defaultTransition', {});
+	}
+
+	if (isCssMode.value && !config.flyva?.viewTransition) {
+		resolveLeave?.();
+		resolveLeave = null;
+		return;
 	}
 
 	if (!isConcurrent.value) {
@@ -36,22 +52,41 @@ nuxtApp.hook('page:start', async () => {
 });
 
 nuxtApp.hook('page:finish', async () => {
+	if (isVtActive()) {
+		resolveDomSwap();
+		finish();
+		return;
+	}
+
 	await getLeavePromise();
 
-	$flyvaManager.beforeEnter();
-	await $flyvaManager.readyPromise;
-	await $flyvaManager.enter();
-	$flyvaManager.afterEnter();
-
-	finish();
+	if (isConcurrent.value) {
+		$flyvaManager.beforeEnter();
+		await $flyvaManager.readyPromise;
+		await $flyvaManager.enter();
+		$flyvaManager.afterEnter();
+		finish();
+	}
 });
 
 const transition = computed<TransitionProps>(() => ({
 	css: false,
-	mode: isConcurrent.value ? undefined : 'out-in',
+	mode: isVtActive() ? undefined : (isConcurrent.value ? undefined : 'out-in'),
 
 	onLeave: async (el, done) => {
+		if (isVtActive()) {
+			done();
+			return;
+		}
+
 		$flyvaManager.setContentElements(el);
+
+		if (isCssMode.value && !config.flyva?.viewTransition) {
+			const name = $flyvaManager.runningName as string;
+			if (name) await applyCssStageClasses(el, name, 'leave');
+			done();
+			return;
+		}
 
 		if (isConcurrent.value) {
 			$flyvaManager.beforeLeave();
@@ -67,11 +102,45 @@ const transition = computed<TransitionProps>(() => ({
 
 	onBeforeEnter: (el) => {
 		$flyvaManager.setContentElements($flyvaManager.currentContent, el);
+
+		if (isCssMode.value && !config.flyva?.viewTransition) {
+			const name = $flyvaManager.runningName as string;
+			if (name) (el as HTMLElement).classList.add(`${name}-enter-from`);
+		}
 	},
 
-	onEnter: async (_el, done) => {
-		await getLeavePromise();
-		await getEnterPromise();
+	onEnter: async (el, done) => {
+		if (isVtActive()) {
+			done();
+			return;
+		}
+
+		if (isCssMode.value && !config.flyva?.viewTransition) {
+			const name = $flyvaManager.runningName as string;
+			if (name) await applyCssStageClasses(el as HTMLElement, name, 'enter');
+			$flyvaManager.finishTransition();
+			finish();
+			done();
+			return;
+		}
+
+		if (isConcurrent.value) {
+			await getEnterPromise();
+			done();
+			return;
+		}
+
+		if (!$flyvaManager.runningInstance) {
+			finish();
+			done();
+			return;
+		}
+
+		$flyvaManager.beforeEnter(el);
+		await $flyvaManager.readyPromise;
+		await $flyvaManager.enter(el);
+		$flyvaManager.afterEnter(el);
+		finish();
 		done();
 	},
 }));

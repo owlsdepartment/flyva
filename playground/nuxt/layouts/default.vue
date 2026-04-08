@@ -19,13 +19,21 @@
 					Work <span class="nav-badge">slide</span>
 				</FlyvaLink>
 
-				<FlyvaLink
-					to="/overlay"
-					flyva-transition="overlayTransition"
-					:class="{ active: $route.path === '/overlay' }"
-				>
-					Overlay <span class="nav-badge">detached</span>
-				</FlyvaLink>
+			<FlyvaLink
+				to="/css-demo"
+				flyva-transition="cssFadeTransition"
+				:class="{ active: $route.path === '/css-demo' }"
+			>
+				CSS Mode <span class="nav-badge">css</span>
+			</FlyvaLink>
+
+			<FlyvaLink
+				to="/overlay"
+				flyva-transition="overlayTransition"
+				:class="{ active: $route.path === '/overlay' }"
+			>
+				Overlay <span class="nav-badge">detached</span>
+			</FlyvaLink>
 			</div>
 		</nav>
 

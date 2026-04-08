@@ -1,7 +1,13 @@
 <script lang="ts" setup>
 import { NuxtLink } from '#components';
-import { navigateTo, useRoute, useRuntimeConfig } from '#app';
+import { navigateTo, useNuxtApp, useRoute, useRuntimeConfig } from '#app';
 import { useFlyvaTransition } from '../../composables';
+import { createDomSwapPromise, setVtActive } from '../../composables/useFlyvaVtState';
+import {
+	applyViewTransitionNames,
+	clearViewTransitionNames,
+	supportsViewTransitions,
+} from '../../../../shared/view-transition';
 import type { FlyvaLinkProps } from './types';
 import { ref } from 'vue';
 
@@ -20,6 +26,7 @@ const emit = defineEmits<{
 
 const rootEl = ref<InstanceType<typeof NuxtLink>>();
 const route = useRoute();
+const { $flyvaManager } = useNuxtApp();
 const { prepare } = useFlyvaTransition();
 
 function normalizeHref(href: string): string {
@@ -54,7 +61,44 @@ async function onClick() {
 		el,
 	);
 
-	await navigateTo(props.to ?? props.href);
+	const transition = $flyvaManager.runningInstance;
+	const vtEnabled = config.flyva?.viewTransition && supportsViewTransitions();
+
+	if (vtEnabled && transition) {
+		setVtActive(true);
+		const context = $flyvaManager.makeContext(el);
+
+		let resolvedNames: Record<string, string> | undefined;
+		if (transition.viewTransitionNames) {
+			resolvedNames = applyViewTransitionNames(transition.viewTransitionNames, context);
+		}
+
+		const domSwap = createDomSwapPromise();
+
+		const vt = document.startViewTransition(async () => {
+			await navigateTo(props.to ?? props.href);
+			await domSwap;
+			if (resolvedNames) {
+				applyViewTransitionNames(resolvedNames, context);
+			}
+		});
+
+		context.viewTransition = vt;
+
+		if (transition.animateViewTransition) {
+			await vt.ready;
+			await transition.animateViewTransition(vt, context);
+		}
+
+		await vt.finished;
+
+		if (resolvedNames) clearViewTransitionNames(resolvedNames);
+		transition.cleanup?.();
+		$flyvaManager.finishTransition();
+		setVtActive(false);
+	} else {
+		await navigateTo(props.to ?? props.href);
+	}
 }
 </script>
 

@@ -1,0 +1,283 @@
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+:root {
+	--bg: #0a0a0a;
+	--fg: #e5e5e5;
+	--muted: #888;
+	--accent: #6ee7b7;
+	--card-bg: #151515;
+	--border: #262626;
+	--radius: 8px;
+}
+
+html {
+	color-scheme: dark;
+}
+
+body {
+	font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
+	background: var(--bg);
+	color: var(--fg);
+	line-height: 160%;
+	-webkit-font-smoothing: antialiased;
+}
+
+/* ---- nav ---- */
+
+.nav {
+	position: fixed;
+	top: 0;
+	right: 0;
+	left: 0;
+	height: 62px;
+	z-index: 100;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 16px 32px;
+	border-bottom: 1px solid var(--border);
+	background: rgba(10, 10, 10, 0.85);
+	backdrop-filter: blur(12px);
+	view-transition-name: nav;
+}
+
+.nav-logo {
+	font-weight: 700;
+	font-size: 18px;
+	letter-spacing: -0.02em;
+	color: var(--accent);
+}
+
+.nav-logo-tag {
+	color: var(--muted);
+	font-weight: 400;
+	font-size: 13px;
+}
+
+.nav-links {
+	display: flex;
+	gap: 24px;
+}
+
+.nav-links a {
+	color: var(--muted);
+	text-decoration: none;
+	font-size: 14px;
+	transition: color 0.15s;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+	color: var(--fg);
+}
+
+.nav-badge {
+	font-size: 10px;
+	padding: 2px 6px;
+	border-radius: 4px;
+	background: var(--border);
+	color: var(--muted);
+}
+
+/* ---- layout ---- */
+
+.page {
+	min-height: 100dvh;
+	background-color: var(--bg);
+	padding-top: 62px;
+}
+
+.page-content {
+	max-width: 720px;
+	margin: 0 auto;
+	padding: 64px 32px 96px;
+	display: flex;
+	flex-direction: column;
+	gap: 48px;
+}
+
+.section h1 {
+	font-size: 32px;
+	font-weight: 700;
+	letter-spacing: -0.03em;
+	margin-bottom: 12px;
+}
+
+.section h2 {
+	font-size: 20px;
+	font-weight: 600;
+	letter-spacing: -0.02em;
+	margin-bottom: 12px;
+}
+
+.section p {
+	color: var(--muted);
+	font-size: 14px;
+}
+
+.section code {
+	background: var(--card-bg);
+	border: 1px solid var(--border);
+	padding: 1px 5px;
+	border-radius: 4px;
+	font-size: 12px;
+	color: var(--accent);
+}
+
+/* ---- cards ---- */
+
+.card-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	gap: 16px;
+}
+
+.card {
+	background: var(--card-bg);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	padding: 24px;
+}
+
+.card h3 {
+	font-size: 14px;
+	font-weight: 600;
+	margin-bottom: 6px;
+}
+
+.card p {
+	font-size: 12px;
+	color: var(--muted);
+}
+
+/* ---- work cards (clickable) ---- */
+
+.work-card {
+	display: block;
+	text-decoration: none;
+	color: inherit;
+	background: var(--card-bg);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	padding: 24px;
+	cursor: pointer;
+	transition: border-color 0.2s, background 0.2s;
+}
+
+.work-card:hover {
+	border-color: var(--accent);
+	background: rgba(110, 231, 183, 0.04);
+}
+
+.work-card h3 {
+	font-size: 16px;
+	font-weight: 700;
+	line-height: 130%;
+	letter-spacing: -0.03em;
+	margin-bottom: 0.375em;
+	color: var(--fg);
+}
+
+.work-card p {
+	font-size: 13px;
+	color: var(--muted);
+	line-height: 160%;
+}
+
+/* ---- work detail page ---- */
+
+.work-detail {
+	gap: 32px;
+}
+
+.work-detail-hero {
+	background: var(--card-bg);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	padding: 48px 40px;
+	view-transition-name: hero;
+}
+
+.work-detail-hero h1 {
+	font-size: 36px;
+	font-weight: 700;
+	letter-spacing: -0.03em;
+	line-height: 130%;
+	margin-bottom: 0.375em;
+}
+
+.work-detail-intro {
+	color: var(--accent);
+	font-size: 16px;
+	line-height: 160%;
+}
+
+.work-detail-body {
+	font-size: 15px;
+	line-height: 180%;
+	color: var(--muted);
+}
+
+.back-link {
+	display: inline-block;
+	color: var(--accent);
+	text-decoration: none;
+	font-size: 14px;
+	transition: opacity 0.15s;
+}
+
+.back-link:hover {
+	opacity: 0.7;
+}
+
+/* ---- VT: suppress browser default root crossfade ---- */
+
+::view-transition-old(root),
+::view-transition-new(root) {
+	animation: none;
+}
+
+/* ---- VT: crossfade for main content ---- */
+
+::view-transition-old(main) {
+	animation: vt-fade-out 0.6s cubic-bezier(0.4, 0, 1, 1);
+}
+
+::view-transition-new(main) {
+	animation: vt-fade-in 0.6s cubic-bezier(0, 0, 0.2, 1);
+}
+
+@keyframes vt-fade-out {
+	from { opacity: 1; }
+	to { opacity: 0; }
+}
+
+@keyframes vt-fade-in {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+
+/* ---- VT: shared element hero ---- */
+
+::view-transition-old(hero),
+::view-transition-new(hero) {
+	animation-duration: 0.7s;
+	animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---- VT: keep nav stable ---- */
+
+::view-transition-old(nav),
+::view-transition-new(nav) {
+	animation: none;
+	mix-blend-mode: normal;
+}

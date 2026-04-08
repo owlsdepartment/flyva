@@ -26,13 +26,21 @@ export function Nav() {
 					Work <span className="nav-badge">slide</span>
 				</FlyvaLink>
 
-				<FlyvaLink
-					href="/overlay"
-					flyvaTransition="overlayTransition"
-					className={pathname === '/overlay' ? 'active' : ''}
-				>
-					Overlay <span className="nav-badge">detached</span>
-				</FlyvaLink>
+			<FlyvaLink
+				href="/css-demo"
+				flyvaTransition="cssFadeTransition"
+				className={pathname === '/css-demo' ? 'active' : ''}
+			>
+				CSS Mode <span className="nav-badge">css</span>
+			</FlyvaLink>
+
+			<FlyvaLink
+				href="/overlay"
+				flyvaTransition="overlayTransition"
+				className={pathname === '/overlay' ? 'active' : ''}
+			>
+				Overlay <span className="nav-badge">detached</span>
+			</FlyvaLink>
 			</div>
 		</nav>
 	);

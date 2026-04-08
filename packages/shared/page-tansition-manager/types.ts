@@ -11,10 +11,21 @@ export interface PageTransitionContext<O = PageTransitionOptions> {
 	el?: Element;
 	current?: Element;
 	next?: Element;
+	viewTransition?: ViewTransition;
 }
 
 export interface PageTransition<O = PageTransitionOptions> {
 	concurrent?: boolean;
+	cssMode?: boolean;
+
+	viewTransitionNames?:
+		| Record<string, string>
+		| ((context: PageTransitionContext<O>) => Record<string, string>);
+
+	animateViewTransition?(
+		viewTransition: ViewTransition,
+		context: PageTransitionContext<O>
+	): Promise<void>;
 
 	condition?(context: PageTransitionContext<O>): Promise<boolean> | boolean;
 

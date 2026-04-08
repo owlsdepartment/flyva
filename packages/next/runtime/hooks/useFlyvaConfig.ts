@@ -4,6 +4,7 @@ import { createContext, useContext } from 'react';
 
 export interface FlyvaConfig {
 	defaultKey: string;
+	viewTransition?: boolean;
 }
 
 export const FlyvaConfigContext = createContext<FlyvaConfig>(null!);

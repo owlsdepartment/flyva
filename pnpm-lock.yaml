@@ -152,6 +152,37 @@ importers:
         specifier: ^5.8.0
         version: 5.9.3
 
+  playground/next-vt:
+    dependencies:
+      '@flyva/next':
+        specifier: workspace:*
+        version: link:../../packages/next
+      '@flyva/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      next:
+        specifier: ^16.2.0
+        version: 16.2.1(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.98.0)
+      react:
+        specifier: ^19.0.0
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@types/node':
+        specifier: ^22
+        version: 22.19.15
+      '@types/react':
+        specifier: ^19
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19
+        version: 19.2.3(@types/react@19.2.14)
+      typescript:
+        specifier: ^5.8.0
+        version: 5.9.3
+
   playground/nuxt:
     dependencies:
       '@flyva/nuxt':
@@ -163,6 +194,21 @@ importers:
       animejs:
         specifier: ^4.0.0
         version: 4.3.6
+      nuxt:
+        specifier: ^4.4.0
+        version: 4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@parcel/watcher@2.5.6)(@types/node@22.19.15)(@vue/compiler-sfc@3.5.31)(cac@6.7.14)(db0@0.3.4)(eslint@9.39.4(jiti@2.6.1))(ioredis@5.10.1)(magicast@0.5.2)(optionator@0.9.4)(rollup-plugin-visualizer@7.0.1(rollup@4.60.1))(rollup@4.60.1)(sass@1.98.0)(terser@5.46.1)(typescript@5.9.3)(vite@7.3.1(@types/node@22.19.15)(jiti@2.6.1)(sass@1.98.0)(terser@5.46.1)(yaml@2.8.3))(yaml@2.8.3)
+      vue:
+        specifier: ^3.4.0
+        version: 3.5.31(typescript@5.9.3)
+
+  playground/nuxt-vt:
+    dependencies:
+      '@flyva/nuxt':
+        specifier: workspace:*
+        version: link:../../packages/nuxt
+      '@flyva/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       nuxt:
         specifier: ^4.4.0
         version: 4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@parcel/watcher@2.5.6)(@types/node@22.19.15)(@vue/compiler-sfc@3.5.31)(cac@6.7.14)(db0@0.3.4)(eslint@9.39.4(jiti@2.6.1))(ioredis@5.10.1)(magicast@0.5.2)(optionator@0.9.4)(rollup-plugin-visualizer@7.0.1(rollup@4.60.1))(rollup@4.60.1)(sass@1.98.0)(terser@5.46.1)(typescript@5.9.3)(vite@7.3.1(@types/node@22.19.15)(jiti@2.6.1)(sass@1.98.0)(terser@5.46.1)(yaml@2.8.3))(yaml@2.8.3)

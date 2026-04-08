@@ -4,13 +4,6 @@ import { ref } from 'vue';
 const hero = ref<HTMLDivElement | null>(null);
 useRefStack('hero', hero);
 
-onScopeDispose(() => {
-	console.log('hero:scopeDispose');
-});
-
-onUnmounted(() => {
-	console.log('hero:onUnmounted');
-})
 </script>
 
 <template>

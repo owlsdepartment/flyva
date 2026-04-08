@@ -548,6 +548,89 @@ body {
 	color: #4a6670;
 }
 
+/* ---- CSS demo page ---- */
+
+.css-demo-links {
+	display: flex;
+	gap: 12px;
+	margin-top: 16px;
+	flex-wrap: wrap;
+}
+
+.css-demo-btn {
+	display: inline-block;
+	padding: 10px 20px;
+	background: var(--card-bg);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	color: var(--fg);
+	text-decoration: none;
+	font-size: 13px;
+	transition: border-color 0.2s, background 0.2s;
+	cursor: pointer;
+}
+
+.css-demo-btn:hover {
+	border-color: var(--accent);
+	background: rgba(110, 231, 183, 0.04);
+}
+
+/* ---- CSS mode: fade ---- */
+
+.cssFadeTransition-leave-active {
+	transition: opacity 0.5s ease;
+}
+
+.cssFadeTransition-enter-active {
+	transition: opacity 0.8s ease-out;
+}
+
+.cssFadeTransition-leave-from {
+	opacity: 1;
+}
+
+.cssFadeTransition-leave-to {
+	opacity: 0;
+}
+
+.cssFadeTransition-enter-from {
+	opacity: 0;
+}
+
+.cssFadeTransition-enter-to {
+	opacity: 1;
+}
+
+/* ---- CSS mode: slide ---- */
+
+.cssSlideTransition-leave-active {
+	transition: transform 0.3s ease-in, opacity 0.3s ease-in;
+}
+
+.cssSlideTransition-enter-active {
+	transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+}
+
+.cssSlideTransition-leave-from {
+	transform: translateX(0);
+	opacity: 1;
+}
+
+.cssSlideTransition-leave-to {
+	transform: translateX(-20%);
+	opacity: 0;
+}
+
+.cssSlideTransition-enter-from {
+	transform: translateX(30%);
+	opacity: 0;
+}
+
+.cssSlideTransition-enter-to {
+	transform: translateX(0);
+	opacity: 1;
+}
+
 /* ---- flyva transition overlay ---- */
 
 .flyva-transition-active::after {

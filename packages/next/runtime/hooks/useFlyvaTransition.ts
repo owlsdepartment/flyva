@@ -1,12 +1,37 @@
 'use client';
 
 import type { PageTransitionOptions } from '@flyva/shared';
+import {
+	applyViewTransitionNames,
+	clearViewTransitionNames,
+	applyCssStageClasses,
+	supportsViewTransitions,
+} from '@flyva/shared';
 
+import { useFlyvaConfig } from './useFlyvaConfig';
 import { useFlyvaManager } from './useFlyvaManager';
 
 let initializedManually = false;
 let hasTransitioned = false;
 let _capturedClone: Element | null = null;
+let _vtActive = false;
+
+let _domSwapResolve: (() => void) | null = null;
+
+export function resolveDomSwap() {
+	_domSwapResolve?.();
+	_domSwapResolve = null;
+}
+
+export function isVtActive() {
+	return _vtActive;
+}
+
+function createDomSwapPromise(): Promise<void> {
+	return new Promise<void>(resolve => {
+		_domSwapResolve = resolve;
+	});
+}
 
 const CLONE_CSS = '.flyva-clone,.flyva-clone *{animation-play-state:paused!important;transition:none!important}';
 let _styleInjected = false;
@@ -27,13 +52,14 @@ export function getCapturedClone(): Element | null {
 
 export function useFlyvaTransition() {
 	const flyvaManager = useFlyvaManager();
+	const config = useFlyvaConfig();
 
 	async function prepare(name: string, options: PageTransitionOptions, el?: Element) {
 		initializedManually = true;
 		hasTransitioned = true;
 		await flyvaManager.run(name, options, el);
 
-		if (flyvaManager.runningInstance?.concurrent && flyvaManager.currentContent) {
+		if (!config.viewTransition && flyvaManager.runningInstance?.concurrent && flyvaManager.currentContent) {
 			injectCloneStyles();
 
 			_capturedClone = flyvaManager.currentContent.cloneNode(true) as Element;
@@ -46,8 +72,68 @@ export function useFlyvaTransition() {
 		}
 	}
 
+	async function leaveWithViewTransition(navigate: () => void): Promise<void> {
+		const transition = flyvaManager.runningInstance;
+		if (!transition || !supportsViewTransitions()) {
+			navigate();
+			return;
+		}
+
+		_vtActive = true;
+		const context = flyvaManager.makeContext();
+
+		let resolvedNames: Record<string, string> | undefined;
+		if (transition.viewTransitionNames) {
+			resolvedNames = applyViewTransitionNames(transition.viewTransitionNames, context);
+		}
+
+		const domSwap = createDomSwapPromise();
+
+		const vt = document.startViewTransition(async () => {
+			navigate();
+			await domSwap;
+			if (resolvedNames) {
+				applyViewTransitionNames(resolvedNames, context);
+			}
+		});
+
+		context.viewTransition = vt;
+
+		if (transition.animateViewTransition) {
+			await vt.ready;
+			await transition.animateViewTransition(vt, context);
+		}
+
+		await vt.finished;
+
+		if (resolvedNames) clearViewTransitionNames(resolvedNames);
+		transition.cleanup?.();
+		flyvaManager.finishTransition();
+		_vtActive = false;
+	}
+
+	async function leaveWithCssMode(): Promise<void> {
+		const content = flyvaManager.currentContent;
+		if (!content) return;
+		const name = flyvaManager.runningName as string;
+		await applyCssStageClasses(content, name, 'leave');
+	}
+
+	async function enterWithCssMode(): Promise<void> {
+		const content = flyvaManager.nextContent ?? flyvaManager.currentContent;
+		if (!content) return;
+		const name = flyvaManager.runningName as string;
+		await applyCssStageClasses(content, name, 'enter');
+		flyvaManager.finishTransition();
+	}
+
 	async function leave() {
 		initializedManually = true;
+
+		if (flyvaManager.runningInstance?.cssMode && !config.viewTransition) {
+			await leaveWithCssMode();
+			return;
+		}
 
 		if (_capturedClone) {
 			flyvaManager.setContentElements(_capturedClone);
@@ -64,6 +150,12 @@ export function useFlyvaTransition() {
 			return;
 		}
 
+		if (flyvaManager.runningInstance?.cssMode && !config.viewTransition) {
+			await enterWithCssMode();
+			initializedManually = false;
+			return;
+		}
+
 		flyvaManager.beforeEnter();
 		await flyvaManager.readyPromise;
 		await flyvaManager.enter();
@@ -75,7 +167,9 @@ export function useFlyvaTransition() {
 		prepare,
 		leave,
 		enter,
+		leaveWithViewTransition,
 		get hasTransitioned() { return hasTransitioned; },
 		get isConcurrent() { return flyvaManager.runningInstance?.concurrent === true; },
+		get isViewTransition() { return !!config.viewTransition; },
 	};
 }

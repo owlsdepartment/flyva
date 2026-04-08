@@ -5,6 +5,8 @@
   "scripts": {
     "dev:nuxt": "pnpm --filter playground-nuxt dev",
     "dev:next": "pnpm --filter playground-next dev",
+    "dev:next:vt": "pnpm --filter playground-next-vt dev",
+    "dev:nuxt:vt": "pnpm --filter playground-nuxt-vt dev",
     "build": "esr ./scripts/build.ts",
     "publish": "esr ./scripts/publish.ts",
     "version_sync": "esr ./scripts/version-sync.ts",

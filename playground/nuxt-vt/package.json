@@ -1,0 +1,16 @@
+{
+  "name": "playground-nuxt-vt",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxi dev --port 3150",
+    "build": "nuxi build",
+    "generate": "nuxi generate"
+  },
+  "dependencies": {
+    "@flyva/nuxt": "workspace:*",
+    "@flyva/shared": "workspace:*",
+    "nuxt": "^4.4.0",
+    "vue": "^3.4.0"
+  }
+}

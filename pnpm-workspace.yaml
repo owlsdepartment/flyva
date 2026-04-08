@@ -1,3 +1,5 @@
 packages:
   - packages/*
   - playground/*
+  - playground/next-vt
+  - playground/nuxt-vt

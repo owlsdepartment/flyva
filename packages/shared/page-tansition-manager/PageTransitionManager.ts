@@ -7,6 +7,10 @@ import type {
 	PageTransitionTrigger,
 } from './types';
 
+export interface PageTransitionManagerConfig {
+	viewTransition?: boolean;
+}
+
 export class PageTransitionManager<
 	T extends Record<string, PageTransition> = Record<string, PageTransition>,
 	R extends Reactive<unknown> = Reactive<unknown>
@@ -22,12 +26,19 @@ export class PageTransitionManager<
 	protected _stage: Reactive<PageTransitionStage>;
 	protected _currentContent?: Element;
 	protected _nextContent?: Element;
+	protected _warnedTransitions = new Set<string>();
+	protected _config: PageTransitionManagerConfig;
 
-	constructor(protected transitions: T, protected reactiveFactory: ReactiveFactory<unknown, R>) {
+	constructor(
+		protected transitions: T,
+		protected reactiveFactory: ReactiveFactory<unknown, R>,
+		config?: PageTransitionManagerConfig,
+	) {
 		this._isRunning = this.reactiveFactory(false);
 		this._runningInstance = this.reactiveFactory();
 		this._runningName = this.reactiveFactory();
 		this._stage = this.reactiveFactory('none');
+		this._config = config ?? {};
 	}
 
 	get isRunning() {
@@ -74,11 +85,41 @@ export class PageTransitionManager<
 		this._isRunning.value = true;
 		this._trigger = trigger ?? 'internal';
 
+		if (current) this._validateTransition(name as string, current);
+
 		const el = trigger instanceof Element ? trigger : undefined;
 
 		this._readyPromise = current?.prepare?.(this.makeContext(el)) ?? Promise.resolve();
 
 		return this._readyPromise;
+	}
+
+	protected _validateTransition(name: string, t: PageTransition) {
+		if (process.env.NODE_ENV !== 'development') return;
+		if (this._warnedTransitions.has(name)) return;
+		this._warnedTransitions.add(name);
+
+		const vtEnabled = this._config.viewTransition;
+
+		if (t.cssMode && (t.leave || t.enter)) {
+			console.warn(`[flyva] "${name}": leave/enter hooks are ignored when cssMode is enabled — CSS handles the animation`);
+		}
+
+		if (t.animateViewTransition && !vtEnabled) {
+			console.warn(`[flyva] "${name}": animateViewTransition is defined but viewTransition is not enabled — this hook will never run`);
+		}
+
+		if (t.cssMode && t.animateViewTransition) {
+			console.warn(`[flyva] "${name}": animateViewTransition is ignored when cssMode is enabled`);
+		}
+
+		if (t.concurrent && vtEnabled) {
+			console.warn(`[flyva] "${name}": concurrent flag has no effect in viewTransition mode`);
+		}
+
+		if (t.viewTransitionNames && !vtEnabled && !t.cssMode) {
+			console.warn(`[flyva] "${name}": viewTransitionNames requires viewTransition or cssMode to be enabled`);
+		}
 	}
 
 	beforeLeave(el?: Element) {
@@ -109,7 +150,15 @@ export class PageTransitionManager<
 	afterEnter(el?: Element) {
 		this._stage.value = 'afterEnter';
 		this._runningInstance.value?.afterEnter?.(this.makeContext(el));
+		this.finishTransition();
+	}
 
+	setContentElements(current?: Element, next?: Element) {
+		this._currentContent = current;
+		this._nextContent = next;
+	}
+
+	finishTransition() {
 		this.runningInstance?.cleanup?.();
 		this._runningInstance.value = undefined;
 		this._runningName.value = undefined;
@@ -119,16 +168,11 @@ export class PageTransitionManager<
 		this._nextContent = undefined;
 	}
 
-	setContentElements(current?: Element, next?: Element) {
-		this._currentContent = current;
-		this._nextContent = next;
-	}
-
 	getInstance<K extends keyof T>(name: K) {
 		return this.transitions[name];
 	}
 
-	protected makeContext<O = PageTransitionOptions>(el?: Element): PageTransitionContext<O> {
+	makeContext<O = PageTransitionOptions>(el?: Element): PageTransitionContext<O> {
 		return {
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 			name: this._runningName.value! as string,

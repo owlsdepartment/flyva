@@ -16,6 +16,7 @@ export interface ModuleOptions {
 	transitionsDir?: string;
 	defaultKey?: string;
 	useNamedExports?: boolean;
+	viewTransition?: boolean;
 }
 
 export default defineNuxtModule<ModuleOptions>({
@@ -31,7 +32,15 @@ export default defineNuxtModule<ModuleOptions>({
 		nuxt.options.runtimeConfig.public.flyva = {
 			transitionsDir: nuxt.options.runtimeConfig.flyva.transitionsDir,
 			defaultKey: nuxt.options.runtimeConfig.flyva.defaultKey,
+			viewTransition: nuxt.options.runtimeConfig.flyva.viewTransition,
 		};
+
+		if (config.viewTransition && nuxt.options.app?.viewTransition) {
+			console.warn(
+				'[flyva] Both Nuxt app.viewTransition and Flyva viewTransition are enabled. ' +
+				'Disable Nuxt\'s to avoid conflicts: app: { viewTransition: false }'
+			);
+		}
 
 		const { resolve } = createResolver(import.meta.url);
 
@@ -159,6 +168,6 @@ declare module '@nuxt/schema' {
 		flyva: ModuleOptions;
 	}
 	interface PublicRuntimeConfig {
-		flyva: Pick<ModuleOptions, 'transitionsDir' | 'defaultKey'>;
+		flyva: Pick<ModuleOptions, 'transitionsDir' | 'defaultKey' | 'viewTransition'>;
 	}
 }

@@ -75,3 +75,6 @@ packages/**/dist/
 **/playwright-report/
 **/test-results/
 **/blob-report/
+
+# Cursor (local MCP / secrets)
+.cursor/mcp.json

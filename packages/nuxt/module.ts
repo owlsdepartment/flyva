@@ -131,6 +131,8 @@ export default defineNuxtModule<ModuleOptions>({
 		addImports(
 			[
 				'useDetachedRoot',
+				'useFlyvaLifecycle',
+				'useFlyvaStickyRef',
 				'useFlyvaTransition',
 				'useFlyvaState',
 				'useRefStack',

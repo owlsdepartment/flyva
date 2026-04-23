@@ -70,3 +70,8 @@ packages/**/dist/
 
 # pnpm store
 .pnpm-store/
+
+# Playwright
+**/playwright-report/
+**/test-results/
+**/blob-report/

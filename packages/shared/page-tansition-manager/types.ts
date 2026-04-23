@@ -56,3 +56,14 @@ export type PageTransitionStage =
 	| 'beforeLeave'
 	| 'leave'
 	| 'afterLeave';
+
+export interface ActiveHookRegistration {
+	beforeLeave?(context: PageTransitionContext): Promise<void>;
+	leave?(context: PageTransitionContext): Promise<void>;
+	afterLeave?(context: PageTransitionContext): Promise<void>;
+	beforeEnter?(context: PageTransitionContext): Promise<void>;
+	enter?(context: PageTransitionContext): Promise<void>;
+	afterEnter?(context: PageTransitionContext): Promise<void>;
+}
+
+export type RegisterActiveHookReturn = (cleanup?: () => void) => void;

@@ -641,3 +641,124 @@ body {
 	z-index: 9999;
 	cursor: wait;
 }
+
+/* ---- lifecycle classes demo (on <html>) ---- */
+/* flyva-running: whole swap until finish; flyva-pending: after leave DOM, before enter (no *-active gap) */
+
+@keyframes flyva-nav-border-scroll {
+	to {
+		background-position: 200% 0;
+	}
+}
+
+.nav::after {
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: 2px;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 0.35s ease;
+	background: linear-gradient(
+		90deg,
+		var(--border) 0%,
+		var(--accent) 50%,
+		var(--border) 100%
+	);
+	background-size: 200% 100%;
+	background-position: 0 0;
+	animation: flyva-nav-border-scroll 1.25s linear infinite;
+	animation-play-state: paused;
+}
+
+html.flyva-running .nav {
+	pointer-events: none;
+	border-bottom-color: transparent;
+}
+
+html.flyva-running .nav::after {
+	opacity: 1;
+	animation-play-state: running;
+}
+
+html.flyva-running[data-flyva-transition='overlayTransition'] .nav::after {
+	opacity: 0;
+	animation-play-state: paused;
+}
+
+/* ---- lifecycle demo page ---- */
+
+.flyva-lifecycle-link-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 95;
+	background: #000;
+	pointer-events: auto;
+}
+
+.lifecycle-log {
+	background: var(--card-bg);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	padding: 16px;
+	max-height: 280px;
+	overflow-y: auto;
+	font-size: 12px;
+	line-height: 180%;
+}
+
+.lifecycle-log-entry {
+	color: var(--muted);
+}
+
+.lifecycle-log-entry span {
+	color: var(--accent);
+	font-weight: 600;
+}
+
+.lifecycle-indicator {
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: var(--border);
+	transition: background 0.2s;
+	vertical-align: middle;
+	margin-left: 6px;
+}
+
+.lifecycle-indicator--active {
+	background: var(--accent);
+}
+
+.lifecycle-progress-float {
+	position: fixed;
+	bottom: 10vh;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 120;
+	padding: 2rem;
+	border-radius: var(--radius);
+	background: rgba(0, 0, 0, 0.55);
+	backdrop-filter: blur(14px);
+	-webkit-backdrop-filter: blur(14px);
+	box-sizing: border-box;
+}
+
+.lifecycle-progress-float .lifecycle-progress {
+	width: min(22rem, calc(100vw - 6rem));
+	margin-top: 0;
+	height: 3px;
+	background: var(--border);
+	border-radius: 2px;
+	overflow: hidden;
+}
+
+.lifecycle-progress-bar {
+	height: 100%;
+	width: 0%;
+	background: var(--accent);
+	border-radius: 2px;
+}

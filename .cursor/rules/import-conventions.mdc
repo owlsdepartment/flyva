@@ -11,7 +11,7 @@ Playground and package code must import from flyva packages using the `@flyva/` 
 
 ```ts
 // CORRECT
-import { globalGetRefStackItem } from '@flyva/nuxt/runtime/composables/useRefStack';
+import { useFlyvaStickyRef, globalGetRefStackItem } from '@flyva/nuxt/composables';
 import { useDetachedRoot } from '@flyva/nuxt/runtime/composables/useDetachedRoot';
 import { useFlyvaTransition } from '@flyva/next';
 import type { PageTransition } from '@flyva/shared';
@@ -22,7 +22,7 @@ import { globalGetRefStackItem } from '../../../packages/nuxt/runtime/composable
 
 ## Deep imports are expected
 
-Flyva packages expose subpath exports (`"./*": "./*"` in package.json). Deep imports like `@flyva/nuxt/runtime/composables/useRefStack` are intentional and supported.
+Flyva packages expose subpath exports (`"./*": "./*"` in package.json). Prefer **`@flyva/nuxt/composables`** for Nuxt composables when importing explicitly; per-composable paths under `@flyva/nuxt/runtime/composables/…` remain supported.
 
 ## Nuxt playground: use `nuxi typecheck` (not raw `tsc`)
 

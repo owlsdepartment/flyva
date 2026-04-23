@@ -7,6 +7,7 @@
   "type": "module",
   "exports": {
     ".": "./index.ts",
+    "./composables": "./composables.ts",
     "./*": "./*"
   },
   "repository": {
@@ -22,11 +23,16 @@
     "@nuxt/devtools": "^2.0.0",
     "@nuxt/module-builder": "^1.0.0",
     "@nuxt/schema": "^4.0.0",
+    "@playwright/test": "^1.51.0",
     "@types/node": "^22.0.0",
     "typescript": "^5.8.0"
   },
   "peerDependencies": {
     "nuxt": ">=3.14.0",
     "vue": ">=3.4.0"
+  },
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   }
 }

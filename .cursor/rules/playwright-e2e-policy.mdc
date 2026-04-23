@@ -1,0 +1,26 @@
+---
+description: Playwright E2E expectations — coverage and when tests may change
+globs: packages/*/e2e/**/*.ts packages/*/playwright.config.ts
+alwaysApply: false
+---
+
+# Playwright E2E policy
+
+## Coverage
+
+When adding user-facing behavior in `@flyva/next` or `@flyva/nuxt` (navigation, transitions, lifecycle, link props), add or extend E2E specs under `packages/<adapter>/e2e/` so regressions are caught against the playgrounds (`playground-next`, `playground-nuxt`).
+
+## Failing tests are signal
+
+If a code change causes an **existing** E2E test to fail, **do not** rewrite, weaken, or delete that test just to make CI green without **explicit agreement** from the developer on the intent of the change (bugfix vs intentional behavior change).
+
+- **Bugfix:** fix the product code; keep assertions unless the old behavior was wrong.
+- **Intentional behavior change:** update tests only after the developer confirms the new contract; prefer adjusting expectations or adding a migration note in the PR description.
+
+## Where tests live
+
+- Next: [`packages/next/e2e`](packages/next/e2e) — `pnpm --filter @flyva/next test:e2e`
+- Nuxt: [`packages/nuxt/e2e`](packages/nuxt/e2e) — `pnpm --filter @flyva/nuxt test:e2e`
+- Root: `pnpm test:e2e` runs both.
+
+`@flyva/shared` stays browser-free at runtime; unit tests live under `packages/shared/test/` (Vitest + jsdom). Shared logic changes should update or add tests there, and `pnpm --filter @flyva/shared test` must pass — do not weaken or delete existing assertions without the same explicit intent agreement as for E2E.

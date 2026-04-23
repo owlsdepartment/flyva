@@ -101,6 +101,7 @@ The keys in the `transitions` object are the names you'll reference from `FlyvaL
 ```tsx
 // src/app/layout.tsx
 import { FlyvaProvider } from '@/components/FlyvaProvider';
+import { FlyvaTransitionWrapper } from '@flyva/next';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -108,7 +109,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <FlyvaProvider>
           <nav>...</nav>
-          <main data-flyva-content>{children}</main>
+          <main data-flyva-content>
+            <FlyvaTransitionWrapper>{children}</FlyvaTransitionWrapper>
+          </main>
         </FlyvaProvider>
       </body>
     </html>
@@ -116,7 +119,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
-The `data-flyva-content` attribute marks the wrapper your transitions will animate. Query it with `document.querySelector('[data-flyva-content]')` in your transition's `prepare()` hook.
+Put `FlyvaTransitionWrapper` around the segment that should swap on navigation. It owns the content ref the manager uses for **concurrent** transitions, **CSS-mode** class staging, and **View Transitions** handoff. Keep `data-flyva-content` on an outer element if you still query it in `prepare()`; align what you animate with the subtree inside the wrapper when using those modes.
 
 ### 4. Use FlyvaLink
 
@@ -161,12 +164,112 @@ async leave(context) {
 `FlyvaRoot` accepts an optional `config` prop:
 
 ```tsx
-<FlyvaRoot transitions={transitions} config={{ defaultKey: 'fadeTransition' }}>
+<FlyvaRoot
+  transitions={transitions}
+  config={{ defaultKey: 'fadeTransition', viewTransition: true }}
+>
 ```
 
 | Option | Type | Default |
 |--------|------|---------|
 | `defaultKey` | `string` | `'defaultTransition'` |
+| `viewTransition` | `boolean` | `undefined` |
+| `lifecycleClassPrefix` | `string` | `'flyva'` |
+
+`lifecycleClassPrefix` controls the CSS class prefix on `<html>` (e.g. `flyva-running`, `flyva-leave-active`). `data-flyva-transition` on `<html>` always reflects the active transition key. See [Lifecycle classes](/guide/modes/lifecycle).
+
+When `viewTransition` is `true`, `FlyvaLink` uses `document.startViewTransition` for the navigation. Your transition can set `viewTransitionNames` and/or `animateViewTransition` (see [View Transitions mode](./modes/view-transitions)). Unsupported browsers log a dev warning; provide a non–View-Transition fallback if you need one.
+
+## Navigation timing
+
+- **Default** — `leave()` is awaited, then `router.push` runs (sequential).
+- **`concurrent: true` on the transition** — `leave()` is started without awaiting, navigation runs immediately; a short-lived clone covers the outgoing DOM until the swap. Use `context.current` / `context.next` in hooks.
+- **`viewTransition: true` in config** — navigation runs inside `startViewTransition`; DOM swap is coordinated via `leaveWithViewTransition` internally.
+
+### Concurrent mode and content cloning
+
+::: warning Fragile on the App Router
+Overlapping leave and navigation on **Next.js** is only possible because Flyva **injects a DOM clone** of the swap subtree before `router.push`. The App Router does not keep two full React trees mounted the way Nuxt’s page `<Transition>` can—cloning is the workaround.
+
+That has real downsides you should plan for:
+
+- **Layout shift** — the clone and the live layout can disagree (scroll position, responsive breakpoints, fonts still loading, etc.).
+- **Animations replaying** — CSS animations or transitions may **run again** on the clone (`cloneNode` does not preserve every runtime animation state the way a live subtree does).
+- **Refs and identity** — React **refs and component state** still point at the **original** nodes; the element you animate during leave is often the **clone**, not the tree your components mounted. Anything that assumed “this ref is the page” can be wrong until `enter` runs on the new route.
+
+You need to **validate** hover/focus, media, third-party widgets, and imperative APIs yourself, or accept occasional visual glitches. For a **native** old→new handoff without this cloning model, use **[View Transitions mode](./modes/view-transitions)** (`config.viewTransition: true`) instead—`concurrent` is not used on that path.
+:::
+
+## FlyvaLink bypass mode
+
+`FlyvaLink` accepts a `flyva` prop (default `true`). Set it to `false` to render a standard `next/link` with no transition interception. This lets you use `FlyvaLink` as a project-wide `Link` replacement while opting out for specific links:
+
+```tsx
+import { FlyvaLink } from '@flyva/next';
+
+<FlyvaLink href="/about">About</FlyvaLink>               {/* transition */}
+<FlyvaLink href="/terms" flyva={false}>Terms</FlyvaLink>   {/* plain navigation */}
+```
+
+## Reacting to lifecycle events
+
+### From any component: `useFlyvaLifecycle`
+
+`useFlyvaLifecycle` lets any component inside `FlyvaRoot` react to transition lifecycle stages.
+
+**Passive mode** (default) — callbacks fire without blocking the transition:
+
+```tsx
+'use client';
+import { useFlyvaLifecycle } from '@flyva/next';
+
+function Analytics() {
+  useFlyvaLifecycle({
+    beforeLeave(ctx) { trackPageLeave(ctx.name); },
+    afterEnter(ctx)  { trackPageEnter(ctx.name); },
+  });
+  return null;
+}
+```
+
+**Active mode** — callbacks are awaited in parallel with the transition's own hooks. Useful when a component needs to run its own animation that should complete before the lifecycle step proceeds:
+
+```tsx
+'use client';
+import { useFlyvaLifecycle } from '@flyva/next';
+
+function ProgressBar() {
+  const barRef = useRef<HTMLDivElement>(null);
+
+  useFlyvaLifecycle({
+    async leave() {
+      if (barRef.current) {
+        await animate(barRef.current, { scaleX: 1, duration: 400 });
+      }
+    },
+  }, { active: true });
+
+  return <div ref={barRef} className="progress-bar" />;
+}
+```
+
+If the component unmounts mid-transition, the hook unregisters automatically and resolves its outstanding promises so the transition is never blocked.
+
+### From FlyvaLink: callback props
+
+`FlyvaLink` exposes lifecycle callback props that fire in passive mode:
+
+```tsx
+<FlyvaLink
+  href="/about"
+  onBeforeLeave={() => setLoading(true)}
+  onAfterEnter={() => setLoading(false)}
+>
+  About
+</FlyvaLink>
+```
+
+See the [API reference](/api/next#flyvalink) for the full list of callback props.
 
 ## Complete example
 
@@ -206,13 +309,16 @@ export function FlyvaProvider({ children }: React.PropsWithChildren) {
 ```tsx
 // src/app/layout.tsx
 import { FlyvaProvider } from '@/components/FlyvaProvider';
+import { FlyvaTransitionWrapper } from '@flyva/next';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
         <FlyvaProvider>
-          <main data-flyva-content>{children}</main>
+          <main data-flyva-content>
+            <FlyvaTransitionWrapper>{children}</FlyvaTransitionWrapper>
+          </main>
         </FlyvaProvider>
       </body>
     </html>

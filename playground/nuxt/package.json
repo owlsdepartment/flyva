@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "nuxi dev --port 3100",
     "build": "nuxi build",
+    "preview": "nuxi preview --port 3100",
     "generate": "nuxi generate"
   },
   "dependencies": {

@@ -12,7 +12,7 @@ When a user clicks a `FlyvaLink`:
 
 1. **Intercept** — the click is prevented; the URL and trigger element are captured
 2. **Prepare** — your transition snapshots any DOM state it needs (rects, refs, clones)
-3. **Leave** — the outgoing page animates out
+3. **Leave** — the outgoing page animates out (or overlaps with navigation when `concurrent: true` — see [Transition modes](./modes/))
 4. **Navigate** — the framework pushes the new route, the DOM updates
 5. **Enter** — the incoming page animates in
 6. **Cleanup** — the transition resets itself for the next run
@@ -48,10 +48,15 @@ interface PageTransitionContext {
   trigger: string | Element; // "internal" or the clicked DOM element
   options: Record<string, any>;
   el?: Element;              // the trigger element (the FlyvaLink that was clicked)
+  current?: Element;         // outgoing content root (when the adapter tracks it)
+  next?: Element;            // incoming content root (after the swap)
+  viewTransition?: ViewTransition; // set when using the View Transitions API path
 }
 ```
 
 `options` always contains `fromHref` and `toHref` (set automatically), plus anything you pass via `flyvaOptions` / `:flyva-options` on the link.
+
+Use `context.current` and `context.next` in transitions marked `concurrent: true` (or when the framework has set them) instead of relying only on `querySelector` for the element that is actually being swapped.
 
 ## Choosing Next.js or Nuxt
 
@@ -62,6 +67,8 @@ interface PageTransitionContext {
 | Transition registration | Explicit map in a client component | Auto-discovered from a directory |
 | Link component | `FlyvaLink` wraps `next/link` | `FlyvaLink` wraps `NuxtLink` |
 | Shared element refs | `useRefStack` hook | `useRefStack` composable (auto-imported) |
+| Content swap wiring | `FlyvaTransitionWrapper` around page output (App Router) | `FlyvaPage` instead of `NuxtPage` |
+| View Transitions API | `FlyvaRoot` `config.viewTransition` | `flyva.viewTransition` in `nuxt.config` |
 
 ## Install
 

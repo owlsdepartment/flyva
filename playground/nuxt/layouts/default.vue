@@ -1,3 +1,6 @@
+<script setup lang="ts">
+</script>
+
 <template>
 	<div>
 		<nav class="nav">
@@ -19,21 +22,36 @@
 					Work <span class="nav-badge">slide</span>
 				</FlyvaLink>
 
-			<FlyvaLink
-				to="/css-demo"
-				flyva-transition="cssFadeTransition"
-				:class="{ active: $route.path === '/css-demo' }"
-			>
-				CSS Mode <span class="nav-badge">css</span>
-			</FlyvaLink>
+				<FlyvaLink
+					to="/css-demo"
+					flyva-transition="cssFadeTransition"
+					:class="{ active: $route.path === '/css-demo' }"
+				>
+					CSS Mode <span class="nav-badge">css</span>
+				</FlyvaLink>
 
-			<FlyvaLink
-				to="/overlay"
-				flyva-transition="overlayTransition"
-				:class="{ active: $route.path === '/overlay' }"
-			>
-				Overlay <span class="nav-badge">detached</span>
-			</FlyvaLink>
+				<FlyvaLink
+					to="/overlay"
+					flyva-transition="overlayTransition"
+					:class="{ active: $route.path === '/overlay' }"
+				>
+					Overlay <span class="nav-badge">detached</span>
+				</FlyvaLink>
+
+				<FlyvaLink
+					to="/lifecycle-demo"
+					:class="{ active: $route.path === '/lifecycle-demo' }"
+				>
+					Lifecycle <span class="nav-badge">hooks</span>
+				</FlyvaLink>
+
+				<FlyvaLink
+					to="/about"
+					:flyva="false"
+					:class="{ active: $route.path === '/about' }"
+				>
+					About <span class="nav-badge">bypass</span>
+				</FlyvaLink>
 			</div>
 		</nav>
 

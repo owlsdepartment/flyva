@@ -27,6 +27,8 @@ export function FlyvaTransitionWrapper({ children }: PropsWithChildren) {
 			return;
 		}
 
+		console.log('[flyva:wrapper] useLayoutEffect fired', { pathname, isVtActive: isVtActive(), isRunning: manager.isRunning });
+
 		if (isVtActive()) {
 			if (contentRef.current) {
 				manager.setContentElements(undefined, contentRef.current);
@@ -42,8 +44,12 @@ export function FlyvaTransitionWrapper({ children }: PropsWithChildren) {
 		const isCssMode = manager.runningInstance?.cssMode === true;
 		const runningName = manager.runningName as string | undefined;
 
+		console.log('[flyva:wrapper] isCssMode:', isCssMode, 'runningName:', runningName);
+		console.log('[flyva:wrapper] content innerHTML preview:', contentRef.current?.innerHTML?.slice(0, 80));
+
 		if (isCssMode && runningName && contentRef.current) {
 			contentRef.current.classList.add(`${runningName}-enter-from`);
+			console.log('[flyva:wrapper] added enter-from class');
 		}
 
 		const clone = getCapturedClone() as HTMLDivElement | null;
@@ -56,7 +62,9 @@ export function FlyvaTransitionWrapper({ children }: PropsWithChildren) {
 		}
 
 		setTimeout(async () => {
+			console.log('[flyva:wrapper] setTimeout → enter() start', { contentInner: contentRef.current?.innerHTML?.slice(0, 80) });
 			await transition.enter();
+			console.log('[flyva:wrapper] setTimeout → enter() done');
 
 			if (cloneRef.current) {
 				cloneRef.current.remove();

@@ -1,4 +1,4 @@
-<script lang="ts" setup>
+<script setup lang="ts">
 import { computed, type TransitionProps } from 'vue';
 import { useNuxtApp, useRuntimeConfig } from 'nuxt/app';
 import { useFlyvaState } from '../../composables';

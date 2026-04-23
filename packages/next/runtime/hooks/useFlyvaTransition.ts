@@ -114,16 +114,21 @@ export function useFlyvaTransition() {
 
 	async function leaveWithCssMode(): Promise<void> {
 		const content = flyvaManager.currentContent;
+		console.log('[flyva:css] leaveWithCssMode start', { content: !!content, name: flyvaManager.runningName });
 		if (!content) return;
 		const name = flyvaManager.runningName as string;
 		await applyCssStageClasses(content, name, 'leave');
+		console.log('[flyva:css] leaveWithCssMode done');
 	}
 
 	async function enterWithCssMode(): Promise<void> {
 		const content = flyvaManager.nextContent ?? flyvaManager.currentContent;
+		console.log('[flyva:css] enterWithCssMode start', { content: !!content, name: flyvaManager.runningName, hasNext: !!flyvaManager.nextContent, hasCurrent: !!flyvaManager.currentContent });
 		if (!content) return;
 		const name = flyvaManager.runningName as string;
+		console.log('[flyva:css] enterWithCssMode — content innerHTML preview:', (content as HTMLElement).innerHTML?.slice(0, 80));
 		await applyCssStageClasses(content, name, 'enter');
+		console.log('[flyva:css] enterWithCssMode done');
 		flyvaManager.finishTransition();
 	}
 
@@ -139,10 +144,10 @@ export function useFlyvaTransition() {
 			flyvaManager.setContentElements(_capturedClone);
 		}
 
-		flyvaManager.beforeLeave();
+		await flyvaManager.beforeLeave();
 		await flyvaManager.readyPromise;
 		await flyvaManager.leave();
-		flyvaManager.afterLeave();
+		await flyvaManager.afterLeave();
 	}
 
 	async function enter() {
@@ -156,10 +161,10 @@ export function useFlyvaTransition() {
 			return;
 		}
 
-		flyvaManager.beforeEnter();
+		await flyvaManager.beforeEnter();
 		await flyvaManager.readyPromise;
 		await flyvaManager.enter();
-		flyvaManager.afterEnter();
+		await flyvaManager.afterEnter();
 		initializedManually = false;
 	}
 

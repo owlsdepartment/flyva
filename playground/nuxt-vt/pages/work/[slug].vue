@@ -1,4 +1,4 @@
-<script lang="ts" setup>
+<script setup lang="ts">
 const route = useRoute();
 
 const projectData: Record<string, { title: string; description: string; body: string }> = {

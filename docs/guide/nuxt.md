@@ -28,6 +28,9 @@ export default defineNuxtConfig({
 | `defaultKey` | `string` | `'defaultTransition'` | Transition key used when none is specified on a link |
 | `transitionsDir` | `string` | `'flyva-transitions'` | Directory containing transition files (relative to project root) |
 | `useNamedExports` | `boolean` | `true` | Use named exports from transition files as individual transitions |
+| `viewTransition` | `boolean` | `undefined` | When `true`, `FlyvaLink` wraps navigation in `document.startViewTransition` (see [View Transitions mode](./modes/view-transitions)) |
+
+If you enable Nuxt’s built-in `app.viewTransition` and Flyva’s `flyva.viewTransition` at the same time, the module logs a warning — turn off Nuxt’s global View Transitions and let Flyva drive them, or keep only one system.
 
 ### 2. Write a transition
 
@@ -98,7 +101,7 @@ Replace `<NuxtPage />` with `<FlyvaPage />` in your `app.vue`:
 </template>
 ```
 
-Under the hood, `FlyvaPage` wraps `NuxtPage` with Vue's `<Transition>` and hooks into Nuxt's page lifecycle (`page:loading:start`, `page:start`, `page:finish`) to orchestrate the animation.
+Under the hood, `FlyvaPage` wraps `NuxtPage` with Vue's `<Transition>` (`css: false`) and hooks into Nuxt's page lifecycle. It branches on the active transition: **sequential** (default `out-in`), **`concurrent: true`** (leave can overlap navigation; enter runs after the new page is ready), **`cssMode: true`** (class-based phases via `@flyva/shared`), and **`viewTransition`** when enabled in config (coordinates with `FlyvaLink`’s `startViewTransition` callback).
 
 ### 4. Mark the content container
 
@@ -161,9 +164,23 @@ The module registers these composables as auto-imports — use them anywhere in 
 | Composable | Returns |
 |------------|---------|
 | `useFlyvaTransition()` | `{ prepare, isRunning, stage, hasTransitioned }` |
+| `useFlyvaLifecycle(callbacks, options?)` | Subscribes to transition lifecycle (passive or active); see below |
+| `useFlyvaStickyRef()` | `Ref<HTMLElement \| null>` that keeps the last mounted DOM node through page teardown until Flyva clears active hooks |
+| `useFlyvaState()` | Internal coordination helpers used by `FlyvaPage` |
 | `useRefStack(key, ref)` | Registers a Vue ref in the global stack |
+| `useDetachedRoot(render)` | Renders a small Vue tree into a detached DOM node (e.g. transition overlays); returns `{ refs, waitForRender, destroy }` |
 | `globalGetRefStackItem(key)` | Gets a ref by key |
 | `globalGetRefStack()` | Gets the entire stack |
+
+For explicit imports (e.g. transition virtual modules, tests, or when your IDE does not resolve auto-imports), import from **`@flyva/nuxt/composables`** or **`@flyva/nuxt`** (both re-export the same surface).
+
+### `useFlyvaLifecycle` and template refs
+
+`useFlyvaLifecycle` mirrors the Next adapter: **passive** mode (default) reacts to manager stage changes without blocking the transition; **`active: true`** registers with `PageTransitionManager` so your hooks run in parallel with the transition and awaited `Promise`s extend the same phase.
+
+On Nuxt, the outgoing page component often **unmounts before** Flyva’s `leave` phase finishes. Vue then sets bound template refs to `null` while your async `leave` callback may still be running. A plain `ref()` on markup inside that page is therefore unreliable for DOM work in **active** `leave` / `afterLeave`.
+
+Use **`useFlyvaStickyRef()`** for those elements: it ignores Vue’s unmount `null` write, keeps the last non-null element until active-hook unregister cleanup runs (after `leave`, when the manager flushes hook GC), then clears. See the [Nuxt API reference](/api/nuxt#useflyvalifecycle-callbacks-options) for signatures and options.
 
 ## Complete example
 

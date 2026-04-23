@@ -93,6 +93,10 @@ React refs use `.current` to access the DOM element. Vue refs use `.value`.
 
 `useRefStack` cleans up in `onUnmounted` (not `onScopeDispose`). This is deliberate — `onUnmounted` fires after Vue's `<Transition>` `onLeave` callback completes, so the ref remains in the stack for the entire leave animation.
 
+## Detached roots (overlays)
+
+For UI that must exist **outside** the page tree but still use framework refs (e.g. a portal overlay during a transition), use `useDetachedRoot` from `@flyva/next` or `@flyva/nuxt` (Nuxt auto-imports it). It mounts a temporary app/root on `document.body` and returns `{ refs, waitForRender, destroy }`. Call `destroy()` in your transition’s `cleanup()` or `afterEnter()`.
+
 ## API summary
 
 | Function | Description |

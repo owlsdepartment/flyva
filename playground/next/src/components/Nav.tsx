@@ -34,14 +34,29 @@ export function Nav() {
 				CSS Mode <span className="nav-badge">css</span>
 			</FlyvaLink>
 
-			<FlyvaLink
-				href="/overlay"
-				flyvaTransition="overlayTransition"
-				className={pathname === '/overlay' ? 'active' : ''}
-			>
-				Overlay <span className="nav-badge">detached</span>
-			</FlyvaLink>
-			</div>
+		<FlyvaLink
+			href="/overlay"
+			flyvaTransition="overlayTransition"
+			className={pathname === '/overlay' ? 'active' : ''}
+		>
+			Overlay <span className="nav-badge">detached</span>
+		</FlyvaLink>
+
+		<FlyvaLink
+			href="/lifecycle-demo"
+			className={pathname === '/lifecycle-demo' ? 'active' : ''}
+		>
+			Lifecycle <span className="nav-badge">hooks</span>
+		</FlyvaLink>
+
+		<FlyvaLink
+			href="/about"
+			flyva={false}
+			className={pathname === '/about' ? 'active' : ''}
+		>
+			About <span className="nav-badge">bypass</span>
+		</FlyvaLink>
+		</div>
 		</nav>
 	);
 }

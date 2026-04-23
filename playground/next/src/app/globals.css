@@ -10,7 +10,7 @@
 	--bg: #0a0a0a;
 	--fg: #e5e5e5;
 	--muted: #888;
-	--accent: #6ee7b7;
+	--accent: #4584ef;
 	--card-bg: #151515;
 	--border: #262626;
 	--radius: 8px;
@@ -142,7 +142,7 @@ body {
 }
 
 .hero-block-inner {
-	background: linear-gradient(135deg, rgba(110, 231, 183, 0.08), transparent);
+	background: linear-gradient(135deg, rgba(69, 132, 239, 0.1), transparent);
 	border-radius: calc(var(--radius) - 2px);
 	padding: 32px;
 }
@@ -237,7 +237,7 @@ body {
 
 .work-card:hover {
 	border-color: var(--accent);
-	background: rgba(110, 231, 183, 0.04);
+	background: rgba(69, 132, 239, 0.06);
 }
 
 .work-card h3 {
@@ -360,7 +360,7 @@ body {
 }
 
 .flyva-detached-blob--a .flyva-detached-blob__glow {
-	background: #6ee7b7;
+	background: #4584ef;
 }
 
 .flyva-detached-blob--b {
@@ -386,7 +386,7 @@ body {
 }
 
 .flyva-detached-blob--c .flyva-detached-blob__glow {
-	background: #4584ef;
+	background: #6ee7b7;
 }
 
 .flyva-detached-blob--d {
@@ -399,7 +399,7 @@ body {
 }
 
 .flyva-detached-blob--d .flyva-detached-blob__glow {
-	background: #6ee7b7;
+	background: #4584ef;
 }
 
 .flyva-detached-blob--e {
@@ -541,11 +541,11 @@ body {
 }
 
 .flyva-detached-logo__char--mark {
-	color: #6ee7b7;
+	color: #4584ef;
 }
 
 .flyva-detached-logo__char--suffix {
-	color: #4a6670;
+	color: #5a7aad;
 }
 
 /* ---- CSS demo page ---- */
@@ -572,7 +572,7 @@ body {
 
 .css-demo-btn:hover {
 	border-color: var(--accent);
-	background: rgba(110, 231, 183, 0.04);
+	background: rgba(69, 132, 239, 0.06);
 }
 
 /* ---- CSS mode: fade ---- */
@@ -637,4 +637,117 @@ body {
 	inset: 0;
 	z-index: 9999;
 	cursor: wait;
+}
+
+/* ---- lifecycle classes demo (on <html>) ---- */
+/* flyva-running: whole swap until finish; flyva-pending: after leave DOM, before enter (no *-active gap) */
+
+@keyframes flyva-nav-border-scroll {
+	to {
+		background-position: 200% 0;
+	}
+}
+
+.nav::after {
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: 2px;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 0.35s ease;
+	background: linear-gradient(
+		90deg,
+		var(--border) 0%,
+		var(--accent) 50%,
+		var(--border) 100%
+	);
+	background-size: 200% 100%;
+	background-position: 0 0;
+	animation: flyva-nav-border-scroll 1.25s linear infinite;
+	animation-play-state: paused;
+}
+
+html.flyva-running .nav {
+	pointer-events: none;
+	border-bottom-color: transparent;
+}
+
+html.flyva-running .nav::after {
+	opacity: 1;
+	animation-play-state: running;
+}
+
+html.flyva-running[data-flyva-transition='overlayTransition'] .nav::after {
+	opacity: 0;
+	animation-play-state: paused;
+}
+
+/* ---- lifecycle demo page ---- */
+
+.lifecycle-log {
+	background: var(--card-bg);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	padding: 16px;
+	max-height: 280px;
+	overflow-y: auto;
+	font-size: 12px;
+	line-height: 180%;
+}
+
+.lifecycle-log-entry {
+	color: var(--muted);
+}
+
+.lifecycle-log-entry span {
+	color: var(--accent);
+	font-weight: 600;
+}
+
+.lifecycle-indicator {
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: var(--border);
+	transition: background 0.2s;
+	vertical-align: middle;
+	margin-left: 6px;
+}
+
+.lifecycle-indicator--active {
+	background: var(--accent);
+}
+
+.lifecycle-progress-float {
+	position: fixed;
+	bottom: 10vh;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 110;
+	padding: 2rem;
+	border-radius: var(--radius);
+	background: rgba(0, 0, 0, 0.55);
+	backdrop-filter: blur(14px);
+	-webkit-backdrop-filter: blur(14px);
+	box-sizing: border-box;
+}
+
+.lifecycle-progress-float .lifecycle-progress {
+	width: min(22rem, calc(100vw - 6rem));
+	margin-top: 0;
+	height: 3px;
+	background: var(--border);
+	border-radius: 2px;
+	overflow: hidden;
+}
+
+.lifecycle-progress-bar {
+	height: 100%;
+	width: 0%;
+	background: var(--accent);
+	border-radius: 2px;
 }

@@ -1,7 +1,10 @@
-<script lang="ts" setup>
+<script setup lang="ts">
 import { NuxtLink } from '#components';
 import { navigateTo, useNuxtApp, useRoute, useRuntimeConfig } from '#app';
+import { computed, ref } from 'vue';
+
 import { useFlyvaTransition } from '../../composables';
+import { useFlyvaLifecycle } from '../../composables/useFlyvaLifecycle';
 import { createDomSwapPromise, setVtActive } from '../../composables/useFlyvaVtState';
 import {
 	applyViewTransitionNames,
@@ -9,15 +12,41 @@ import {
 	supportsViewTransitions,
 } from '../../../../shared/view-transition';
 import type { FlyvaLinkProps } from './types';
-import { ref } from 'vue';
 
 const props = withDefaults(defineProps<FlyvaLinkProps>(), {
+	flyva: true,
 	prefetch: undefined,
 	noPrefetch: undefined,
 	custom: undefined,
 	external: undefined,
 	replace: undefined,
 	noRel: undefined,
+});
+
+// useFlyvaLifecycle({
+// 	beforeLeave: ctx => props.onBeforeLeave?.(ctx),
+// 	leave: ctx => props.onLeave?.(ctx),
+// 	afterLeave: ctx => props.onAfterLeave?.(ctx),
+// 	beforeEnter: ctx => props.onBeforeEnter?.(ctx),
+// 	enter: ctx => props.onEnter?.(ctx),
+// 	afterEnter: ctx => props.onAfterEnter?.(ctx),
+// });
+
+const nuxtLinkBind = computed(() => {
+	const {
+		flyva: _flyva,
+		flyvaTransition: _ft,
+		flyvaOptions: _fo,
+		onTransitionStart: _ts,
+		onBeforeLeave: _obl,
+		onLeave: _ol,
+		onAfterLeave: _oal,
+		onBeforeEnter: _obe,
+		onEnter: _oe,
+		onAfterEnter: _oae,
+		...rest
+	} = props;
+	return rest;
 });
 
 const emit = defineEmits<{
@@ -45,6 +74,7 @@ async function onClick() {
 	if (normalizeHref(currentPath) === normalizeHref(target)) return;
 
 	emit('transitionStart');
+	props.onTransitionStart?.();
 
 	const config = useRuntimeConfig().public;
 	const options = typeof props.flyvaOptions === 'function' ? props.flyvaOptions() : props.flyvaOptions;
@@ -103,5 +133,6 @@ async function onClick() {
 </script>
 
 <template>
-	<NuxtLink v-bind="$props" @click.prevent="onClick" ref="rootEl"><slot /></NuxtLink>
+	<NuxtLink v-if="!flyva" v-bind="nuxtLinkBind"><slot /></NuxtLink>
+	<NuxtLink v-else v-bind="nuxtLinkBind" ref="rootEl" @click.prevent="onClick"><slot /></NuxtLink>
 </template>

@@ -42,15 +42,19 @@ export function waitForAnimation(el: Element): Promise<void> {
 		const animDel = parseCssDurations(styles.animationDelay);
 		const totalMs = Math.max(transDur + transDel, animDur + animDel) * 1000;
 
+		console.log('[flyva:anim] waitForAnimation', { transDur, transDel, animDur, animDel, totalMs, classes: el.className });
+
 		if (totalMs <= 0) {
+			console.log('[flyva:anim] no duration, resolving immediately');
 			resolve();
 			return;
 		}
 
 		let done = false;
-		const finish = () => {
+		const finish = (source: string) => {
 			if (done) return;
 			done = true;
+			console.log('[flyva:anim] finish via', source);
 			clearTimeout(timer);
 			el.removeEventListener('transitionend', onEnd);
 			el.removeEventListener('animationend', onEnd);
@@ -58,13 +62,13 @@ export function waitForAnimation(el: Element): Promise<void> {
 		};
 
 		const onEnd = (e: Event) => {
-			if (e.target === el) finish();
+			if (e.target === el) finish('event');
 		};
 
 		el.addEventListener('transitionend', onEnd);
 		el.addEventListener('animationend', onEnd);
 
-		const timer = setTimeout(finish, totalMs + 16);
+		const timer = setTimeout(() => finish('timeout'), totalMs + 16);
 	});
 }
 
@@ -77,14 +81,17 @@ export function applyCssStageClasses(
 	const activeClass = `${name}-${phase}-active`;
 	const toClass = `${name}-${phase}-to`;
 
+	console.log('[flyva:css-stage]', phase, '→ adding from+active:', fromClass, activeClass);
 	el.classList.add(fromClass, activeClass);
 
 	void (el as HTMLElement).offsetHeight;
 
+	console.log('[flyva:css-stage]', phase, '→ removing from, adding to:', toClass);
 	el.classList.remove(fromClass);
 	el.classList.add(toClass);
 
 	return waitForAnimation(el).then(() => {
+		console.log('[flyva:css-stage]', phase, '→ cleanup, removing:', activeClass, toClass);
 		el.classList.remove(activeClass, toClass);
 	});
 }

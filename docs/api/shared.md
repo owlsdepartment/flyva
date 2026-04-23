@@ -9,13 +9,21 @@ Orchestrates the transition lifecycle. Each framework adapter creates an instanc
 ### Constructor
 
 ```ts
-new PageTransitionManager(transitions, reactiveFactory)
+new PageTransitionManager(transitions, reactiveFactory, config?)
 ```
 
 | Param | Type | Description |
 |-------|------|-------------|
 | `transitions` | `Record<string, PageTransition>` | Map of named transition instances |
 | `reactiveFactory` | `ReactiveFactory` | Framework-specific reactive value factory |
+| `config` | `PageTransitionManagerConfig` | Manager configuration (see below) |
+
+**PageTransitionManagerConfig:**
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `viewTransition` | `boolean` | `undefined` | When `true`, dev warnings reference VT-specific rules |
+| `lifecycleClassPrefix` | `string` | `'flyva'` | Prefix for lifecycle CSS classes on `document.documentElement`; `data-flyva-transition` is not prefixed and always holds the transition map key |
 
 ### Properties
 
@@ -26,18 +34,24 @@ new PageTransitionManager(transitions, reactiveFactory)
 | `runningName` | `string \| undefined` | Key of the currently active transition |
 | `stage` | `PageTransitionStage` | Current lifecycle stage |
 | `readyPromise` | `Promise<void>` | Resolves when `prepare()` completes |
+| `currentContent` | `Element \| undefined` | Outgoing content root set via `setContentElements` |
+| `nextContent` | `Element \| undefined` | Incoming content root set via `setContentElements` |
 
 ### Methods
 
 | Method | Returns | Description |
 |--------|---------|-------------|
 | `run(name, options, trigger?)` | `Promise<void>` | Start a transition: sets running state and calls `prepare()` |
-| `beforeLeave(el?)` | `void` | Run `beforeLeave` on the active transition |
-| `leave(el?)` | `Promise<void>` | Run `leave` on the active transition |
-| `afterLeave(el?)` | `void` | Run `afterLeave` on the active transition |
-| `beforeEnter(el?)` | `void` | Run `beforeEnter` on the active transition |
-| `enter(el?)` | `Promise<void>` | Run `enter` on the active transition |
-| `afterEnter(el?)` | `void` | Run `afterEnter`, then `cleanup`. Resets running state. |
+| `beforeLeave(el?)` | `Promise<void>` | Run `beforeLeave` on the active transition + registered active hooks |
+| `leave(el?)` | `Promise<void>` | Run `leave` on the active transition + registered active hooks |
+| `afterLeave(el?)` | `Promise<void>` | Run `afterLeave` on the active transition + registered active hooks |
+| `beforeEnter(el?)` | `Promise<void>` | Run `beforeEnter` on the active transition + registered active hooks |
+| `enter(el?)` | `Promise<void>` | Run `enter` on the active transition + registered active hooks |
+| `afterEnter(el?)` | `Promise<void>` | Run `afterEnter` + active hooks, then `finishTransition()` (cleanup + reset) |
+| `setContentElements(current?, next?)` | `void` | Store roots passed into `context.current` / `context.next` |
+| `makeContext(el?)` | `PageTransitionContext` | Build context for the active transition (used by adapters) |
+| `finishTransition()` | `void` | Run `cleanup()`, clear running state, content refs, and lifecycle classes |
+| `registerActiveHook(registration)` | `() => void` | Register an `ActiveHookRegistration`; returns an unregister function |
 | `getInstance(name)` | `PageTransition` | Get a transition instance by key |
 
 ---
@@ -48,6 +62,10 @@ Interface for transition implementations. All methods are optional.
 
 ```ts
 interface PageTransition<O = PageTransitionOptions> {
+  concurrent?: boolean
+  cssMode?: boolean
+  viewTransitionNames?: Record<string, string> | ((ctx: PageTransitionContext<O>) => Record<string, string>)
+  animateViewTransition?(viewTransition: ViewTransition, context: PageTransitionContext<O>): Promise<void>
   condition?(context: PageTransitionContext<O>): Promise<boolean> | boolean
   prepare?(context: PageTransitionContext<O>): Promise<void>
   beforeLeave?(context: PageTransitionContext<O>): void
@@ -87,6 +105,9 @@ interface PageTransitionContext<O = PageTransitionOptions> {
   trigger: PageTransitionTrigger
   options: O
   el?: Element
+  current?: Element
+  next?: Element
+  viewTransition?: ViewTransition
 }
 ```
 
@@ -96,6 +117,9 @@ interface PageTransitionContext<O = PageTransitionOptions> {
 | `trigger` | `string \| Element` | `'internal'` for programmatic navigation, or the clicked DOM element |
 | `options` | `O` | Merged options: `{ fromHref, toHref, ...flyvaOptions }` |
 | `el` | `Element \| undefined` | The trigger DOM element (same as `trigger` when it's an Element) |
+| `current` | `Element \| undefined` | Outgoing content root when the adapter set it |
+| `next` | `Element \| undefined` | Incoming content root when the adapter set it |
+| `viewTransition` | `ViewTransition \| undefined` | Active View Transition when using that navigation path |
 
 ---
 
@@ -104,9 +128,11 @@ interface PageTransitionContext<O = PageTransitionOptions> {
 ```ts
 type PageTransitionStage =
   | 'none'
-  | 'beforeLeave' | 'leave' | 'afterLeave'
   | 'beforeEnter' | 'enter' | 'afterEnter'
+  | 'beforeLeave' | 'leave' | 'afterLeave'
 ```
+
+Values reflect the hook currently executing, not the full pipeline order.
 
 ---
 
@@ -142,3 +168,58 @@ type ReactiveFactory<T, R extends Reactive<T>> =
 Each adapter supplies its own implementation:
 - **React** — proxy-based ref that triggers re-renders
 - **Vue** — wraps Vue's `ref()`
+
+---
+
+## ActiveHookRegistration
+
+Used with `registerActiveHook()` to participate in the transition lifecycle from outside the transition definition. All methods are optional and async — they run in parallel with the transition's own hooks via `Promise.all`.
+
+```ts
+interface ActiveHookRegistration {
+  beforeLeave?(context: PageTransitionContext): Promise<void>
+  leave?(context: PageTransitionContext): Promise<void>
+  afterLeave?(context: PageTransitionContext): Promise<void>
+  beforeEnter?(context: PageTransitionContext): Promise<void>
+  enter?(context: PageTransitionContext): Promise<void>
+  afterEnter?(context: PageTransitionContext): Promise<void>
+}
+```
+
+Used internally by `useFlyvaLifecycle` (Next.js) in active mode. You can also use it directly for framework-agnostic integrations.
+
+---
+
+## Lifecycle classes (`lifecycle-classes.ts`)
+
+`applyLifecycleClasses(stage, prefix, transitionKey?)` updates `document.documentElement` (`<html>`): prefixed CSS classes follow the Barba.js / Vue transition convention, and an optional **`data-flyva-transition`** attribute mirrors the **transition map key** (e.g. `defaultTransition`, `overlayTransition`) for the whole swap until `none`.
+
+Export **`FLYVA_TRANSITION_DATA_ATTR`** (`'data-flyva-transition'`) if you want to reference the attribute name without string literals.
+
+| Stage | Classes added | Classes removed |
+|-------|---------------|-----------------|
+| `beforeLeave` | `{prefix}-running`, `{prefix}-leave`, `{prefix}-leave-active` | all previous |
+| `leave` | `{prefix}-leave-to` | `{prefix}-leave` |
+| `afterLeave` | `{prefix}-pending` | `{prefix}-leave-active`, `{prefix}-leave-to` |
+| `beforeEnter` | `{prefix}-enter`, `{prefix}-enter-active` | `{prefix}-pending` |
+| `enter` | `{prefix}-enter-to` | `{prefix}-enter` |
+| `afterEnter` | — | `{prefix}-enter-active`, `{prefix}-enter-to` |
+| `none` | — | all lifecycle classes + `data-flyva-transition` removed |
+
+`{prefix}-running` stays from `beforeLeave` through `afterEnter` (until `finishTransition`). `{prefix}-pending` covers the gap after leave hooks and before enter. If `transitionKey` is omitted or empty, `data-flyva-transition` is not set (or is removed on that call).
+
+Called automatically by `PageTransitionManager` at each stage change and in `finishTransition()` (with the current running transition key).
+
+---
+
+## View transition & CSS helpers (`view-transition.ts`)
+
+Exported from `@flyva/shared` for transitions and adapters.
+
+| Export | Description |
+|--------|-------------|
+| `supportsViewTransitions()` | `true` when `document.startViewTransition` exists |
+| `applyViewTransitionNames(names, context)` | Resolves a map or callback to selectors, sets `view-transition-name` on matched elements, returns the resolved map |
+| `clearViewTransitionNames(names)` | Clears names using the same selector map |
+| `waitForAnimation(el)` | Resolves after CSS transitions/animations on `el` complete (or timeout) |
+| `applyCssStageClasses(el, name, phase)` | Drives `${name}-${phase}-from/active/to` class sequence for `phase` `'leave'` \| `'enter'` |

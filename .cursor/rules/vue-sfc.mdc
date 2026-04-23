@@ -1,0 +1,11 @@
+---
+description: Vue single-file component layout
+globs: "**/*.vue"
+alwaysApply: false
+---
+
+# Vue SFC layout
+
+- The opening tag must be exactly `<script setup lang="ts">` (not `<script lang="ts" setup>`).
+- That `<script setup lang="ts">` block is always the **first** top-level block in the file — it appears above `<template>` and any `<style>` blocks.
+- For pages or layouts with no script logic yet, keep an empty `<script setup lang="ts"></script>` so order stays consistent.

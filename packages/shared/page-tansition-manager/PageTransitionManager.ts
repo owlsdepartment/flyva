@@ -1,14 +1,18 @@
 import type { Reactive, ReactiveFactory } from '../types';
+import { applyLifecycleClasses } from '../lifecycle-classes';
 import type {
+	ActiveHookRegistration,
 	PageTransition,
 	PageTransitionContext,
 	PageTransitionOptions,
 	PageTransitionStage,
 	PageTransitionTrigger,
+	RegisterActiveHookReturn,
 } from './types';
 
 export interface PageTransitionManagerConfig {
 	viewTransition?: boolean;
+	lifecycleClassPrefix?: string;
 }
 
 export class PageTransitionManager<
@@ -28,6 +32,8 @@ export class PageTransitionManager<
 	protected _nextContent?: Element;
 	protected _warnedTransitions = new Set<string>();
 	protected _config: PageTransitionManagerConfig;
+	protected _activeHooks = new Set<ActiveHookRegistration>();
+	protected _gcHooks = new Set<() => void>();
 
 	constructor(
 		protected transitions: T,
@@ -39,6 +45,10 @@ export class PageTransitionManager<
 		this._runningName = this.reactiveFactory();
 		this._stage = this.reactiveFactory('none');
 		this._config = config ?? {};
+	}
+
+	get lifecycleClassPrefix() {
+		return this._config.lifecycleClassPrefix ?? 'flyva';
 	}
 
 	get isRunning() {
@@ -94,6 +104,11 @@ export class PageTransitionManager<
 		return this._readyPromise;
 	}
 
+	protected _lifecycleTransitionKey(): string | undefined {
+		const n = this._runningName.value;
+		return n === undefined ? undefined : String(n);
+	}
+
 	protected _validateTransition(name: string, t: PageTransition) {
 		if (process.env.NODE_ENV !== 'development') return;
 		if (this._warnedTransitions.has(name)) return;
@@ -122,34 +137,81 @@ export class PageTransitionManager<
 		}
 	}
 
-	beforeLeave(el?: Element) {
+	async beforeLeave(el?: Element) {
 		this._stage.value = 'beforeLeave';
-		this._runningInstance.value?.beforeLeave?.(this.makeContext(el));
+		applyLifecycleClasses('beforeLeave', this.lifecycleClassPrefix, this._lifecycleTransitionKey());
+		const ctx = this.makeContext(el);
+		const promises: Promise<void>[] = [];
+		promises.push(Promise.resolve(this._runningInstance.value?.beforeLeave?.(ctx)));
+		for (const hook of this._activeHooks) {
+			if (hook.beforeLeave) promises.push(hook.beforeLeave(ctx));
+		}
+		await Promise.all(promises);
 	}
 
 	async leave(el?: Element) {
 		this._stage.value = 'leave';
-		await this._runningInstance.value?.leave?.(this.makeContext(el));
+		applyLifecycleClasses('leave', this.lifecycleClassPrefix, this._lifecycleTransitionKey());
+		const ctx = this.makeContext(el);
+		const promises: Promise<void>[] = [];
+		promises.push(this._runningInstance.value?.leave?.(ctx) ?? Promise.resolve());
+		for (const hook of this._activeHooks) {
+			if (hook.leave) promises.push(hook.leave(ctx));
+		}
+		await Promise.all(promises);
 	}
 
-	afterLeave(el?: Element) {
+	async afterLeave(el?: Element) {
+		this._gcHooks.forEach(hook => {
+			hook();
+			this._gcHooks.delete(hook);
+		});
+
 		this._stage.value = 'afterLeave';
-		this._runningInstance.value?.afterLeave?.(this.makeContext(el));
+		applyLifecycleClasses('afterLeave', this.lifecycleClassPrefix, this._lifecycleTransitionKey());
+		const ctx = this.makeContext(el);
+		const promises: Promise<void>[] = [];
+		promises.push(Promise.resolve(this._runningInstance.value?.afterLeave?.(ctx)));
+		for (const hook of this._activeHooks) {
+			if (hook.afterLeave) promises.push(hook.afterLeave(ctx));
+		}
+		await Promise.all(promises);
 	}
 
-	beforeEnter(el?: Element) {
+	async beforeEnter(el?: Element) {
 		this._stage.value = 'beforeEnter';
-		this._runningInstance.value?.beforeEnter?.(this.makeContext(el));
+		applyLifecycleClasses('beforeEnter', this.lifecycleClassPrefix, this._lifecycleTransitionKey());
+		const ctx = this.makeContext(el);
+		const promises: Promise<void>[] = [];
+		promises.push(Promise.resolve(this._runningInstance.value?.beforeEnter?.(ctx)));
+		for (const hook of this._activeHooks) {
+			if (hook.beforeEnter) promises.push(hook.beforeEnter(ctx));
+		}
+		await Promise.all(promises);
 	}
 
 	async enter(el?: Element) {
 		this._stage.value = 'enter';
-		await this._runningInstance.value?.enter?.(this.makeContext(el));
+		applyLifecycleClasses('enter', this.lifecycleClassPrefix, this._lifecycleTransitionKey());
+		const ctx = this.makeContext(el);
+		const promises: Promise<void>[] = [];
+		promises.push(this._runningInstance.value?.enter?.(ctx) ?? Promise.resolve());
+		for (const hook of this._activeHooks) {
+			if (hook.enter) promises.push(hook.enter(ctx));
+		}
+		await Promise.all(promises);
 	}
 
-	afterEnter(el?: Element) {
+	async afterEnter(el?: Element) {
 		this._stage.value = 'afterEnter';
-		this._runningInstance.value?.afterEnter?.(this.makeContext(el));
+		applyLifecycleClasses('afterEnter', this.lifecycleClassPrefix, this._lifecycleTransitionKey());
+		const ctx = this.makeContext(el);
+		const promises: Promise<void>[] = [];
+		promises.push(Promise.resolve(this._runningInstance.value?.afterEnter?.(ctx)));
+		for (const hook of this._activeHooks) {
+			if (hook.afterEnter) promises.push(hook.afterEnter(ctx));
+		}
+		await Promise.all(promises);
 		this.finishTransition();
 	}
 
@@ -166,6 +228,17 @@ export class PageTransitionManager<
 		this._stage.value = 'none';
 		this._currentContent = undefined;
 		this._nextContent = undefined;
+		applyLifecycleClasses('none', this.lifecycleClassPrefix);
+	}
+
+	registerActiveHook(registration: ActiveHookRegistration): RegisterActiveHookReturn {
+		this._activeHooks.add(registration);
+		return (cleanup) => {
+			this._gcHooks.add(() => {
+				this._activeHooks.delete(registration);
+				cleanup?.();
+			})
+		};
 	}
 
 	getInstance<K extends keyof T>(name: K) {

@@ -17,6 +17,7 @@
     "@flyva/shared": "workspace:*"
   },
   "devDependencies": {
+    "@playwright/test": "^1.51.0",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
@@ -29,5 +30,9 @@
     "next": ">=14.0.0",
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0"
+  },
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   }
 }

@@ -89,7 +89,7 @@ class ExpandTransitionClass implements PageTransition {
 		if (cloneP) {
 			tl.add(cloneP, {
 				fontSize: '16px',
-				color: 'rgb(110, 231, 183)',
+				color: 'rgb(69, 132, 239)',
 				duration: 500,
 				ease: 'inOutCubic',
 			}, 0);

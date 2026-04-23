@@ -1,4 +1,4 @@
-<script lang="ts" setup>
+<script setup lang="ts">
 const projects = [
 	{ slug: 'alpha', title: 'Project Alpha', description: 'A branding & identity system for a fintech startup.' },
 	{ slug: 'beta', title: 'Project Beta', description: 'E-commerce platform redesign with headless CMS.' },

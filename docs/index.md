@@ -20,4 +20,6 @@ features:
     details: Override which transition plays on a per-link basis. Pass custom options (direction, easing, color) that your transition code can read at runtime.
   - title: Shared element transitions
     details: Register DOM refs globally with useRefStack and access them from transition code for FLIP animations across page boundaries.
+  - title: Concurrent & View Transitions
+    details: Optional overlapping leave and enter with content-root tracking, CSS-staged class phases, or the browser View Transitions API — see the Transition modes guide.
 ---

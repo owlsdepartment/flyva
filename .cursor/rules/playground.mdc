@@ -27,3 +27,7 @@ Playgrounds are minimal apps that exercise the library features. They are privat
 ## When modifying library code
 
 Always verify changes work in the relevant playground. Transition classes implement the `PageTransition` interface from `@flyva/shared`.
+
+## Playwright MCP
+
+[`.cursor/mcp.json`](.cursor/mcp.json) registers the official [Playwright MCP](https://playwright.dev/docs/getting-started-mcp) server for Cursor. Enable it under **Settings → MCP**, restart Cursor if needed, then run a playground (`pnpm dev:next` on port 3200, `pnpm dev:nuxt` on 3100) and ask the agent to exercise transitions in the browser. Package E2E tests live under `packages/next/e2e` and `packages/nuxt/e2e`.

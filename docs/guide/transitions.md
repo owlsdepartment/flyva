@@ -1,6 +1,8 @@
-# Writing Transitions
+# Writing transitions
 
-Flyva doesn't ship any built-in animations. You implement transitions yourself using whatever animation library fits your project. This page explains the interface, the recommended patterns, and a few recipes.
+Flyva doesn't ship any built-in animations. This page covers the **JS hook** style: lifecycle, patterns, and recipes. For **CSS-driven** or **View Transitions** setups, start at [Transition modes](/guide/modes/).
+
+You implement transitions using whatever animation library fits your project (anime.js, GSAP, Motion, etc.). The sections below focus on the shared interface and common patterns.
 
 ## The interface
 
@@ -8,6 +10,11 @@ A transition is any object that implements (some of) these hooks:
 
 ```ts
 interface PageTransition {
+  concurrent?: boolean;
+  cssMode?: boolean;
+  viewTransitionNames?: Record<string, string> | ((ctx) => Record<string, string>);
+  animateViewTransition?(vt: ViewTransition, context): Promise<void>;
+  condition?(context): boolean | Promise<boolean>;
   prepare?(context): Promise<void>;
   beforeLeave?(context): void;
   leave?(context): Promise<void>;
@@ -15,11 +22,26 @@ interface PageTransition {
   beforeEnter?(context): void;
   enter?(context): Promise<void>;
   afterEnter?(context): void;
+  cooldown?(context): Promise<void>;
   cleanup?(): void;
 }
 ```
 
 All hooks are optional. A transition that only defines `leave` and `enter` is perfectly valid.
+
+| Flag / field | Effect |
+|--------------|--------|
+| `concurrent` | Outgoing and incoming content can overlap. On **Next.js**, a frozen clone is inserted before navigation so the old view does not flash empty; **Nuxt** overlaps via `FlyvaPage` / Vue `<Transition>`. `context.current` / `context.next` point at the roots being handed off. Ignored when [View Transitions mode](/guide/modes/view-transitions) is on. |
+
+::: warning Next.js `concurrent` and cloning
+On the **App Router**, `concurrent` depends on **content cloning** (App Router constraints). Expect possible **layout shifts**, **CSS animations or transitions replaying** on the clone, and **loss of useful React refs** on the node being animated (the clone is not your mounted tree). Design around `context.current` / `context.next`, test edge cases, or switch to [View Transitions](/guide/modes/view-transitions) for a native handoff. Details: [Next.js — concurrent mode and content cloning](/guide/next#concurrent-mode-and-content-cloning).
+:::
+
+| `cssMode` | Animation via generated CSS classes instead of `leave`/`enter`. See [CSS mode](/guide/modes/css-mode). |
+| `viewTransitionNames` | Used with app-level View Transitions. See [View Transitions mode](/guide/modes/view-transitions). |
+| `animateViewTransition` | Optional hook after `vt.ready` when using View Transitions. See [View Transitions mode](/guide/modes/view-transitions). |
+
+`condition` can return `false` to skip running this transition (same frame as `prepare`).
 
 ## Transition resolution
 
@@ -86,6 +108,15 @@ class SlideTransitionClass implements PageTransition {
 export const slideTransition = new SlideTransitionClass();
 ```
 
+## Using `context.current` and `context.next`
+
+The manager tracks the outgoing and incoming content roots when the framework sets them (Next.js via `FlyvaTransitionWrapper`, Nuxt via `FlyvaPage`). During a transition, read:
+
+- `context.current` — element that is leaving (or a stand-in clone in concurrent mode)
+- `context.next` — element that is entering, once it exists
+
+Prefer these over `querySelector('[data-flyva-content]')` when you need the exact subtree the adapter swaps, especially with `concurrent: true`.
+
 ## Using context.el
 
 When a user clicks a `FlyvaLink`, `context.el` is set to the DOM element that was clicked. This is useful for shared element / FLIP transitions where you need to know the starting position of the trigger:
@@ -132,11 +163,41 @@ async leave(context: PageTransitionContext) {
 }
 ```
 
+## Lifecycle classes on `<html>`
+
+Flyva automatically updates `document.documentElement` (`<html>`) at each transition stage: **prefixed classes** (Barba / Vue style), a **`flyva-running`** span class, **`flyva-pending`** between leave and enter, and **`data-flyva-transition="<key>"`** where `<key>` is the transition object’s key in your map (e.g. `defaultTransition`, `overlayTransition`). The prefix defaults to `flyva` and is configurable via `lifecycleClassPrefix`.
+
+| Stage | Classes added | Classes removed |
+|-------|---------------|-----------------|
+| `beforeLeave` | `flyva-running`, `flyva-leave`, `flyva-leave-active` | all previous |
+| `leave` | `flyva-leave-to` | `flyva-leave` |
+| `afterLeave` | `flyva-pending` | `flyva-leave-active`, `flyva-leave-to` |
+| `beforeEnter` | `flyva-enter`, `flyva-enter-active` | `flyva-pending` |
+| `enter` | `flyva-enter-to` | `flyva-enter` |
+| `afterEnter` | — | `flyva-enter-active`, `flyva-enter-to` |
+| `none` (finish) | — | all of the above + `data-flyva-transition` |
+
+Use **`html.flyva-running`** for styles that should cover the **entire** swap (including the pending gap). Use **`html[data-flyva-transition="overlayTransition"]`** (or any key) to branch CSS per transition — for example hide a global progress bar when an overlay transition already provides its own chrome.
+
+See the dedicated [Lifecycle classes](/guide/modes/lifecycle) page for diagrams and adapter-specific notes.
+
 ## Recipes
 
 ### Overlay during transition
 
-Use `beforeLeave` / `afterEnter` to toggle a class that shows an overlay or disables interactions:
+Use the [lifecycle classes](#lifecycle-classes-on-html) on `<html>` to show an overlay or disable interactions without any JS:
+
+```css
+html.flyva-running::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: auto;
+}
+```
+
+Alternatively, toggle classes manually in your transition hooks:
 
 ```ts
 beforeLeave() {
@@ -149,23 +210,13 @@ afterEnter() {
 }
 ```
 
-```css
-body.flyva-transition-active::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  pointer-events: auto;
-}
-```
-
 ### Re-querying the content element
 
-The DOM changes between `leave` and `enter` — the old page is unmounted, the new page is mounted. Always re-query `[data-flyva-content]` in `beforeEnter`:
+The DOM changes between `leave` and `enter` — the old page is unmounted, the new page is mounted. In `beforeEnter` / `enter`, re-resolve the node you animate: either `context.next` when the adapter provides it, or `document.querySelector('[data-flyva-content]')` / your own selector.
 
 ```ts
-beforeEnter() {
-  this.content = document.querySelector('[data-flyva-content]');
+beforeEnter(context: PageTransitionContext) {
+  this.content = (context.next as HTMLElement) ?? document.querySelector('[data-flyva-content]');
   if (this.content) this.content.style.opacity = '0';
 }
 ```

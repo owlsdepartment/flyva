@@ -619,7 +619,7 @@ body {
 }
 
 .cssSlideTransition-enter-from {
-	transform: translateX(30%);
+	transform: translateX(20%);
 	opacity: 0;
 }
 

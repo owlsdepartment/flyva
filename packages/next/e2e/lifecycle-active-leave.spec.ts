@@ -15,7 +15,7 @@ test.describe('active lifecycle leave vs navigation', () => {
 		expect(elapsed).toBeGreaterThan(900);
 	});
 
-	test('concurrent transition still awaits full leave phase before route change', async ({ page }) => {
+	test('concurrent transition navigates before leave animation completes', async ({ page }) => {
 		await page.goto('/');
 		const t0 = Date.now();
 		await page.locator('nav.nav a[href="/work"]').click();
@@ -23,7 +23,7 @@ test.describe('active lifecycle leave vs navigation', () => {
 		const elapsed = Date.now() - t0;
 		await waitForTransitionIdle(page);
 		await expect(page.getByRole('heading', { name: 'Work' })).toBeVisible();
-		// slideTransition.leave awaits ~400ms animate; navigation must not happen before leave completes
-		expect(elapsed).toBeGreaterThan(280);
+		// slideTransition.leave animates ~400ms; URL must update without waiting for that
+		expect(elapsed).toBeLessThan(250);
 	});
 });

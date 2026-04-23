@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as vt from '../view-transition';
 import type { PageTransitionContext } from '../page-tansition-manager/types';
 
@@ -55,17 +55,27 @@ describe('applyViewTransitionNames / clearViewTransitionNames', () => {
 });
 
 describe('waitForAnimation', () => {
-	beforeEach(() => {
-		vi.spyOn(console, 'log').mockImplementation(() => {});
-	});
-
-	afterEach(() => {
-		vi.restoreAllMocks();
-	});
-
 	it('resolves when computed durations are zero', async () => {
 		const el = document.createElement('div');
 		await expect(waitForAnimation(el)).resolves.toBeUndefined();
+	});
+
+	it('resolves on animationend when only animation duration is non-zero', async () => {
+		const style = document.createElement('style');
+		style.textContent = `
+			@keyframes wf-anim-only { to { opacity: 0.5; } }
+			.wf-anim-target { animation: wf-anim-only 600s linear forwards; }
+		`;
+		document.head.append(style);
+		const el = document.createElement('div');
+		el.className = 'wf-anim-target';
+		document.body.append(el);
+
+		const p = waitForAnimation(el);
+		await Promise.resolve();
+		el.dispatchEvent(new Event('animationend', { bubbles: false }));
+		await expect(p).resolves.toBeUndefined();
+		style.remove();
 	});
 });
 
@@ -93,16 +103,114 @@ describe('applyCssStageClasses', () => {
 		document.body.append(el);
 		const deferred = Promise.withResolvers<void>();
 		const spy = vi.spyOn(vt, 'waitForAnimation').mockReturnValue(deferred.promise);
+		const origRaf = globalThis.requestAnimationFrame;
+		globalThis.requestAnimationFrame = (cb: FrameRequestCallback) => {
+			cb(0);
+			return 0;
+		};
 
-		const p = applyCssStageClasses(el, 'page', 'enter');
-		expect(el.classList.contains('page-enter-from')).toBe(false);
-		expect(el.classList.contains('page-enter-active')).toBe(true);
-		expect(el.classList.contains('page-enter-to')).toBe(true);
+		try {
+			const p = applyCssStageClasses(el, 'page', 'enter');
+			expect(el.classList.contains('page-enter-from')).toBe(false);
+			expect(el.classList.contains('page-enter-active')).toBe(true);
+			expect(el.classList.contains('page-enter-to')).toBe(true);
 
-		deferred.resolve();
-		await p;
-		expect(el.className).toBe('');
-		spy.mockRestore();
+			deferred.resolve();
+			await p;
+			expect(el.className).toBe('');
+		} finally {
+			globalThis.requestAnimationFrame = origRaf;
+			spy.mockRestore();
+		}
 	});
 
+});
+
+describe('applyCssStageClasses (no transition / animation-only CSS)', () => {
+	let styleEl: HTMLStyleElement | null = null;
+
+	function inject(css: string) {
+		styleEl = document.createElement('style');
+		styleEl.textContent = css;
+		document.head.append(styleEl);
+	}
+
+	afterEach(() => {
+		styleEl?.remove();
+		styleEl = null;
+	});
+
+	it('leave finishes and clears classes when active has no transition', async () => {
+		inject(`
+			.snap-leave-from { opacity: 1; }
+			.snap-leave-to { opacity: 0; }
+			.snap-leave-active { }
+		`);
+		const el = document.createElement('div');
+		document.body.append(el);
+		await applyCssStageClasses(el, 'snap', 'leave');
+		expect(el.className).toBe('');
+	});
+
+	it('enter finishes and clears classes when active has no transition', async () => {
+		inject(`
+			.snap-enter-from { opacity: 0; }
+			.snap-enter-to { opacity: 1; }
+			.snap-enter-active { }
+		`);
+		const el = document.createElement('div');
+		document.body.append(el);
+		const origRaf = globalThis.requestAnimationFrame;
+		globalThis.requestAnimationFrame = (cb: FrameRequestCallback) => {
+			cb(0);
+			return 0;
+		};
+		try {
+			await applyCssStageClasses(el, 'snap', 'enter');
+		} finally {
+			globalThis.requestAnimationFrame = origRaf;
+		}
+		expect(el.className).toBe('');
+	});
+
+	it('leave clears classes after animationend when motion is animation-only', async () => {
+		inject(`
+			@keyframes flyva-test-leave-kf { to { transform: scale(0.98); } }
+			.kf-leave-from { transform: scale(1); }
+			.kf-leave-to { transform: scale(1); }
+			.kf-leave-active { animation: flyva-test-leave-kf 600s linear forwards; }
+		`);
+		const el = document.createElement('div');
+		document.body.append(el);
+		const p = applyCssStageClasses(el, 'kf', 'leave');
+		await Promise.resolve();
+		el.dispatchEvent(new Event('animationend', { bubbles: false }));
+		await p;
+		expect(el.className).toBe('');
+	});
+
+	it('enter clears classes after animationend when motion is animation-only', async () => {
+		inject(`
+			@keyframes flyva-test-enter-kf { to { transform: scale(1); } }
+			.kf-enter-from { transform: scale(0.98); }
+			.kf-enter-to { transform: scale(1); }
+			.kf-enter-active { animation: flyva-test-enter-kf 600s linear forwards; }
+		`);
+		const el = document.createElement('div');
+		document.body.append(el);
+		const origRaf = globalThis.requestAnimationFrame;
+		globalThis.requestAnimationFrame = (cb: FrameRequestCallback) => {
+			cb(0);
+			return 0;
+		};
+		try {
+			const p = applyCssStageClasses(el, 'kf', 'enter');
+			await Promise.resolve();
+			el.dispatchEvent(new Event('animationend', { bubbles: false }));
+			await p;
+		} finally {
+			globalThis.requestAnimationFrame = origRaf;
+		}
+		expect(el.className).toBe('');
+	});
 });

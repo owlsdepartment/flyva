@@ -72,12 +72,43 @@ export function waitForAnimation(el: Element): Promise<void> {
 	});
 }
 
+function applyCssEnterStageClasses(el: HTMLElement, name: string): Promise<void> {
+	const fromClass = `${name}-enter-from`;
+	const activeClass = `${name}-enter-active`;
+	const toClass = `${name}-enter-to`;
+
+	const prevTransition = el.style.transition;
+	el.style.transition = 'none';
+	el.classList.add(fromClass);
+	void el.offsetHeight;
+
+	return new Promise<void>((resolve, reject) => {
+		requestAnimationFrame(() => {
+			el.style.transition = prevTransition;
+			el.classList.add(activeClass);
+			void el.offsetHeight;
+			el.classList.remove(fromClass);
+			el.classList.add(toClass);
+			waitForAnimation(el)
+				.then(() => {
+					el.classList.remove(activeClass, toClass);
+					resolve();
+				})
+				.catch(reject);
+		});
+	});
+}
+
 export function applyCssStageClasses(
 	el: Element,
 	name: string,
 	phase: 'leave' | 'enter',
 	options?: ApplyCssStageClassesOptions,
 ): Promise<void> {
+	if (phase === 'enter' && el instanceof HTMLElement) {
+		return applyCssEnterStageClasses(el, name);
+	}
+
 	const fromClass = `${name}-${phase}-from`;
 	const activeClass = `${name}-${phase}-active`;
 	const toClass = `${name}-${phase}-to`;

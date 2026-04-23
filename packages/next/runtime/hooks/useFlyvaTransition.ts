@@ -149,6 +149,30 @@ export function useFlyvaTransition() {
 		await flyvaManager.afterLeave();
 	}
 
+	async function beginConcurrentLeaveForNavigation(): Promise<boolean> {
+		initializedManually = true;
+
+		if (flyvaManager.runningInstance?.cssMode && !config.viewTransition) {
+			await leaveWithCssMode();
+			return false;
+		}
+
+		if (!_capturedClone || config.viewTransition) {
+			await leave();
+			return false;
+		}
+
+		flyvaManager.setContentElements(_capturedClone);
+		await flyvaManager.beforeLeave();
+		await flyvaManager.readyPromise;
+		return true;
+	}
+
+	async function completeConcurrentLeaveAfterNavigation(): Promise<void> {
+		await flyvaManager.leave();
+		await flyvaManager.afterLeave();
+	}
+
 	async function enter() {
 		if (!initializedManually) {
 			return;
@@ -170,6 +194,8 @@ export function useFlyvaTransition() {
 	return {
 		prepare,
 		leave,
+		beginConcurrentLeaveForNavigation,
+		completeConcurrentLeaveAfterNavigation,
 		enter,
 		leaveWithViewTransition,
 		get hasTransitioned() { return hasTransitioned; },

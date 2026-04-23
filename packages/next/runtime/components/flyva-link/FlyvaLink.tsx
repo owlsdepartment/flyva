@@ -101,8 +101,11 @@ const FlyvaLink = forwardRef<HTMLAnchorElement, PropsWithChildren<FlyvaLinkProps
 		if (transition.isViewTransition) {
 			await transition.leaveWithViewTransition(() => router.push(href));
 		} else if (transition.isConcurrent) {
-			await transition.leave();
+			const deferredLeave = await transition.beginConcurrentLeaveForNavigation();
 			router.push(href);
+			if (deferredLeave) {
+				await transition.completeConcurrentLeaveAfterNavigation();
+			}
 		} else {
 			await transition.leave();
 			router.push(href);

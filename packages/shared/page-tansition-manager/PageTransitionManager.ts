@@ -161,11 +161,15 @@ export class PageTransitionManager<
 		await Promise.all(promises);
 	}
 
-	async afterLeave(el?: Element) {
+	protected flushPendingActiveHookGc(): void {
 		this._gcHooks.forEach(hook => {
 			hook();
 			this._gcHooks.delete(hook);
 		});
+	}
+
+	async afterLeave(el?: Element) {
+		this.flushPendingActiveHookGc();
 
 		this._stage.value = 'afterLeave';
 		applyLifecycleClasses('afterLeave', this.lifecycleClassPrefix, this._lifecycleTransitionKey());
@@ -229,6 +233,12 @@ export class PageTransitionManager<
 		this._currentContent = undefined;
 		this._nextContent = undefined;
 		applyLifecycleClasses('none', this.lifecycleClassPrefix);
+		this.flushPendingActiveHookGc();
+	}
+
+	flushDeferredActiveHookCleanupsIfIdle(): void {
+		if (this._isRunning.value) return;
+		this.flushPendingActiveHookGc();
 	}
 
 	registerActiveHook(registration: ActiveHookRegistration): RegisterActiveHookReturn {
@@ -237,7 +247,7 @@ export class PageTransitionManager<
 			this._gcHooks.add(() => {
 				this._activeHooks.delete(registration);
 				cleanup?.();
-			})
+			});
 		};
 	}
 

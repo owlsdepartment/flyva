@@ -44,9 +44,10 @@ function ActiveProgressBar() {
 
 	useFlyvaLifecycle({
 		async leave() {
-			if (!barRef.current) return;
-			barRef.current.style.width = '0%';
-			await animate(barRef.current, {
+			const el = barRef.current;
+			if (!el) return;
+			el.style.width = '0%';
+			await animate(el, {
 				width: '60%',
 				duration: 400,
 				ease: 'outQuad',
@@ -54,7 +55,7 @@ function ActiveProgressBar() {
 
 			await new Promise((resolve) => setTimeout(resolve, 500));
 
-			await animate(barRef.current, {
+			await animate(el, {
 				width: '100%',
 				duration: 300,
 				ease: 'outQuad',

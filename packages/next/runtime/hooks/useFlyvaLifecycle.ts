@@ -52,6 +52,8 @@ export function useFlyvaLifecycle(
 	useEffect(() => {
 		if (!active) return;
 
+		manager.flushDeferredActiveHookCleanupsIfIdle();
+
 		function wrapCallback(key: keyof FlyvaLifecycleCallbacks) {
 			return (ctx: PageTransitionContext): Promise<void> => {
 				const cb = callbacksRef.current[key];
@@ -78,11 +80,12 @@ export function useFlyvaLifecycle(
 		const unregister = manager.registerActiveHook(registration);
 
 		return () => {
-			unregister();
-			for (const c of cancellablesRef.current) {
-				c.cancel();
-			}
-			cancellablesRef.current = [];
+			unregister(() => {
+				for (const c of cancellablesRef.current) {
+					c.cancel();
+				}
+				cancellablesRef.current = [];
+			});
 		};
 	}, [active, manager]);
 

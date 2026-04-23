@@ -122,6 +122,7 @@ describe('PageTransitionManager', () => {
 		expect(hookLeave).toHaveBeenCalledTimes(1);
 
 		unregister();
+		await manager.afterLeave();
 		transitionLeave.mockClear();
 		hookLeave.mockClear();
 

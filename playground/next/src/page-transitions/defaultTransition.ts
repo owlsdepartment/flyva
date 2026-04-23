@@ -48,9 +48,8 @@ class DefaultTransitionClass implements PageTransition {
 		await animate(this.content, { opacity: 1, duration: 400, ease: 'outQuad' });
 	}
 
-	afterEnter(context: PageTransitionContext) {
+	afterEnter(_context: PageTransitionContext) {
 		document.body.classList.remove('flyva-transition-active');
-		console.log('[flyva] defaultTransition complete →', context.options?.toHref);
 	}
 
 	cleanup() {

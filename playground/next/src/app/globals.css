@@ -598,33 +598,33 @@ body {
 	opacity: 1;
 }
 
-/* ---- CSS mode: slide ---- */
+/* ---- CSS mode: slide (horizontal, aligned with Nuxt playground) ---- */
 
 .cssSlideTransition-leave-active {
-	transition: transform 0.4s ease, opacity 0.4s ease;
+	transition: transform 0.3s ease-in, opacity 0.3s ease-in;
 }
 
 .cssSlideTransition-enter-active {
-	transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s cubic-bezier(0, 0, 0.2, 1);
+	transition: transform 0.5s ease-out, opacity 0.5s ease-out;
 }
 
 .cssSlideTransition-leave-from {
-	transform: translateY(0);
+	transform: translateX(0);
 	opacity: 1;
 }
 
 .cssSlideTransition-leave-to {
-	transform: translateY(-8%);
+	transform: translateX(-20%);
 	opacity: 0;
 }
 
 .cssSlideTransition-enter-from {
-	transform: translateY(40%);
+	transform: translateX(30%);
 	opacity: 0;
 }
 
 .cssSlideTransition-enter-to {
-	transform: translateY(0);
+	transform: translateX(0);
 	opacity: 1;
 }
 

@@ -114,21 +114,20 @@ export function useFlyvaTransition() {
 
 	async function leaveWithCssMode(): Promise<void> {
 		const content = flyvaManager.currentContent;
-		console.log('[flyva:css] leaveWithCssMode start', { content: !!content, name: flyvaManager.runningName });
 		if (!content) return;
 		const name = flyvaManager.runningName as string;
-		await applyCssStageClasses(content, name, 'leave');
-		console.log('[flyva:css] leaveWithCssMode done');
+		await applyCssStageClasses(content, name, 'leave', { retainLeaveComputedStyle: true });
 	}
 
 	async function enterWithCssMode(): Promise<void> {
 		const content = flyvaManager.nextContent ?? flyvaManager.currentContent;
-		console.log('[flyva:css] enterWithCssMode start', { content: !!content, name: flyvaManager.runningName, hasNext: !!flyvaManager.nextContent, hasCurrent: !!flyvaManager.currentContent });
 		if (!content) return;
 		const name = flyvaManager.runningName as string;
-		console.log('[flyva:css] enterWithCssMode — content innerHTML preview:', (content as HTMLElement).innerHTML?.slice(0, 80));
+		const el = content as HTMLElement;
+		el.style.removeProperty('opacity');
+		el.style.removeProperty('transform');
+		el.style.removeProperty('pointer-events');
 		await applyCssStageClasses(content, name, 'enter');
-		console.log('[flyva:css] enterWithCssMode done');
 		flyvaManager.finishTransition();
 	}
 

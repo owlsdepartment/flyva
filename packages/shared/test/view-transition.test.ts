@@ -70,14 +70,6 @@ describe('waitForAnimation', () => {
 });
 
 describe('applyCssStageClasses', () => {
-	beforeEach(() => {
-		vi.spyOn(console, 'log').mockImplementation(() => {});
-	});
-
-	afterEach(() => {
-		vi.restoreAllMocks();
-	});
-
 	it('adds from+active, removes from and adds to before waiting, then cleans up', async () => {
 		const el = document.createElement('div');
 		document.body.append(el);
@@ -112,4 +104,5 @@ describe('applyCssStageClasses', () => {
 		expect(el.className).toBe('');
 		spy.mockRestore();
 	});
+
 });

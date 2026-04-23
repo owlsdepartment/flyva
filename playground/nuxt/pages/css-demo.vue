@@ -33,8 +33,8 @@
 			<section class="section">
 				<h2>CSS Slide</h2>
 				<p>
-					A vertical slide — the old page shifts up and fades while the new page
-					slides in from below with a deceleration curve.
+					A horizontal slide — the old page moves left and fades while the new page
+					slides in from the right.
 				</p>
 				<div class="css-demo-links">
 					<FlyvaLink to="/" flyva-transition="cssSlideTransition" class="css-demo-btn">

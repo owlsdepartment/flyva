@@ -1,5 +1,9 @@
 import type { PageTransitionContext } from './page-tansition-manager/types';
 
+export type ApplyCssStageClassesOptions = {
+	retainLeaveComputedStyle?: boolean;
+};
+
 export function supportsViewTransitions(): boolean {
 	return typeof document !== 'undefined' && 'startViewTransition' in document;
 }
@@ -42,19 +46,15 @@ export function waitForAnimation(el: Element): Promise<void> {
 		const animDel = parseCssDurations(styles.animationDelay);
 		const totalMs = Math.max(transDur + transDel, animDur + animDel) * 1000;
 
-		console.log('[flyva:anim] waitForAnimation', { transDur, transDel, animDur, animDel, totalMs, classes: el.className });
-
 		if (totalMs <= 0) {
-			console.log('[flyva:anim] no duration, resolving immediately');
 			resolve();
 			return;
 		}
 
 		let done = false;
-		const finish = (source: string) => {
+		const finish = () => {
 			if (done) return;
 			done = true;
-			console.log('[flyva:anim] finish via', source);
 			clearTimeout(timer);
 			el.removeEventListener('transitionend', onEnd);
 			el.removeEventListener('animationend', onEnd);
@@ -62,36 +62,46 @@ export function waitForAnimation(el: Element): Promise<void> {
 		};
 
 		const onEnd = (e: Event) => {
-			if (e.target === el) finish('event');
+			if (e.target === el) finish();
 		};
 
 		el.addEventListener('transitionend', onEnd);
 		el.addEventListener('animationend', onEnd);
 
-		const timer = setTimeout(() => finish('timeout'), totalMs + 16);
+		const timer = setTimeout(() => finish(), totalMs + 16);
 	});
 }
 
 export function applyCssStageClasses(
 	el: Element,
 	name: string,
-	phase: 'leave' | 'enter'
+	phase: 'leave' | 'enter',
+	options?: ApplyCssStageClassesOptions,
 ): Promise<void> {
 	const fromClass = `${name}-${phase}-from`;
 	const activeClass = `${name}-${phase}-active`;
 	const toClass = `${name}-${phase}-to`;
 
-	console.log('[flyva:css-stage]', phase, '→ adding from+active:', fromClass, activeClass);
 	el.classList.add(fromClass, activeClass);
 
 	void (el as HTMLElement).offsetHeight;
 
-	console.log('[flyva:css-stage]', phase, '→ removing from, adding to:', toClass);
 	el.classList.remove(fromClass);
 	el.classList.add(toClass);
 
+	const retainLeave =
+		phase === 'leave' && options?.retainLeaveComputedStyle === true && el instanceof HTMLElement;
+
 	return waitForAnimation(el).then(() => {
-		console.log('[flyva:css-stage]', phase, '→ cleanup, removing:', activeClass, toClass);
+		if (retainLeave) {
+			const cs = getComputedStyle(el);
+			el.style.opacity = cs.opacity;
+			const tr = cs.transform;
+			if (tr && tr !== 'none') {
+				el.style.transform = tr;
+			}
+			el.style.pointerEvents = 'none';
+		}
 		el.classList.remove(activeClass, toClass);
 	});
 }

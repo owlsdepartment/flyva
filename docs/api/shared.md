@@ -1,10 +1,10 @@
 # @flyva/shared
 
-Framework-agnostic core. This package is an internal dependency — it's re-exported by both `@flyva/next` and `@flyva/nuxt`.
+Framework-agnostic core. This package is an internal dependency - it's re-exported by both `@flyva/next` and `@flyva/nuxt`.
 
 ## PageTransitionManager
 
-Orchestrates the transition lifecycle. Each framework adapter creates an instance internally — you typically don't instantiate this yourself.
+Orchestrates the transition lifecycle. Each framework adapter creates an instance internally - you typically don't instantiate this yourself.
 
 ### Constructor
 
@@ -43,18 +43,22 @@ new PageTransitionManager(transitions, reactiveFactory, config?)
 | Method | Returns | Description |
 |--------|---------|-------------|
 | `run(name, options, trigger?)` | `Promise<void>` | Start a transition: sets running state, then awaits the active transition’s `prepare` and every registered active-hook `prepare` in parallel (`Promise.all`) |
-| `matchTransitionKey(options, el?)` | `Promise<keyof T>` | When the link omits an explicit transition key, pick one: iterate map keys in insertion order, await each `condition` until the first truthy result; otherwise return `defaultTransitionKey` |
+| `matchTransitionKey(options, el?)` | `Promise<keyof T>` | When the link omits an explicit transition key, pick one: iterate in **priority order** (see `PageTransition.priority` and `sortTransitionKeysForMatching`), await each `condition` until the first truthy result; otherwise return `defaultTransitionKey` |
 | `beforeLeave(el?)` | `Promise<void>` | Run `beforeLeave` on the active transition + registered active hooks |
 | `leave(el?)` | `Promise<void>` | Run `leave` on the active transition + registered active hooks |
 | `afterLeave(el?)` | `Promise<void>` | Run `afterLeave` on the active transition + registered active hooks |
 | `beforeEnter(el?)` | `Promise<void>` | Run `beforeEnter` on the active transition + registered active hooks |
 | `enter(el?)` | `Promise<void>` | Run `enter` on the active transition + registered active hooks |
 | `afterEnter(el?)` | `Promise<void>` | Run `afterEnter` + active hooks, then `finishTransition()` (sync): active-hook `cleanup`, transition `cleanup`, reset state |
-| `setContentElements(current?, next?)` | `void` | Store roots passed into `context.current` / `context.next` |
+| `setContentElements(current?, next?)` | `void` | Store content roots (`HTMLElement`); accepts `Element` but non-`HTMLElement` nodes are ignored |
 | `makeContext(el?)` | `PageTransitionContext` | Build context for the active transition (used by adapters) |
 | `finishTransition()` | `void` | Run active-hook `cleanup`, transition `cleanup()`, clear running state, content refs, and lifecycle classes |
 | `registerActiveHook(registration)` | `(cleanup?: () => void) => void` | Register an `ActiveHookRegistration`; returns an unregister function |
 | `getInstance(name)` | `PageTransition` | Get a transition instance by key |
+
+### `sortTransitionKeysForMatching(transitions)`
+
+Returns map keys sorted for **`matchTransitionKey`**: descending numeric **`priority`**, then transitions with **`condition`** but no `priority` (original key order), then entries without `condition`. Exported for tests and tooling; the manager uses it internally.
 
 ---
 
@@ -66,6 +70,7 @@ Interface for transition implementations. All methods are optional.
 interface PageTransition<O = PageTransitionOptions> {
   concurrent?: boolean
   cssMode?: boolean
+  priority?: number
   viewTransitionNames?: Record<string, string> | ((ctx: PageTransitionContext<O>) => Record<string, string>)
   animateViewTransition?(viewTransition: ViewTransition, context: PageTransitionContext<O>): Promise<void>
   condition?(context: PageTransitionMatchContext<O>): Promise<boolean> | boolean
@@ -108,8 +113,8 @@ interface PageTransitionMatchContext<O = PageTransitionOptions> {
   options: O
   trigger: PageTransitionTrigger
   el?: Element
-  current?: Element
-  next?: Element
+  current?: HTMLElement
+  next?: HTMLElement
 }
 ```
 
@@ -120,7 +125,7 @@ interface PageTransitionMatchContext<O = PageTransitionOptions> {
 | `options` | `O` | Same object later passed to `prepare` / hooks: `{ fromHref, toHref, ...flyvaOptions }` |
 | `trigger` | `PageTransitionTrigger` | Clicked element when available, otherwise `'internal'` |
 | `el` | `Element \| undefined` | Anchor (or control) that started the navigation when known |
-| `current` / `next` | `Element \| undefined` | Content roots if the manager already tracked them (often empty at match time) |
+| `current` / `next` | `HTMLElement \| undefined` | Content roots if the manager already tracked them (often empty at match time) |
 
 ---
 
@@ -132,6 +137,7 @@ Passed to every lifecycle method (`prepare` through `afterEnter`). Extends `Page
 interface PageTransitionContext<O = PageTransitionOptions> extends PageTransitionMatchContext<O> {
   name: string
   viewTransition?: ViewTransition
+  container?: HTMLElement
 }
 ```
 
@@ -143,8 +149,9 @@ interface PageTransitionContext<O = PageTransitionOptions> extends PageTransitio
 | `fromHref` | `string` | Same as `options.fromHref` |
 | `toHref` | `string` | Same as `options.toHref` |
 | `el` | `Element \| undefined` | The trigger DOM element (same as `trigger` when it's an Element) |
-| `current` | `Element \| undefined` | Outgoing content root when the adapter set it |
-| `next` | `Element \| undefined` | Incoming content root when the adapter set it |
+| `current` | `HTMLElement \| undefined` | Outgoing content root when the adapter set it |
+| `next` | `HTMLElement \| undefined` | Incoming content root when the adapter set it |
+| `container` | `HTMLElement \| undefined` | Convenience root for the active phase (outgoing during leave-related hooks, incoming during enter-related hooks) |
 | `viewTransition` | `ViewTransition \| undefined` | Active View Transition when using that navigation path |
 
 ---
@@ -237,8 +244,8 @@ Export **`FLYVA_TRANSITION_DATA_ATTR`** (`'data-flyva-transition'`) if you want 
 | `afterLeave` | `{prefix}-pending` | `{prefix}-leave-active`, `{prefix}-leave-to` |
 | `beforeEnter` | `{prefix}-enter`, `{prefix}-enter-active` | `{prefix}-pending` |
 | `enter` | `{prefix}-enter-to` | `{prefix}-enter` |
-| `afterEnter` | — | `{prefix}-enter-active`, `{prefix}-enter-to` |
-| `none` | — | all lifecycle classes + `data-flyva-transition` removed |
+| `afterEnter` | - | `{prefix}-enter-active`, `{prefix}-enter-to` |
+| `none` | - | all lifecycle classes + `data-flyva-transition` removed |
 
 `{prefix}-running` stays from `beforeLeave` through `afterEnter` (until `finishTransition`). `{prefix}-pending` covers the gap after leave hooks and before enter. If `transitionKey` is omitted or empty, `data-flyva-transition` is not set (or is removed on that call).
 

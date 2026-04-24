@@ -29,10 +29,6 @@ class LifecycleLinkOverlayTransitionClass implements PageTransition {
 		}
 	}
 
-	beforeLeave() {
-		document.body.classList.add('flyva-transition-active');
-	}
-
 	async leave() {
 		const root = this.overlay?.refs.root.value;
 		if (!root) return;
@@ -43,10 +39,6 @@ class LifecycleLinkOverlayTransitionClass implements PageTransition {
 		const root = this.overlay?.refs.root.value;
 		if (!root) return;
 		await animate(root, { opacity: 0, duration: 380, ease: 'outQuad' });
-	}
-
-	afterEnter() {
-		document.body.classList.remove('flyva-transition-active');
 	}
 
 	cleanup() {

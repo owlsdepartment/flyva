@@ -13,7 +13,7 @@ import { useFlyvaManager } from './useFlyvaManager';
 
 let initializedManually = false;
 let hasTransitioned = false;
-let _capturedClone: Element | null = null;
+let _capturedClone: HTMLElement | null = null;
 let _vtActive = false;
 
 let _domSwapResolve: (() => void) | null = null;
@@ -44,7 +44,7 @@ function injectCloneStyles() {
 	_styleInjected = true;
 }
 
-export function getCapturedClone(): Element | null {
+export function getCapturedClone(): HTMLElement | null {
 	const clone = _capturedClone;
 	_capturedClone = null;
 	return clone;
@@ -69,8 +69,8 @@ export function useFlyvaTransition() {
 		if (!config.viewTransition && flyvaManager.runningInstance?.concurrent && flyvaManager.currentContent) {
 			injectCloneStyles();
 
-			_capturedClone = flyvaManager.currentContent.cloneNode(true) as Element;
-			(_capturedClone as HTMLElement).classList.add('flyva-clone');
+			_capturedClone = flyvaManager.currentContent.cloneNode(true) as HTMLElement;
+			_capturedClone.classList.add('flyva-clone');
 
 			const parent = flyvaManager.currentContent.parentNode as HTMLElement | null;
 			if (parent) {
@@ -91,7 +91,7 @@ export function useFlyvaTransition() {
 
 		let resolvedNames: Record<string, string> | undefined;
 		if (transition.viewTransitionNames) {
-			resolvedNames = applyViewTransitionNames(transition.viewTransitionNames, context);
+			resolvedNames = applyViewTransitionNames(transition.viewTransitionNames, context, transition);
 		}
 
 		const domSwap = createDomSwapPromise();
@@ -100,7 +100,7 @@ export function useFlyvaTransition() {
 			navigate();
 			await domSwap;
 			if (resolvedNames) {
-				applyViewTransitionNames(resolvedNames, context);
+				applyViewTransitionNames(resolvedNames, context, transition);
 			}
 		});
 
@@ -108,13 +108,13 @@ export function useFlyvaTransition() {
 
 		if (transition.animateViewTransition) {
 			await vt.ready;
-			await transition.animateViewTransition(vt, context);
+			await transition.animateViewTransition.call(transition, vt, context);
 		}
 
 		await vt.finished;
 
 		if (resolvedNames) clearViewTransitionNames(resolvedNames);
-		transition.cleanup?.();
+		transition.cleanup?.call(transition, context);
 		flyvaManager.finishTransition();
 		_vtActive = false;
 	}
@@ -130,7 +130,7 @@ export function useFlyvaTransition() {
 		const content = flyvaManager.nextContent ?? flyvaManager.currentContent;
 		if (!content) return;
 		const name = flyvaManager.runningName as string;
-		const el = content as HTMLElement;
+		const el = content;
 		el.style.removeProperty('opacity');
 		el.style.removeProperty('transform');
 		el.style.removeProperty('pointer-events');

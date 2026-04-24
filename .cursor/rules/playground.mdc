@@ -11,9 +11,8 @@ Playgrounds are minimal apps that exercise the library features. They are privat
 ## Next.js playground (`playground/next`)
 
 - Uses `@flyva/next` and `@flyva/shared` as workspace deps
-- Layout wraps content in `<FlyvaRoot>` with a transitions map
-- Content area uses `data-flyva-content` attribute for transition targeting
-- Page transitions live in `src/page-transitions/` — each is a class implementing `PageTransition`
+- Layout wraps content in `<FlyvaRoot>` with a transitions map; route segment uses `FlyvaTransitionWrapper` so the manager supplies `context.container`
+- Page transitions live in `src/page-transitions/` — `defineTransition` or class implementing `PageTransition`
 - Navigation uses `<FlyvaLink>` from the library — test default and named transitions
 - Uses anime.js (`animejs`) for animations inside transitions
 
@@ -27,7 +26,7 @@ Playgrounds are minimal apps that exercise the library features. They are privat
 
 ## When modifying library code
 
-Always verify changes work in the relevant playground. Transition classes implement the `PageTransition` interface from `@flyva/shared`.
+Always verify changes work in the relevant playground. Transitions implement `PageTransition` from `@flyva/shared`.
 
 ## Playwright MCP
 

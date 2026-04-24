@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Reactive, ReactiveFactory } from '../types';
-import { PageTransitionManager } from '../page-tansition-manager/PageTransitionManager';
+import {
+	PageTransitionManager,
+	sortTransitionKeysForMatching,
+} from '../page-tansition-manager/PageTransitionManager';
 import type { PageTransition } from '../page-tansition-manager/types';
 
 function refReactiveFactory<V>(initial?: V): Reactive<V> {
@@ -62,6 +65,7 @@ describe('PageTransitionManager', () => {
 		expect(ctx.options).toEqual({ x: true, fromHref: '/from', toHref: '/to' });
 		expect(ctx.fromHref).toBe('/from');
 		expect(ctx.toHref).toBe('/to');
+		expect(ctx.container).toBe(cur);
 		expect(ctx.trigger).toBe(btn);
 		expect(ctx.current).toBe(cur);
 		expect(ctx.next).toBe(nxt);
@@ -80,6 +84,28 @@ describe('PageTransitionManager', () => {
 		const manager = new PageTransitionManager(transitions, factory);
 		const key = await manager.matchTransitionKey({ fromHref: '/', toHref: '/x' });
 		expect(key).toBe('pick');
+	});
+
+	it('sortTransitionKeysForMatching orders by priority desc, then condition without priority, then rest', () => {
+		const transitions = {
+			a: { priority: 1, condition: () => false } as PageTransition,
+			b: { priority: 100, condition: () => false } as PageTransition,
+			c: { condition: () => false } as PageTransition,
+			d: {} as PageTransition,
+			e: { condition: () => false } as PageTransition,
+		};
+		expect(sortTransitionKeysForMatching(transitions)).toEqual(['b', 'a', 'c', 'e', 'd']);
+	});
+
+	it('matchTransitionKey evaluates first truthy condition by priority when multiple match', async () => {
+		const transitions = {
+			low: { priority: 1, condition: () => true } as PageTransition,
+			high: { priority: 100, condition: () => true } as PageTransition,
+			defaultTransition: {} as PageTransition,
+		};
+		const manager = new PageTransitionManager(transitions, factory);
+		const key = await manager.matchTransitionKey({});
+		expect(key).toBe('high');
 	});
 
 	it('matchTransitionKey falls back to defaultTransitionKey when no condition matches', async () => {

@@ -80,7 +80,7 @@ body {
 	opacity: 1;
 }
 
-.flyva-transition-active::after {
+html.flyva-running::after {
 	content: '';
 	display: block;
 	position: fixed;

@@ -1,25 +1,20 @@
 import { animate } from 'animejs';
 
-import type { PageTransition, PageTransitionContext } from '@flyva/shared';
+import { defineTransition } from '@flyva/shared';
 
 import { globalGetRefStackItem } from '@flyva/next';
 
-class DefaultTransitionClass implements PageTransition {
-	private content: HTMLElement | null = null;
+export const defaultTransition = defineTransition({
+	beforeLeave(ctx) {
+		const target = ctx.container;
+		if (!target) return;
 
-	async prepare() {
-		this.content = document.querySelector('[data-flyva-content]');
-	}
+		target.style.pointerEvents = 'none';
+	},
 
-	beforeLeave() {
-		if (!this.content) return;
-
-		document.body.classList.add('flyva-transition-active');
-		this.content.style.pointerEvents = 'none';
-	}
-
-	async leave() {
-		if (!this.content) return;
+	async leave(ctx) {
+		const target = ctx.container;
+		if (!target) return;
 
 		const hero = globalGetRefStackItem<HTMLElement>('hero');
 
@@ -27,34 +22,26 @@ class DefaultTransitionClass implements PageTransition {
 			animate(hero.current, { scale: 0.95, opacity: 0, duration: 300, ease: 'inQuad' });
 		}
 
-		await animate(this.content, { opacity: 0, duration: 400, ease: 'inQuad' });
-	}
+		await animate(target, { opacity: 0, duration: 400, ease: 'inQuad' });
+	},
 
-	afterLeave() {
-		if (!this.content) return;
-		this.content.style.pointerEvents = '';
-	}
+	afterLeave(ctx) {
+		const target = ctx.container;
+		if (!target) return;
+		target.style.pointerEvents = '';
+	},
 
-	beforeEnter() {
-		this.content = document.querySelector('[data-flyva-content]');
-		if (!this.content) return;
+	beforeEnter(ctx) {
+		const target = ctx.container;
+		if (!target) return;
 
-		this.content.style.opacity = '0';
-	}
+		target.style.opacity = '0';
+	},
 
-	async enter() {
-		if (!this.content) return;
+	async enter(ctx) {
+		const target = ctx.container;
+		if (!target) return;
 
-		await animate(this.content, { opacity: 1, duration: 400, ease: 'outQuad' });
-	}
-
-	afterEnter(_context: PageTransitionContext) {
-		document.body.classList.remove('flyva-transition-active');
-	}
-
-	cleanup() {
-		this.content = null;
-	}
-}
-
-export const defaultTransition = new DefaultTransitionClass();
+		await animate(target, { opacity: 1, duration: 400, ease: 'outQuad' });
+	},
+});

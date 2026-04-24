@@ -1,6 +1,6 @@
 # @flyva/nuxt
 
-Nuxt 3 module. Components and composables are auto-imported — no explicit imports needed in Vue files.
+Nuxt 3 module. Components and composables are auto-imported - no explicit imports needed in Vue files.
 
 Named composables are also available from **`@flyva/nuxt/composables`** (or the package root **`@flyva/nuxt`**) when you need an explicit import path.
 
@@ -74,7 +74,7 @@ Wraps `NuxtLink` with transition support. Auto-imported.
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `flyva-transition` | `string` | — (optional) | When set, that map key runs. When omitted, conditions are evaluated, then `flyva.defaultKey` as fallback (see [Writing transitions](/guide/transitions#transition-resolution)) |
+| `flyva-transition` | `string` | - (optional) | When set, that map key runs. When omitted, conditions are evaluated, then `flyva.defaultKey` as fallback (see [Writing transitions](/guide/transitions#transition-resolution)) |
 | `:flyva-options` | `PageTransitionOptions \| () => PageTransitionOptions` | `{}` | Data passed to `context.options` |
 
 | Event | Payload | Description |
@@ -104,7 +104,7 @@ const { prepare, isRunning, stage, hasTransitioned } = useFlyvaTransition();
 | Field | Type | Description |
 |-------|------|-------------|
 | `prepare(name, options, el?)` | `(string, PageTransitionOptions, Element?) => Promise<void>` | Start a transition by key |
-| `isRunning` | `ComputedRef<boolean>` | Reactive flag — `true` while a transition is active |
+| `isRunning` | `ComputedRef<boolean>` | Reactive flag - `true` while a transition is active |
 | `stage` | `ComputedRef<PageTransitionStage>` | Current lifecycle stage (reactive) |
 | `hasTransitioned` | `boolean` (getter) | `true` after the first transition |
 

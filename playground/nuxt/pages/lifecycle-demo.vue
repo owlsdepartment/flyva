@@ -124,10 +124,9 @@ const indicator = ref(false);
 			<p>
 				<code>flyva-running</code> stays on for the whole swap. Phase tokens <code>flyva-leave-*</code> /
 				<code>flyva-enter-*</code> follow Vue-style steps; <code>flyva-pending</code> covers the gap after leave and before enter so
-				the nav border animation stays continuous. <code>data-flyva-transition</code> on <code>&lt;html&gt;</code> is the transition key
+				the nav border animation stays continuous. 				<code>data-flyva-transition</code> on <code>&lt;html&gt;</code> is the transition key
 				— the playground hides the nav shimmer for <code>overlayTransition</code>.
-				<code>flyva-transition-active</code> on <code>&lt;body&gt;</code> is the overlay from playground transitions, not the same as
-				<code>flyva-running</code> on <code>&lt;html&gt;</code>.
+				The demo wait overlay uses <code>html.flyva-running::after</code> in global CSS, aligned with <code>flyva-running</code> on <code>&lt;html&gt;</code>.
 			</p>
 		</DemoSection>
 	</DemoPage>

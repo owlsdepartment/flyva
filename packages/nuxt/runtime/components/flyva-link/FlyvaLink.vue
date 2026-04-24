@@ -34,8 +34,12 @@ const props = withDefaults(defineProps<FlyvaLinkProps>(), {
 // });
 
 const nuxtLinkBind = computed(() => {
+	if (props.flyva === false) {
+		const { flyva: _flyva, ...rest } = props;
+		return rest;
+	}
 	const {
-		flyva: _flyva,
+		flyva: _f,
 		flyvaTransition: _ft,
 		flyvaOptions: _fo,
 		onTransitionStart: _ts,
@@ -83,6 +87,10 @@ function normalizeHref(href: string): string {
 }
 
 async function onClick() {
+	if (props.flyva === false) {
+		return;
+	}
+
 	if (!import.meta.client) {
 		await navigateTo(props.to ?? props.href);
 		return;
@@ -120,7 +128,7 @@ async function onClick() {
 
 		let resolvedNames: Record<string, string> | undefined;
 		if (transition.viewTransitionNames) {
-			resolvedNames = applyViewTransitionNames(transition.viewTransitionNames, context);
+			resolvedNames = applyViewTransitionNames(transition.viewTransitionNames, context, transition);
 		}
 
 		const domSwap = createDomSwapPromise();
@@ -129,7 +137,7 @@ async function onClick() {
 			await navigateTo(props.to ?? props.href);
 			await domSwap;
 			if (resolvedNames) {
-				applyViewTransitionNames(resolvedNames, context);
+				applyViewTransitionNames(resolvedNames, context, transition);
 			}
 		});
 
@@ -137,13 +145,13 @@ async function onClick() {
 
 		if (transition.animateViewTransition) {
 			await vt.ready;
-			await transition.animateViewTransition(vt, context);
+			await transition.animateViewTransition.call(transition, vt, context);
 		}
 
 		await vt.finished;
 
 		if (resolvedNames) clearViewTransitionNames(resolvedNames);
-		transition.cleanup?.();
+		transition.cleanup?.call(transition, context);
 		$flyvaManager.finishTransition();
 		setVtActive(false);
 	} else {

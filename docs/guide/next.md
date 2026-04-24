@@ -21,63 +21,53 @@ export default {
 
 ### 1. Write a transition
 
-A transition is a class implementing the `PageTransition` interface. Use any animation library you like.
+A transition is a `PageTransition` object. Use `defineTransition` from `@flyva/shared` so hooks receive [`PageTransitionContext`](/api/shared#pagetransitioncontext): the Next adapter sets **`context.container`** (and `current` / `next`) to the segment wrapped by `FlyvaTransitionWrapper`, so you normally animate that node directly instead of querying the document. A class instance implementing the same interface is still supported.
 
 ```ts
 // src/page-transitions/fadeTransition.ts
 import { animate } from 'animejs';
-import type { PageTransition } from '@flyva/shared';
+import { defineTransition } from '@flyva/shared';
 
-class FadeTransitionClass implements PageTransition {
-  private content: HTMLElement | null = null;
+export const fadeTransition = defineTransition({
+  beforeLeave(ctx) {
+    const el = ctx.container;
+    if (!el) return;
+    el.style.pointerEvents = 'none';
+  },
 
-  async prepare() {
-    this.content = document.querySelector('[data-flyva-content]');
-  }
+  async leave(ctx) {
+    const el = ctx.container;
+    if (!el) return;
+    await animate(el, { opacity: 0, duration: 400, ease: 'inQuad' });
+  },
 
-  beforeLeave() {
-    if (!this.content) return;
-    document.body.classList.add('flyva-transition-active');
-    this.content.style.pointerEvents = 'none';
-  }
+  afterLeave(ctx) {
+    const el = ctx.container;
+    if (!el) return;
+    el.style.pointerEvents = '';
+  },
 
-  async leave() {
-    if (!this.content) return;
-    await animate(this.content, { opacity: 0, duration: 400, ease: 'inQuad' });
-  }
+  beforeEnter(ctx) {
+    const el = ctx.container;
+    if (!el) return;
+    el.style.opacity = '0';
+  },
 
-  afterLeave() {
-    if (!this.content) return;
-    this.content.style.pointerEvents = '';
-  }
-
-  beforeEnter() {
-    this.content = document.querySelector('[data-flyva-content]');
-    if (this.content) this.content.style.opacity = '0';
-  }
-
-  async enter() {
-    if (!this.content) return;
-    await animate(this.content, { opacity: 1, duration: 400, ease: 'outQuad' });
-  }
-
-  afterEnter() {
-    document.body.classList.remove('flyva-transition-active');
-  }
-
-  cleanup() {
-    this.content = null;
-  }
-}
-
-export const fadeTransition = new FadeTransitionClass();
+  async enter(ctx) {
+    const el = ctx.container;
+    if (!el) return;
+    await animate(el, { opacity: 1, duration: 400, ease: 'outQuad' });
+  },
+});
 ```
 
-Export an **instance**, not the class. The same instance is reused across navigations — `cleanup()` resets it between runs.
+Use any animation library you like. The same transition object is reused across navigations.
 
 ### 2. Create a client provider
 
-Transition instances are classes and can't cross the Server → Client Component boundary in Next.js. Wrap `FlyvaRoot` in a dedicated `'use client'` component:
+In Nuxt, the module plugin and runtime config give you a natural place to configure Flyva. The App Router does not offer an equivalent, so a small client-side provider is the usual entrypoint for registering your transition map and any optional Flyva-wide settings.
+
+Transitions run in the browser (DOM, `document`, animation libraries, and similar), so that wiring must live in a Client Component. Put `FlyvaRoot` in its own file and mark it with `'use client'`. Pass your map on `transitions`; you can also pass an optional `config` object (for example `defaultKey` or `viewTransition`) - see the [`FlyvaRoot` API](/api/next#flyvaroot) for the full shape.
 
 ```tsx
 // src/components/FlyvaProvider.tsx
@@ -94,7 +84,7 @@ export function FlyvaProvider({ children }: PropsWithChildren) {
 }
 ```
 
-The keys in the `transitions` object are the names you'll reference from `FlyvaLink`.
+The keys in the `transitions` object are the names you'll reference from `FlyvaLink`. For **`condition`**-based selection, optional numeric **`priority`** controls evaluation order (see [Writing transitions](/guide/transitions#transition-resolution)).
 
 ### 3. Wrap your layout
 
@@ -109,7 +99,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <FlyvaProvider>
           <nav>...</nav>
-          <main data-flyva-content>
+          <main>
             <FlyvaTransitionWrapper>{children}</FlyvaTransitionWrapper>
           </main>
         </FlyvaProvider>
@@ -119,7 +109,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
-Put `FlyvaTransitionWrapper` around the segment that should swap on navigation. It owns the content ref the manager uses for **concurrent** transitions, **CSS-mode** class staging, and **View Transitions** handoff. Keep `data-flyva-content` on an outer element if you still query it in `prepare()`; align what you animate with the subtree inside the wrapper when using those modes.
+Put `FlyvaTransitionWrapper` around the segment that should swap on navigation. It registers that DOM subtree with `PageTransitionManager`, so hooks see the right **`context.container`** / **`context.current`** / **`context.next`** for leave and enter (including **concurrent** clones, **CSS mode**, and **View Transitions** coordination).
 
 ### 4. Use FlyvaLink
 
@@ -133,7 +123,7 @@ import { FlyvaLink } from '@flyva/next';
 
 ## Choosing a transition per link
 
-If you set **`flyvaTransition`**, that map key always runs. If you omit it, Flyva calls **`matchTransitionKey`**: each registered transition’s optional **`condition`** is evaluated in map order until one matches; if none do, **`config.defaultKey`** is used as `defaultTransitionKey` (default `'defaultTransition'`). See [Transition resolution](/guide/transitions#transition-resolution).
+If you set **`flyvaTransition`**, that map key always runs. If you omit it, Flyva calls **`matchTransitionKey`**: each registered transition’s optional **`condition`** is evaluated in **`priority`** order (not object key order); if none do, **`config.defaultKey`** is used as `defaultTransitionKey` (default `'defaultTransition'`). See [Transition resolution](/guide/transitions#transition-resolution).
 
 ```tsx
 <FlyvaLink href="/work" flyvaTransition="slideTransition">Work</FlyvaLink>
@@ -189,7 +179,7 @@ When `viewTransition` is `true`, `FlyvaLink` uses `document.startViewTransition`
 ### Concurrent mode and content cloning
 
 ::: warning Fragile on the App Router
-Overlapping leave and navigation on **Next.js** is only possible because Flyva **injects a DOM clone** of the swap subtree before `router.push`. The App Router does not keep two full React trees mounted the way Nuxt’s page `<Transition>` can—cloning is the workaround.
+Overlapping leave and navigation on **Next.js** is only possible because Flyva **injects a DOM clone** of the swap subtree before `router.push`. The App Router does not keep two full React trees mounted the way Nuxt’s page `<Transition>` can - cloning is the workaround.
 
 That has real downsides you should plan for:
 
@@ -197,7 +187,7 @@ That has real downsides you should plan for:
 - **Animations replaying** — CSS animations or transitions may **run again** on the clone (`cloneNode` does not preserve every runtime animation state the way a live subtree does).
 - **Refs and identity** — React **refs and component state** still point at the **original** nodes; the element you animate during leave is often the **clone**, not the tree your components mounted. Anything that assumed “this ref is the page” can be wrong until `enter` runs on the new route.
 
-You need to **validate** hover/focus, media, third-party widgets, and imperative APIs yourself, or accept occasional visual glitches. For a **native** old→new handoff without this cloning model, use **[View Transitions mode](./modes/view-transitions)** (`config.viewTransition: true`) instead—`concurrent` is not used on that path.
+You need to **validate** hover/focus, media, third-party widgets, and imperative APIs yourself, or accept occasional visual glitches. For a **native** old→new handoff without this cloning model, use **[View Transitions mode](./modes/view-transitions)** (`config.viewTransition: true`) instead - `concurrent` is not used on that path.
 :::
 
 ## FlyvaLink bypass mode
@@ -217,7 +207,7 @@ import { FlyvaLink } from '@flyva/next';
 
 `useFlyvaLifecycle` lets any component inside `FlyvaRoot` react to transition lifecycle stages. It **always** registers with `PageTransitionManager` as an active hook. With **`blocking: false`** (default), `prepare` / `leave` / `enter` do not hold up the manager (returned promises are not awaited); with **`blocking: true`**, those three steps await your work like the transition’s own hooks.
 
-**Non-blocking mode** (default, `blocking: false`) — boundary hooks are synchronous; `prepare` / `leave` / `enter` run without delaying the transition:
+**Non-blocking mode** (default, `blocking: false`) - boundary hooks are synchronous; `prepare` / `leave` / `enter` run without delaying the transition:
 
 ```tsx
 'use client';
@@ -232,7 +222,7 @@ function Analytics() {
 }
 ```
 
-**Blocking mode** (`blocking: true`) — `prepare`, `leave`, and `enter` are awaited in parallel with the transition’s own hooks (`Promise.all` per stage). Use when a component must finish its own animation before that step completes:
+**Blocking mode** (`blocking: true`) - `prepare`, `leave`, and `enter` are awaited in parallel with the transition’s own hooks (`Promise.all` per stage). Use when a component must finish its own animation before that step completes:
 
 ```tsx
 'use client';
@@ -273,24 +263,30 @@ See the [API reference](/api/next#flyvalink) for the full list of callback props
 
 ## Complete example
 
-Putting it all together — a minimal Next.js app with a fade transition:
+Putting it all together - a minimal Next.js app with a fade transition:
 
 ```tsx
 // src/page-transitions/fadeTransition.ts
 import { animate } from 'animejs';
-import type { PageTransition } from '@flyva/shared';
+import { defineTransition } from '@flyva/shared';
 
-class Fade implements PageTransition {
-  private el: HTMLElement | null = null;
-
-  async prepare() { this.el = document.querySelector('[data-flyva-content]'); }
-  async leave()   { if (this.el) await animate(this.el, { opacity: 0, duration: 300 }); }
-  beforeEnter()   { this.el = document.querySelector('[data-flyva-content]'); if (this.el) this.el.style.opacity = '0'; }
-  async enter()   { if (this.el) await animate(this.el, { opacity: 1, duration: 300 }); }
-  cleanup()       { this.el = null; }
-}
-
-export const fadeTransition = new Fade();
+export const fadeTransition = defineTransition({
+  async leave(ctx) {
+    const el = ctx.container;
+    if (!el) return;
+    await animate(el, { opacity: 0, duration: 300 });
+  },
+  beforeEnter(ctx) {
+    const el = ctx.container;
+    if (!el) return;
+    el.style.opacity = '0';
+  },
+  async enter(ctx) {
+    const el = ctx.container;
+    if (!el) return;
+    await animate(el, { opacity: 1, duration: 300 });
+  },
+});
 ```
 
 ```tsx
@@ -316,7 +312,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <FlyvaProvider>
-          <main data-flyva-content>
+          <main>
             <FlyvaTransitionWrapper>{children}</FlyvaTransitionWrapper>
           </main>
         </FlyvaProvider>

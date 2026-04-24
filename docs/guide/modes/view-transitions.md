@@ -9,9 +9,9 @@ When View Transitions mode is on, `FlyvaLink` wraps navigation in the browser’
 
 ## Enable in the app
 
-**Next.js** — pass `viewTransition: true` on `FlyvaRoot`’s `config` prop (alongside `defaultKey` and any other options).
+**Next.js** - pass `viewTransition: true` on `FlyvaRoot`’s `config` prop (alongside `defaultKey` and any other options).
 
-**Nuxt** — module options in `nuxt.config`:
+**Nuxt** - module options in `nuxt.config`:
 
 ```ts
 export default defineNuxtConfig({
@@ -22,7 +22,7 @@ export default defineNuxtConfig({
 });
 ```
 
-Do **not** enable Nuxt’s built-in `app.viewTransition` at the same time as `flyva.viewTransition` — the module prints a warning; pick one system (Flyva’s integration or Nuxt’s global VT) so only one wraps navigations.
+Do **not** enable Nuxt’s built-in `app.viewTransition` at the same time as `flyva.viewTransition` - the module prints a warning; pick one system (Flyva’s integration or Nuxt’s global VT) so only one wraps navigations.
 
 ## Transition object
 
@@ -31,7 +31,7 @@ Optional fields on `PageTransition`:
 | Field | Purpose |
 |-------|---------|
 | `viewTransitionNames` | `Record<string, string>` or `(context) => Record<string, string>` mapping **pseudo-element names** to **CSS selectors**. Flyva sets `element.style.viewTransitionName` for each match before the transition snapshot. |
-| `animateViewTransition` | `(vt, context) => Promise<void>` — runs after `vt.ready` if you need custom work alongside the default transition. |
+| `animateViewTransition` | `(vt, context) => Promise<void>` - runs after `vt.ready` if you need custom work alongside the default transition. |
 
 During the navigation, **`context.viewTransition`** is the `ViewTransition` instance (see `PageTransitionContext` in `@flyva/shared`).
 

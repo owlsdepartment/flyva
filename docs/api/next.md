@@ -28,7 +28,7 @@ Provider component. Creates a `PageTransitionManager` singleton and makes it ava
 | `lifecycleClassPrefix` | `string` | `'flyva'` |
 
 ::: warning
-Transition instances are classes — they can't be serialized across the Server → Client boundary. Always wrap `FlyvaRoot` in a `'use client'` component.
+Transitions depend on client-side APIs (DOM, `document`, and so on) and must be registered under `FlyvaRoot` in a Client Component. Always wrap `FlyvaRoot` in a `'use client'` component.
 :::
 
 ---
@@ -51,16 +51,16 @@ Drop-in replacement for `next/link` with transition support. Intercepts clicks, 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `flyva` | `boolean` | `true` | Set to `false` to bypass Flyva and render a plain `next/link` |
-| `flyvaTransition` | `string` | — (optional) | When set, that map key runs. When omitted, the manager resolves a key via each transition’s optional `condition`, then `config.defaultKey` as `defaultTransitionKey` (see [Writing transitions](/guide/transitions#transition-resolution)) |
+| `flyvaTransition` | `string` | - (optional) | When set, that map key runs. When omitted, the manager resolves a key via each transition’s optional `condition`, then `config.defaultKey` as `defaultTransitionKey` (see [Writing transitions](/guide/transitions#transition-resolution)) |
 | `flyvaOptions` | `PageTransitionOptions \| () => PageTransitionOptions` | `{}` | Data passed to `context.options` |
-| `onTransitionStart` | `() => void` | — | Callback fired before the transition starts |
-| `onBeforeLeave` | `(context: PageTransitionContext) => void` | — | Fired at the `beforeLeave` stage |
-| `onLeave` | `(context: PageTransitionContext) => void` | — | Fired at the `leave` stage |
-| `onAfterLeave` | `(context: PageTransitionContext) => void` | — | Fired at the `afterLeave` stage |
-| `onBeforeEnter` | `(context: PageTransitionContext) => void` | — | Fired at the `beforeEnter` stage |
-| `onEnter` | `(context: PageTransitionContext) => void` | — | Fired at the `enter` stage |
-| `onAfterEnter` | `(context: PageTransitionContext) => void` | — | Fired at the `afterEnter` stage |
-| `ref` | `Ref<HTMLAnchorElement>` | — | Forwarded to the underlying `<a>` element |
+| `onTransitionStart` | `() => void` | - | Callback fired before the transition starts |
+| `onBeforeLeave` | `(context: PageTransitionContext) => void` | - | Fired at the `beforeLeave` stage |
+| `onLeave` | `(context: PageTransitionContext) => void` | - | Fired at the `leave` stage |
+| `onAfterLeave` | `(context: PageTransitionContext) => void` | - | Fired at the `afterLeave` stage |
+| `onBeforeEnter` | `(context: PageTransitionContext) => void` | - | Fired at the `beforeEnter` stage |
+| `onEnter` | `(context: PageTransitionContext) => void` | - | Fired at the `enter` stage |
+| `onAfterEnter` | `(context: PageTransitionContext) => void` | - | Fired at the `afterEnter` stage |
+| `ref` | `Ref<HTMLAnchorElement>` | - | Forwarded to the underlying `<a>` element |
 
 All `next/link` `LinkProps` are also accepted (`href`, `prefetch`, `replace`, `scroll`, etc.).
 
@@ -92,9 +92,9 @@ The `on*` callback props mirror `useFlyvaLifecycle` delivery: they run for each 
 
 ### FlyvaTransitionWrapper
 
-Client component that wraps the part of the tree that swaps on navigation. It registers the content element with `PageTransitionManager`, runs `enter()` after `usePathname` changes, and supports **concurrent** clones, **CSS mode**, and **View Transitions** coordination. Place it **inside** your `data-flyva-content` (or equivalent) wrapper around `{children}` in the App Router layout.
+Client component that wraps the part of the tree that swaps on navigation. It registers that subtree with `PageTransitionManager` (so transition hooks get `context.container` / `current` / `next`), runs `enter()` after `usePathname` changes, and supports **concurrent** clones, **CSS mode**, and **View Transitions** coordination. Wrap `{children}` (or the segment you want to treat as page content) in your App Router layout.
 
-For **`concurrent: true`**, Flyva inserts a **DOM clone** during `prepare` so leave can run against pixels while navigation proceeds; that pattern is inherently fragile on the App Router (layout shift, replayed CSS, refs). See the [Next.js guide — concurrent mode and content cloning](/guide/next#concurrent-mode-and-content-cloning) or prefer **View Transitions** in config.
+For **`concurrent: true`**, Flyva inserts a **DOM clone** during `prepare` so leave can run against pixels while navigation proceeds; that pattern is inherently fragile on the App Router (layout shift, replayed CSS, refs). See the [Next.js guide - concurrent mode and content cloning](/guide/next#concurrent-mode-and-content-cloning) or prefer **View Transitions** in config.
 
 ---
 
@@ -179,7 +179,7 @@ useFlyvaLifecycle({
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `blocking` | `boolean` | `false` | When `false`, `prepare` / `leave` / `enter` are still invoked on the manager timeline but returned promises are **not** awaited — work is scheduled so the transition is not held up. When `true`, those three steps await your callback (including async work); cancellable in-flight work is cleared on unmount. |
+| `blocking` | `boolean` | `false` | When `false`, `prepare` / `leave` / `enter` are still invoked on the manager timeline but returned promises are **not** awaited - work is scheduled so the transition is not held up. When `true`, those three steps await your callback (including async work); cancellable in-flight work is cleared on unmount. |
 
 #### Non-blocking mode (default, `blocking: false`)
 
@@ -215,7 +215,7 @@ useRefStack('hero', hero);
 | `key` | `string` | Unique identifier for this ref |
 | `ref` | `RefObject<MaybeElement>` | The React ref to register |
 
-**Returns:** `() => void` — a manual removal function.
+**Returns:** `() => void` - a manual removal function.
 
 ---
 

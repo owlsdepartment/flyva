@@ -15,7 +15,7 @@ Only one animation path runs per navigation. Enabling **View Transitions** in ap
 With neither `cssMode` nor app-level View Transitions, Flyva runs your hooks in order: `prepare` → `beforeLeave` → `leave` → … → `enter` → `afterEnter` → `cleanup`. You animate with anime.js, GSAP, Motion, Web Animations API, or manual `requestAnimationFrame`.
 
 - **Sequential (default)** — `leave` finishes before the route updates, then `enter` runs on the new page.
-- **`concurrent: true`** — leave can overlap navigation; the adapter keeps the old pixels on screen (**Next.js:** a DOM clone before `router.push`; **Nuxt:** Vue `<Transition>` timing without that clone) while the new tree mounts. Prefer `context.current` and `context.next` for the exact swap roots. On the **Next.js App Router**, concurrent mode is **fragile** because of cloning—layout shift, replayed CSS motion, and broken ref assumptions are common; see [Concurrent mode and content cloning](../next#concurrent-mode-and-content-cloning) or use [View Transitions](./view-transitions) for a native swap.
+- **`concurrent: true`** — leave can overlap navigation; the adapter keeps the old pixels on screen (**Next.js:** a DOM clone before `router.push`; **Nuxt:** Vue `<Transition>` timing without that clone) while the new tree mounts. Prefer `context.current` and `context.next` for the exact swap roots. On the **Next.js App Router**, concurrent mode is **fragile** because of cloning - layout shift, replayed CSS motion, and broken ref assumptions are common; see [Concurrent mode and content cloning](../next#concurrent-mode-and-content-cloning) or use [View Transitions](./view-transitions) for a native swap.
 
 Patterns, `context.el`, options, and recipes live in [Writing transitions](../transitions).
 

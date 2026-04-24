@@ -8,7 +8,7 @@ import type { PageTransitionContext } from '@flyva/shared';
 
 import { useFlyvaTransition } from '../../hooks';
 import { useFlyvaLifecycle } from '../../hooks/useFlyvaLifecycle';
-import type { FlyvaLinkProps } from './types';
+import type { FlyvaLinkAugment, FlyvaLinkProps } from './types';
 
 function normalizeUrl(url: string): string {
 	try {
@@ -29,48 +29,26 @@ function extractPath(input: string): string {
 }
 
 const FlyvaLink = forwardRef<HTMLAnchorElement, PropsWithChildren<FlyvaLinkProps>>((props, ref) => {
-	const {
-		flyva = true,
-		flyvaTransition,
-		flyvaOptions,
-		onTransitionStart,
-		onPrepare,
-		onBeforeLeave,
-		onLeave,
-		onAfterLeave,
-		onBeforeEnter,
-		onEnter,
-		onAfterEnter,
-		onCleanup,
-		children,
-		...linkProps
-	} = props;
-
 	const rootEl = useRef<HTMLAnchorElement>(null);
 	const transition = useFlyvaTransition();
 	const router = useRouter();
 	const pathname = usePathname();
 
-	const callbacksRef = useRef({
-		onPrepare,
-		onBeforeLeave,
-		onLeave,
-		onAfterLeave,
-		onBeforeEnter,
-		onEnter,
-		onAfterEnter,
-		onCleanup,
-	});
-	callbacksRef.current = {
-		onPrepare,
-		onBeforeLeave,
-		onLeave,
-		onAfterLeave,
-		onBeforeEnter,
-		onEnter,
-		onAfterEnter,
-		onCleanup,
-	};
+	const enabledProps = props.flyva === false ? null : props;
+
+	const callbacksRef = useRef<Partial<FlyvaLinkAugment>>({});
+	callbacksRef.current = enabledProps
+		? {
+				onPrepare: enabledProps.onPrepare,
+				onBeforeLeave: enabledProps.onBeforeLeave,
+				onLeave: enabledProps.onLeave,
+				onAfterLeave: enabledProps.onAfterLeave,
+				onBeforeEnter: enabledProps.onBeforeEnter,
+				onEnter: enabledProps.onEnter,
+				onAfterEnter: enabledProps.onAfterEnter,
+				onCleanup: enabledProps.onCleanup,
+			}
+		: {};
 
 	const lifecycleCallbacks = useMemo(() => ({
 		prepare: (ctx: PageTransitionContext) => { callbacksRef.current.onPrepare?.(ctx); },
@@ -87,13 +65,31 @@ const FlyvaLink = forwardRef<HTMLAnchorElement, PropsWithChildren<FlyvaLinkProps
 
 	useImperativeHandle(ref, () => rootEl.current!, []);
 
-	if (!flyva) {
+	if (props.flyva === false) {
+		const { flyva: _flyva, children, ...linkProps } = props;
 		return (
 			<Link ref={rootEl} {...linkProps}>
 				{children}
 			</Link>
 		);
 	}
+
+	const {
+		flyva: _flyvaEnabled = true,
+		flyvaTransition,
+		flyvaOptions,
+		onTransitionStart,
+		onPrepare: _onPrepare,
+		onBeforeLeave: _onBeforeLeave,
+		onLeave: _onLeave,
+		onAfterLeave: _onAfterLeave,
+		onBeforeEnter: _onBeforeEnter,
+		onEnter: _onEnter,
+		onAfterEnter: _onAfterEnter,
+		onCleanup: _onCleanup,
+		children,
+		...linkProps
+	} = props;
 
 	async function handleClick(e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) {
 		const href = rootEl.current?.href ?? props.href?.toString();

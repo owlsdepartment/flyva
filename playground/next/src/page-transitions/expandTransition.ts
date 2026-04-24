@@ -20,7 +20,6 @@ class ExpandTransitionClass implements PageTransition {
 	beforeLeave() {
 		if (!this.content || !this.snapshot || !this.triggerEl) return;
 
-		document.body.classList.add('flyva-transition-active');
 		this.content.style.pointerEvents = 'none';
 
 		const clone = this.triggerEl.cloneNode(true) as HTMLElement;
@@ -136,7 +135,6 @@ class ExpandTransitionClass implements PageTransition {
 	}
 
 	afterEnter() {
-		document.body.classList.remove('flyva-transition-active');
 		this.clone?.remove();
 	}
 

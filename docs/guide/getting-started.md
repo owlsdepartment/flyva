@@ -4,7 +4,7 @@
 
 Flyva is a small library for creating smooth, animated page transitions in **Next.js** and **Nuxt** applications. Instead of letting the browser hard-reload between pages, Flyva intercepts navigation, runs your leave animation, swaps the content, then runs your enter animation.
 
-It doesn't ship any animations itself — you bring your own using any JS animation library (anime.js, GSAP, Motion, etc.) or plain CSS. Flyva handles the orchestration and framework plumbing.
+It doesn't ship any animations itself - you bring your own using any JS animation library (anime.js, GSAP, Motion, etc.) or plain CSS. Flyva handles the orchestration and framework plumbing.
 
 ## How it works
 
@@ -12,12 +12,12 @@ When a user clicks a `FlyvaLink`:
 
 1. **Intercept** — the click is prevented; the URL and trigger element are captured
 2. **Prepare** — your transition snapshots any DOM state it needs (rects, refs, clones)
-3. **Leave** — the outgoing page animates out (or overlaps with navigation when `concurrent: true` — see [Transition modes](./modes/))
+3. **Leave** — the outgoing page animates out (or overlaps with navigation when `concurrent: true` - see [Transition modes](./modes/))
 4. **Navigate** — the framework pushes the new route, the DOM updates
 5. **Enter** — the incoming page animates in
 6. **Cleanup** — the transition resets itself for the next run
 
-This all happens through a `PageTransition` object — a class (or plain object) with lifecycle hooks that you implement:
+This all happens through a `PageTransition` object - a class (or plain object) with lifecycle hooks that you implement:
 
 ```
 prepare → beforeLeave → leave → afterLeave → beforeEnter → enter → afterEnter → cleanup
@@ -31,10 +31,10 @@ Every hook is optional. A minimal transition only needs `leave` and `enter`.
 |------|-------|-------------|
 | `prepare` | yes | Before anything animates. Snapshot DOM rects, cache element refs, clone nodes. |
 | `beforeLeave` | no | Synchronous setup right before leave. Disable pointer events, add overlay classes. |
-| `leave` | yes | Animate the outgoing content. Awaited — navigation won't happen until this resolves. |
+| `leave` | yes | Animate the outgoing content. Awaited - navigation won't happen until this resolves. |
 | `afterLeave` | no | Synchronous teardown after leave. Clean up styles from the leave phase. |
 | `beforeEnter` | no | Synchronous setup before enter. Set initial styles on the incoming content (e.g. `opacity: 0`). |
-| `enter` | yes | Animate the incoming content. Awaited — the transition isn't "done" until this resolves. |
+| `enter` | yes | Animate the incoming content. Awaited - the transition isn't "done" until this resolves. |
 | `afterEnter` | no | Final cleanup. Remove overlay classes, log analytics. |
 | `cleanup` | no | Called after `afterEnter`. Null out all cached references. |
 

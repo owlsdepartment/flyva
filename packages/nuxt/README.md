@@ -30,34 +30,25 @@ Place transition files in the directory specified by `transitionsDir` (default: 
 ```ts
 // page-transitions/defaultTransition.ts
 import { animate } from 'animejs';
-import type { PageTransition } from '@flyva/shared';
+import { defineTransition } from '@flyva/shared';
 
-class DefaultTransitionClass implements PageTransition {
-  private content: HTMLElement | null = null;
-
-  async prepare() {
-    this.content = document.querySelector('[data-flyva-content]');
-  }
-
-  async leave() {
-    if (!this.content) return;
-    await animate(this.content, { opacity: 0, duration: 400 });
-  }
-
-  beforeEnter() {
-    this.content = document.querySelector('[data-flyva-content]');
-    if (this.content) this.content.style.opacity = '0';
-  }
-
-  async enter() {
-    if (!this.content) return;
-    await animate(this.content, { opacity: 1, duration: 400 });
-  }
-
-  cleanup() { this.content = null; }
-}
-
-export const defaultTransition = new DefaultTransitionClass();
+export const defaultTransition = defineTransition({
+  async leave(ctx) {
+    const el = ctx.container;
+    if (!el) return;
+    await animate(el, { opacity: 0, duration: 400 });
+  },
+  beforeEnter(ctx) {
+    const el = ctx.container;
+    if (!el) return;
+    el.style.opacity = '0';
+  },
+  async enter(ctx) {
+    const el = ctx.container;
+    if (!el) return;
+    await animate(el, { opacity: 1, duration: 400 });
+  },
+});
 ```
 
 ### 3. Add FlyvaPage to your app
@@ -71,14 +62,14 @@ export const defaultTransition = new DefaultTransitionClass();
 </template>
 ```
 
-Mark your content wrapper with `data-flyva-content` in the layout:
+`FlyvaPage` registers outgoing and incoming page roots — use `context.container` in transition hooks instead of querying the document.
 
 ```vue
 <!-- layouts/default.vue -->
 <template>
   <div>
     <nav>...</nav>
-    <main data-flyva-content>
+    <main>
       <slot />
     </main>
   </div>

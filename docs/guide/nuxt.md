@@ -1,6 +1,6 @@
 # Nuxt
 
-This guide walks through setting up Flyva in a Nuxt 3 project. The Nuxt adapter works as a module — transitions are auto-discovered from a directory and composables are auto-imported.
+This guide walks through setting up Flyva in a Nuxt 3 project. The Nuxt adapter works as a module - transitions are auto-discovered from a directory and composables are auto-imported.
 
 ## Install
 
@@ -30,7 +30,7 @@ export default defineNuxtConfig({
 | `useNamedExports` | `boolean` | `true` | Use named exports from transition files as individual transitions |
 | `viewTransition` | `boolean` | `undefined` | When `true`, `FlyvaLink` wraps navigation in `document.startViewTransition` (see [View Transitions mode](./modes/view-transitions)) |
 
-If you enable Nuxt’s built-in `app.viewTransition` and Flyva’s `flyva.viewTransition` at the same time, the module logs a warning — turn off Nuxt’s global View Transitions and let Flyva drive them, or keep only one system.
+If you enable Nuxt’s built-in `app.viewTransition` and Flyva’s `flyva.viewTransition` at the same time, the module logs a warning - turn off Nuxt’s global View Transitions and let Flyva drive them, or keep only one system.
 
 ### 2. Write a transition
 
@@ -39,54 +39,42 @@ Place your transition files in the directory set by `transitionsDir`. The module
 ```ts
 // page-transitions/defaultTransition.ts
 import { animate } from 'animejs';
-import type { PageTransition } from '@flyva/shared';
+import { defineTransition } from '@flyva/shared';
 
-class DefaultTransitionClass implements PageTransition {
-  private content: HTMLElement | null = null;
+export const defaultTransition = defineTransition({
+  beforeLeave(ctx) {
+    const el = ctx.container;
+    if (!el) return;
+    el.style.pointerEvents = 'none';
+  },
 
-  async prepare() {
-    this.content = document.querySelector('[data-flyva-content]');
-  }
+  async leave(ctx) {
+    const el = ctx.container;
+    if (!el) return;
+    await animate(el, { opacity: 0, duration: 400, ease: 'inQuad' });
+  },
 
-  beforeLeave() {
-    if (!this.content) return;
-    document.body.classList.add('flyva-transition-active');
-    this.content.style.pointerEvents = 'none';
-  }
+  afterLeave(ctx) {
+    const el = ctx.container;
+    if (!el) return;
+    el.style.pointerEvents = '';
+  },
 
-  async leave() {
-    if (!this.content) return;
-    await animate(this.content, { opacity: 0, duration: 400, ease: 'inQuad' });
-  }
+  beforeEnter(ctx) {
+    const el = ctx.container;
+    if (!el) return;
+    el.style.opacity = '0';
+  },
 
-  afterLeave() {
-    if (!this.content) return;
-    this.content.style.pointerEvents = '';
-  }
-
-  beforeEnter() {
-    this.content = document.querySelector('[data-flyva-content]');
-    if (this.content) this.content.style.opacity = '0';
-  }
-
-  async enter() {
-    if (!this.content) return;
-    await animate(this.content, { opacity: 1, duration: 400, ease: 'outQuad' });
-  }
-
-  afterEnter() {
-    document.body.classList.remove('flyva-transition-active');
-  }
-
-  cleanup() {
-    this.content = null;
-  }
-}
-
-export const defaultTransition = new DefaultTransitionClass();
+  async enter(ctx) {
+    const el = ctx.container;
+    if (!el) return;
+    await animate(el, { opacity: 1, duration: 400, ease: 'outQuad' });
+  },
+});
 ```
 
-The file name doesn't matter — the **export name** (`defaultTransition`) becomes the transition key.
+The file name doesn't matter - the **export name** (`defaultTransition`) becomes the transition key. Because the generated map’s key order follows file discovery, use optional **`priority`** on a transition when **`condition`**-based matching must run in a specific order (see [Writing transitions](/guide/transitions#transition-resolution)).
 
 ### 3. Add FlyvaPage
 
@@ -101,27 +89,11 @@ Replace `<NuxtPage />` with `<FlyvaPage />` in your `app.vue`:
 </template>
 ```
 
-Under the hood, `FlyvaPage` wraps `NuxtPage` with Vue's `<Transition>` (`css: false`) and hooks into Nuxt's page lifecycle. It branches on the active transition: **sequential** (default `out-in`), **`concurrent: true`** (leave can overlap navigation; enter runs after the new page is ready), **`cssMode: true`** (class-based phases via `@flyva/shared`), and **`viewTransition`** when enabled in config (coordinates with `FlyvaLink`’s `startViewTransition` callback).
+Under the hood, `FlyvaPage` wraps `NuxtPage` with Vue's `<Transition>` (`css: false`) and hooks into Nuxt's page lifecycle. It registers **outgoing and incoming page roots** with the manager, so transition hooks receive [`PageTransitionContext`](/api/shared#pagetransitioncontext) (`container`, `current`, `next`) the same way as on Next - you normally animate those nodes rather than querying the document. It branches on the active transition: **sequential** (default `out-in`), **`concurrent: true`** (leave can overlap navigation; enter runs after the new page is ready), **`cssMode: true`** (class-based phases via `@flyva/shared`), and **`viewTransition`** when enabled in config (coordinates with `FlyvaLink`’s `startViewTransition` callback).
 
-### 4. Mark the content container
+### 4. Use FlyvaLink
 
-In your layout, add `data-flyva-content` to the element your transitions will animate:
-
-```vue
-<!-- layouts/default.vue -->
-<template>
-  <div>
-    <nav>...</nav>
-    <main data-flyva-content>
-      <slot />
-    </main>
-  </div>
-</template>
-```
-
-### 5. Use FlyvaLink
-
-`FlyvaLink` wraps `NuxtLink` and is auto-imported — no explicit import needed.
+`FlyvaLink` wraps `NuxtLink` and is auto-imported - no explicit import needed.
 
 ```vue
 <template>
@@ -150,8 +122,10 @@ Pass arbitrary data via `:flyva-options`. It lands on `context.options` inside e
 ```ts
 // Inside your transition
 async leave(context) {
+  const el = context.container;
+  if (!el) return;
   const dir = context.options.direction === 'left' ? '100%' : '-100%';
-  await animate(this.content, { translateX: dir, duration: 500 });
+  await animate(el, { translateX: dir, duration: 500 });
 }
 ```
 
@@ -159,7 +133,7 @@ async leave(context) {
 
 ## Auto-imported composables
 
-The module registers these composables as auto-imports — use them anywhere in Vue components without an import statement:
+The module registers these composables as auto-imports - use them anywhere in Vue components without an import statement:
 
 | Composable | Returns |
 |------------|---------|
@@ -189,19 +163,25 @@ A minimal Nuxt app with a fade transition:
 ```ts
 // page-transitions/defaultTransition.ts
 import { animate } from 'animejs';
-import type { PageTransition } from '@flyva/shared';
+import { defineTransition } from '@flyva/shared';
 
-class Fade implements PageTransition {
-  private el: HTMLElement | null = null;
-
-  async prepare() { this.el = document.querySelector('[data-flyva-content]'); }
-  async leave()   { if (this.el) await animate(this.el, { opacity: 0, duration: 300 }); }
-  beforeEnter()   { this.el = document.querySelector('[data-flyva-content]'); if (this.el) this.el.style.opacity = '0'; }
-  async enter()   { if (this.el) await animate(this.el, { opacity: 1, duration: 300 }); }
-  cleanup()       { this.el = null; }
-}
-
-export const defaultTransition = new Fade();
+export const defaultTransition = defineTransition({
+  async leave(ctx) {
+    const el = ctx.container;
+    if (!el) return;
+    await animate(el, { opacity: 0, duration: 300 });
+  },
+  beforeEnter(ctx) {
+    const el = ctx.container;
+    if (!el) return;
+    el.style.opacity = '0';
+  },
+  async enter(ctx) {
+    const el = ctx.container;
+    if (!el) return;
+    await animate(el, { opacity: 1, duration: 300 });
+  },
+});
 ```
 
 ```ts
@@ -227,7 +207,8 @@ export default defineNuxtConfig({
 <!-- layouts/default.vue -->
 <template>
   <div>
-    <main data-flyva-content>
+    <nav>...</nav>
+    <main>
       <slot />
     </main>
   </div>

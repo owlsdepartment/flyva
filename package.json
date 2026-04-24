@@ -7,6 +7,7 @@
     "dev:next": "pnpm --filter playground-next dev",
     "dev:next:vt": "pnpm --filter playground-next-vt dev",
     "dev:nuxt:vt": "pnpm --filter playground-nuxt-vt dev",
+    "dev:docs": "pnpm docs:dev",
     "dev:all": "concurrently -k -n nuxt,next,nuxt-vt,next-vt,docs \"pnpm dev:nuxt\" \"pnpm dev:next\" \"pnpm dev:nuxt:vt\" \"pnpm dev:next:vt\" \"pnpm docs:dev\"",
     "build": "esr ./scripts/build.ts",
     "publish": "esr ./scripts/publish.ts",

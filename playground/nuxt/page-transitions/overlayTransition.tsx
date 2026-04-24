@@ -102,10 +102,6 @@ class OverlayTransitionClass implements PageTransition {
 		}
 	}
 
-	beforeLeave(_context: PageTransitionContext) {
-		document.body.classList.add('flyva-transition-active');
-	}
-
 	async leave(_context: PageTransitionContext) {
 		if (!this.overlay) return;
 
@@ -190,7 +186,7 @@ class OverlayTransitionClass implements PageTransition {
 	}
 
 	afterEnter(_context: PageTransitionContext) {
-		document.body.classList.remove('flyva-transition-active');
+		//
 	}
 
 	cleanup() {

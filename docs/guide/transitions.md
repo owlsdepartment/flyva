@@ -12,6 +12,7 @@ A transition is any object that implements (some of) these hooks:
 interface PageTransition {
   concurrent?: boolean;
   cssMode?: boolean;
+  priority?: number;
   viewTransitionNames?: Record<string, string> | ((ctx) => Record<string, string>);
   animateViewTransition?(vt: ViewTransition, context): Promise<void>;
   condition?(context: PageTransitionMatchContext): boolean | Promise<boolean>;
@@ -32,22 +33,22 @@ All hooks are optional. A transition that only defines `leave` and `enter` is pe
 | Flag / field | Effect |
 |--------------|--------|
 | `concurrent` | Outgoing and incoming content can overlap. On **Next.js**, a frozen clone is inserted before navigation so the old view does not flash empty; **Nuxt** overlaps via `FlyvaPage` / Vue `<Transition>`. `context.current` / `context.next` point at the roots being handed off. Ignored when [View Transitions mode](/guide/modes/view-transitions) is on. |
-
-::: warning Next.js `concurrent` and cloning
-On the **App Router**, `concurrent` depends on **content cloning** (App Router constraints). Expect possible **layout shifts**, **CSS animations or transitions replaying** on the clone, and **loss of useful React refs** on the node being animated (the clone is not your mounted tree). Design around `context.current` / `context.next`, test edge cases, or switch to [View Transitions](/guide/modes/view-transitions) for a native handoff. Details: [Next.js — concurrent mode and content cloning](/guide/next#concurrent-mode-and-content-cloning).
-:::
-
 | `cssMode` | Animation via generated CSS classes instead of `leave`/`enter`. See [CSS mode](/guide/modes/css-mode). |
 | `viewTransitionNames` | Used with app-level View Transitions. See [View Transitions mode](/guide/modes/view-transitions). |
 | `animateViewTransition` | Optional hook after `vt.ready` when using View Transitions. See [View Transitions mode](/guide/modes/view-transitions). |
-| `condition` | Optional predicate used **only** when the link did not set an explicit transition key. The manager walks registered transitions in **map insertion order**, evaluates each `condition` with a [`PageTransitionMatchContext`](/api/shared#pagetransitionmatchcontext), and runs the **first** transition whose `condition` is truthy. Transitions without `condition` are never auto-selected this way. |
+| `condition` | Optional predicate used **only** when the link did not set an explicit transition key. The manager walks registered transitions in **priority order** (see `priority` below), evaluates each `condition` with a [`PageTransitionMatchContext`](/api/shared#pagetransitionmatchcontext), and runs the **first** transition whose `condition` is truthy. Transitions without `condition` are never auto-selected this way. |
+| `priority` | Optional **number** for [`matchTransitionKey`](/api/shared#pagetransitionmanager) only. Higher values are tried before lower ones. Entries **without** `priority` but **with** `condition` come next (stable map key order). Entries **without** `condition` are last. Use this when the transition map is a plain object (e.g. Next.js) or auto-imported (Nuxt) and key order is not enough. |
+
+::: warning Next.js `concurrent` and cloning
+On the **App Router**, `concurrent` depends on **content cloning** (App Router constraints). Expect possible **layout shifts**, **CSS animations or transitions replaying** on the clone, and **loss of useful React refs** on the node being animated (the clone is not your mounted tree). Design around `context.current` / `context.next`, test edge cases, or switch to [View Transitions](/guide/modes/view-transitions) for a native handoff. Details: [Next.js - concurrent mode and content cloning](/guide/next#concurrent-mode-and-content-cloning).
+:::
 
 ## Transition resolution
 
 When a user clicks a `FlyvaLink`, the framework adapter decides which transition to run:
 
 1. If the link has `flyvaTransition` / `flyva-transition` set to a non-empty string, that key is used.
-2. Otherwise the manager calls `matchTransitionKey`: it iterates the transition map in **insertion order**, runs each transition’s `condition` (if defined), and uses the **first** match.
+2. Otherwise the manager calls `matchTransitionKey`: it iterates transitions in **priority order** ([`sortTransitionKeysForMatching`](/api/shared#sorttransitionkeysformatching) - higher `priority` first, then `condition` without `priority`, then the rest), runs each transition’s `condition` (if defined), and uses the **first** match.
 3. If no `condition` matches, the manager uses `defaultTransitionKey` on `PageTransitionManager` (Next: `defaultKey` on `FlyvaRoot` config; Nuxt: `flyva.defaultKey` in runtime config). That defaults to `'defaultTransition'`.
 
 The key must exist on the transition map (Next.js object passed to `FlyvaRoot`, Nuxt auto-built map from the transitions directory).
@@ -56,9 +57,9 @@ The key must exist on the transition map (Next.js object passed to `FlyvaRoot`, 
 
 Use an explicit `flyvaTransition` when the same target URL could match more than one rule and you need a deterministic choice (for example project cards to `/work/[slug]` use `expandTransition` while the nav “Work” link targets `/work` and relies on `slideTransition`’s `condition`).
 
-## Class-based pattern
+## Class-based vs functional pattern
 
-The recommended approach is a class with instance properties for caching DOM references. Export a singleton instance — it gets reused across navigations and `cleanup()` resets it.
+The same lifecycle API works either way. A **class** with a **`new`** singleton is a good fit if you like private fields and instance methods. **`defineTransition`** from **`@flyva/shared`** builds a **`PageTransition`** from a plain object - often closer to how **Vue** and **React** codebases express composables or small config objects, without writing a `class`. Both styles get the same **`context`**; with **`defineTransition`**, hook methods still run with **`this`** bound to the returned object if you use normal **`method() {}`** syntax.
 
 ```ts
 import { animate } from 'animejs';
@@ -67,14 +68,15 @@ import type { PageTransition, PageTransitionContext } from '@flyva/shared';
 class SlideTransitionClass implements PageTransition {
   private content: HTMLElement | null = null;
 
-  async prepare() {
-    this.content = document.querySelector('[data-flyva-content]');
+  async prepare(context: PageTransitionContext) {
+    this.content = context.container ?? null;
   }
 
   async leave(context: PageTransitionContext) {
-    if (!this.content) return;
+    const el = this.content ?? context.container ?? null;
+    if (!el) return;
     const dir = context.options.direction === 'left' ? '100%' : '-100%';
-    await animate(this.content, {
+    await animate(el, {
       translateX: dir,
       opacity: 0,
       duration: 500,
@@ -83,16 +85,17 @@ class SlideTransitionClass implements PageTransition {
   }
 
   beforeEnter(context: PageTransitionContext) {
-    this.content = document.querySelector('[data-flyva-content]');
+    this.content = context.container ?? null;
     if (!this.content) return;
     const dir = context.options.direction === 'left' ? '-100%' : '100%';
     this.content.style.transform = `translateX(${dir})`;
     this.content.style.opacity = '0';
   }
 
-  async enter() {
-    if (!this.content) return;
-    await animate(this.content, {
+  async enter(context: PageTransitionContext) {
+    const el = this.content ?? context.container ?? null;
+    if (!el) return;
+    await animate(el, {
       translateX: '0%',
       opacity: 1,
       duration: 500,
@@ -112,14 +115,17 @@ class SlideTransitionClass implements PageTransition {
 export const slideTransition = new SlideTransitionClass();
 ```
 
-## Using `context.current` and `context.next`
+Export **one shared instance** (class or **`defineTransition`** result): the manager reuses it across navigations, and **`cleanup()`** should drop any cached DOM references.
 
-The manager tracks the outgoing and incoming content roots when the framework sets them (Next.js via `FlyvaTransitionWrapper`, Nuxt via `FlyvaPage`). During a transition, read:
+## Using `context.current`, `context.next`, and `container`
 
-- `context.current` — element that is leaving (or a stand-in clone in concurrent mode)
-- `context.next` — element that is entering, once it exists
+The manager records the outgoing and incoming page roots for you (Next.js via `FlyvaTransitionWrapper`, Nuxt via `FlyvaPage`). Read them from **`PageTransitionContext`** so you animate the subtree the adapter is swapping - not whatever happens to match a global **`document.querySelector`**. That matters most with **`concurrent: true`** on Next, where **`context.current`** during leave may be a **clone** while navigation runs.
 
-Prefer these over `querySelector('[data-flyva-content]')` when you need the exact subtree the adapter swaps, especially with `concurrent: true`.
+- **`context.current`** — element that is leaving (or a stand-in clone in concurrent mode)
+- **`context.next`** — element that is entering, once it exists
+- **`context.container`** — convenience pointer for the active phase: outgoing during leave-related hooks, incoming during enter-related hooks (same object as in [`PageTransitionContext`](/api/shared#pagetransitioncontext))
+
+Use **`container`** when you only need the main root for this step; use **`current`** / **`next`** when you need the explicit pair (timing, clone vs live tree, or both roots at once).
 
 ## Using context.el
 
@@ -127,12 +133,10 @@ When a user clicks a `FlyvaLink`, `context.el` is set to the DOM element that wa
 
 ```ts
 async prepare(context: PageTransitionContext) {
-  this.content = document.querySelector('[data-flyva-content]');
-
-  if (context.el) {
+  if (context.el instanceof HTMLElement) {
     const rect = context.el.getBoundingClientRect();
-    this.snapshot = { top: rect.top, left: rect.left, width: rect.width, height: rect.height };
-    this.triggerEl = context.el as HTMLElement;
+    const snapshot = { top: rect.top, left: rect.left, width: rect.width, height: rect.height };
+    // on a class / defineTransition instance, assign to fields for leave/enter (e.g. this.snapshot = snapshot)
   }
 }
 ```
@@ -187,10 +191,10 @@ Flyva automatically updates `document.documentElement` (`<html>`) at each transi
 | `afterLeave` | `flyva-pending` | `flyva-leave-active`, `flyva-leave-to` |
 | `beforeEnter` | `flyva-enter`, `flyva-enter-active` | `flyva-pending` |
 | `enter` | `flyva-enter-to` | `flyva-enter` |
-| `afterEnter` | — | `flyva-enter-active`, `flyva-enter-to` |
-| `none` (finish) | — | all of the above + `data-flyva-transition` |
+| `afterEnter` | - | `flyva-enter-active`, `flyva-enter-to` |
+| `none` (finish) | - | all of the above + `data-flyva-transition` |
 
-Use **`html.flyva-running`** for styles that should cover the **entire** swap (including the pending gap). Use **`html[data-flyva-transition="overlayTransition"]`** (or any key) to branch CSS per transition — for example hide a global progress bar when an overlay transition already provides its own chrome.
+Use **`html.flyva-running`** for styles that should cover the **entire** swap (including the pending gap). Use **`html[data-flyva-transition="overlayTransition"]`** (or any key) to branch CSS per transition - for example hide a global progress bar when an overlay transition already provides its own chrome.
 
 See the dedicated [Lifecycle classes](/guide/modes/lifecycle) page for diagrams and adapter-specific notes.
 
@@ -210,26 +214,60 @@ html.flyva-running::after {
 }
 ```
 
-Alternatively, toggle classes manually in your transition hooks:
+You can also toggle **`pointer-events`** (or other inline styles) on **`context.container`** in hooks if you only need to shield the swapping subtree.
 
-```ts
-beforeLeave() {
-  document.body.classList.add('flyva-transition-active');
-  if (this.content) this.content.style.pointerEvents = 'none';
-}
+### Interactive overlay with `useDetachedRoot`
 
-afterEnter() {
-  document.body.classList.remove('flyva-transition-active');
-}
+For a **rich overlay** (extra DOM, nested framework components, long GSAP / Motion timelines) that should exist **only for one transition run** and stay **in sync** with **`prepare` → leave → enter → cleanup**, mount it with **`useDetachedRoot`** from **`@flyva/next`** or **`@flyva/nuxt`** (Nuxt auto-imports it). It appends a container to **`document.body`**, renders a small **React** or **Vue** tree with **`createRoot`** / **`createApp`**, and returns **`{ refs, waitForRender, destroy }`**. You own timing: await **`waitForRender()`** after mounting, animate in **`leave`** / **`enter`** using the same **`PageTransitionContext`** as the page, then call **`destroy()`** in **`afterEnter`** and/or **`cleanup()`** so nothing leaks into the next navigation.
+
+Another valid pattern is an overlay **component in the layout** toggled from **`useFlyvaLifecycle`** or shared state - that keeps one shell across routes. **`useDetachedRoot`** is a better fit when the overlay is **scoped to a single transition implementation** and you want it **gone as soon as that transition finishes**, without wiring layout props or global stores.
+
+The playground **`overlayTransition`** (Next and Nuxt) is a full example: many refs, imperative timelines, and teardown in **`cleanup()`**.
+
+::: code-group
+
+```tsx [Next.js]
+import { useDetachedRoot } from '@flyva/next';
+
+type OverlayRefs = { root: HTMLDivElement | null };
+
+const { refs, waitForRender, destroy } = useDetachedRoot(r => (
+  <div className="overlay" ref={r.root} role="presentation" />
+));
+
+await waitForRender();
+// refs.root.current … drive animations in leave/enter, then:
+destroy();
 ```
+
+```ts [Nuxt]
+import { h } from 'vue';
+import { useDetachedRoot } from '@flyva/nuxt/composables';
+
+type OverlayRefs = { root: HTMLDivElement | null };
+
+const { refs, waitForRender, destroy } = useDetachedRoot(r =>
+  h('div', { ref: r.root, class: 'overlay', role: 'presentation' }),
+);
+
+await waitForRender();
+// refs.root.value … then destroy();
+destroy();
+```
+
+:::
+
+::: tip Not tied to Flyva internals
+`useDetachedRoot` is a thin **client-only** helper around a body-mounted root. You can use it **anywhere** in an app (modals, tooling, one-off portals) whenever that model fits - it does **not** require **`FlyvaRoot`**, **`PageTransitionManager`**, or **`FlyvaLink`**. API: [`@flyva/next`](/api/next), [`@flyva/nuxt`](/api/nuxt) (see **`useDetachedRoot`** on each page).
+:::
 
 ### Re-querying the content element
 
-The DOM changes between `leave` and `enter` — the old page is unmounted, the new page is mounted. In `beforeEnter` / `enter`, re-resolve the node you animate: either `context.next` when the adapter provides it, or `document.querySelector('[data-flyva-content]')` / your own selector.
+The DOM changes between `leave` and `enter`. Prefer **`context.container`**, **`context.next`**, or **`context.current`** - the adapter sets them for each phase. Fall back to `document.querySelector(...)` only when you truly need a node outside the registered roots.
 
 ```ts
 beforeEnter(context: PageTransitionContext) {
-  this.content = (context.next as HTMLElement) ?? document.querySelector('[data-flyva-content]');
+  this.content = context.container ?? context.next ?? null;
   if (this.content) this.content.style.opacity = '0';
 }
 ```
@@ -240,9 +278,9 @@ Clone the trigger element in `prepare`, animate the clone to the target position
 
 ```ts
 async prepare(context: PageTransitionContext) {
-  this.content = document.querySelector('[data-flyva-content]');
+  this.content = context.container ?? null;
 
-  if (context.el) {
+  if (context.el instanceof HTMLElement) {
     const rect = context.el.getBoundingClientRect();
     this.clone = context.el.cloneNode(true) as HTMLElement;
     this.clone.classList.add('flyva-clone');
@@ -260,6 +298,7 @@ async prepare(context: PageTransitionContext) {
 }
 
 async leave() {
+  if (!this.content || !this.clone) return;
   await Promise.all([
     animate(this.content, { opacity: 0, duration: 300 }),
     animate(this.clone, {
@@ -270,13 +309,13 @@ async leave() {
   ]);
 }
 
-async enter() {
-  this.content = document.querySelector('[data-flyva-content]');
+async enter(context: PageTransitionContext) {
+  this.content = context.container ?? null;
   if (this.content) this.content.style.opacity = '0';
 
   await Promise.all([
     animate(this.clone, { opacity: 0, duration: 200 }),
-    animate(this.content, { opacity: 1, duration: 200 }),
+    this.content ? animate(this.content, { opacity: 1, duration: 200 }) : Promise.resolve(),
   ]);
   this.clone?.remove();
 }
@@ -286,6 +325,6 @@ See also the [Ref Stack](./ref-stack) guide for accessing element refs across pa
 
 ## Tips
 
-- Keep `cleanup()` thorough — null out all references and remove inline styles
+- Keep `cleanup()` thorough - null out all references and remove inline styles
 - `prepare()` is called before `leave()` and is awaited. Use it for heavy setup like cloning elements or measuring rects.
-- The same transition instance is reused across navigations. Don't store state that leaks between runs — that's what `cleanup()` is for.
+- The same transition instance is reused across navigations. Don't store state that leaks between runs - that's what `cleanup()` is for.

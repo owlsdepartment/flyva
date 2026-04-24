@@ -10,9 +10,18 @@ export function supportsViewTransitions(): boolean {
 
 export function applyViewTransitionNames(
 	names: Record<string, string> | ((ctx: PageTransitionContext) => Record<string, string>),
-	context: PageTransitionContext
+	context: PageTransitionContext,
+	thisArg?: unknown,
 ): Record<string, string> {
-	const resolved = typeof names === 'function' ? names(context) : names;
+	const resolved =
+		typeof names === 'function'
+			? thisArg !== undefined
+				? (names as (this: unknown, ctx: PageTransitionContext) => Record<string, string>).call(
+						thisArg,
+						context,
+					)
+				: (names as (ctx: PageTransitionContext) => Record<string, string>)(context)
+			: names;
 	for (const [vtName, selector] of Object.entries(resolved)) {
 		const el = document.querySelector(selector);
 		if (el instanceof HTMLElement) el.style.viewTransitionName = vtName;

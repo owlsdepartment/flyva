@@ -11,6 +11,37 @@ import type {
 	RegisterActiveHookReturn,
 } from './types';
 
+function contentRootFromElement(node?: Element | null): HTMLElement | undefined {
+	return node instanceof HTMLElement ? node : undefined;
+}
+
+/**
+ * Order used when evaluating `condition` in {@link PageTransitionManager.matchTransitionKey}:
+ * 1) descending numeric `priority`, 2) entries with `condition` but no `priority`, 3) rest — stable by original key order within each band.
+ */
+export function sortTransitionKeysForMatching<T extends Record<string, PageTransition>>(
+	transitions: T,
+): (keyof T)[] {
+	const keys = Object.keys(transitions) as (keyof T)[];
+	const origIndex = new Map<keyof T, number>(keys.map((k, i) => [k, i]));
+	return [...keys].sort((ka, kb) => {
+		const a = transitions[ka];
+		const b = transitions[kb];
+		const pa = a?.priority;
+		const pb = b?.priority;
+		const hasPa = typeof pa === 'number' && !Number.isNaN(pa);
+		const hasPb = typeof pb === 'number' && !Number.isNaN(pb);
+		if (hasPa && hasPb && pa !== pb) return (pb as number) - (pa as number);
+		if (hasPa && !hasPb) return -1;
+		if (!hasPa && hasPb) return 1;
+		const condA = typeof a?.condition === 'function';
+		const condB = typeof b?.condition === 'function';
+		if (condA && !condB) return -1;
+		if (!condA && condB) return 1;
+		return (origIndex.get(ka) ?? 0) - (origIndex.get(kb) ?? 0);
+	});
+}
+
 export interface PageTransitionManagerConfig {
 	viewTransition?: boolean;
 	lifecycleClassPrefix?: string;
@@ -31,8 +62,8 @@ export class PageTransitionManager<
 		: PageTransitionOptions;
 	protected _trigger: PageTransitionTrigger = 'internal';
 	protected _stage: Reactive<PageTransitionStage>;
-	protected _currentContent?: Element;
-	protected _nextContent?: Element;
+	protected _currentContent?: HTMLElement;
+	protected _nextContent?: HTMLElement;
 	protected _warnedTransitions = new Set<string>();
 	protected _config: PageTransitionManagerConfig;
 	protected _activeHooks = new Set<ActiveHookRegistration>();
@@ -75,9 +106,9 @@ export class PageTransitionManager<
 	}
 
 	/**
-	 * Picks a transition by evaluating each registered `condition` in **object key insertion order**;
-	 * the first match wins. Transitions without `condition` are skipped here. If none match, returns
-	 * `defaultTransitionKey` from config (default `defaultTransition`).
+	 * Picks a transition by evaluating each registered `condition` in **priority order** (see
+	 * {@link sortTransitionKeysForMatching}); the first match wins. Transitions without `condition`
+	 * are skipped here. If none match, returns `defaultTransitionKey` from config (default `defaultTransition`).
 	 */
 	async matchTransitionKey(
 		options: T[keyof T] extends PageTransition<infer O> ? O : PageTransitionOptions,
@@ -94,16 +125,17 @@ export class PageTransitionManager<
 			next: this._nextContent,
 		};
 
-		for (const key of Object.keys(this.transitions) as (keyof T)[]) {
+		const ordered = sortTransitionKeysForMatching(this.transitions);
+		for (const key of ordered) {
 			const t = this.transitions[key];
 			if (!t?.condition) continue;
-			const ok = await Promise.resolve(t.condition(ctx));
+			const ok = await Promise.resolve(t.condition.call(t, ctx));
 			if (ok) return key;
 		}
 
 		const fb = (this._config.defaultTransitionKey ?? 'defaultTransition') as keyof T;
 		if (!(String(fb) in this.transitions)) {
-			const keys = Object.keys(this.transitions) as (keyof T)[];
+			const keys = sortTransitionKeysForMatching(this.transitions);
 			if (!keys.length) {
 				throw new Error('[flyva] No transitions registered');
 			}
@@ -131,7 +163,8 @@ export class PageTransitionManager<
 		trigger?: PageTransitionTrigger
 	) {
 		if (this.runningInstance) {
-			this.runningInstance.cleanup?.();
+			const prev = this.runningInstance;
+			prev.cleanup?.call(prev, this.makeContext(undefined));
 		}
 
 		const current = this.transitions[name];
@@ -150,7 +183,7 @@ export class PageTransitionManager<
 
 		const ctx = this.makeContext(el);
 		const prepares: Promise<void>[] = [];
-		if (current?.prepare) prepares.push(current.prepare(ctx));
+		if (current?.prepare) prepares.push(Promise.resolve(current.prepare.call(current, ctx)));
 		for (const hook of this._activeHooks) {
 			if (hook.prepare) prepares.push(hook.prepare(ctx));
 		}
@@ -197,7 +230,10 @@ export class PageTransitionManager<
 		applyLifecycleClasses('beforeLeave', this.lifecycleClassPrefix, this._lifecycleTransitionKey());
 		const ctx = this.makeContext(el);
 		const promises: Promise<void>[] = [];
-		promises.push(Promise.resolve(this._runningInstance.value?.beforeLeave?.(ctx)));
+		const instBL = this._runningInstance.value;
+		promises.push(
+			Promise.resolve(instBL?.beforeLeave ? instBL.beforeLeave.call(instBL, ctx) : undefined),
+		);
 		for (const hook of this._activeHooks) {
 			if (hook.beforeLeave) promises.push(Promise.resolve(hook.beforeLeave(ctx)));
 		}
@@ -209,7 +245,8 @@ export class PageTransitionManager<
 		applyLifecycleClasses('leave', this.lifecycleClassPrefix, this._lifecycleTransitionKey());
 		const ctx = this.makeContext(el);
 		const promises: Promise<void>[] = [];
-		promises.push(this._runningInstance.value?.leave?.(ctx) ?? Promise.resolve());
+		const instL = this._runningInstance.value;
+		promises.push(instL?.leave ? instL.leave.call(instL, ctx) : Promise.resolve());
 		for (const hook of this._activeHooks) {
 			if (hook.leave) promises.push(hook.leave(ctx));
 		}
@@ -230,7 +267,10 @@ export class PageTransitionManager<
 		applyLifecycleClasses('afterLeave', this.lifecycleClassPrefix, this._lifecycleTransitionKey());
 		const ctx = this.makeContext(el);
 		const promises: Promise<void>[] = [];
-		promises.push(Promise.resolve(this._runningInstance.value?.afterLeave?.(ctx)));
+		const instALe = this._runningInstance.value;
+		promises.push(
+			Promise.resolve(instALe?.afterLeave ? instALe.afterLeave.call(instALe, ctx) : undefined),
+		);
 		for (const hook of this._activeHooks) {
 			if (hook.afterLeave) promises.push(Promise.resolve(hook.afterLeave(ctx)));
 		}
@@ -242,7 +282,10 @@ export class PageTransitionManager<
 		applyLifecycleClasses('beforeEnter', this.lifecycleClassPrefix, this._lifecycleTransitionKey());
 		const ctx = this.makeContext(el);
 		const promises: Promise<void>[] = [];
-		promises.push(Promise.resolve(this._runningInstance.value?.beforeEnter?.(ctx)));
+		const instBE = this._runningInstance.value;
+		promises.push(
+			Promise.resolve(instBE?.beforeEnter ? instBE.beforeEnter.call(instBE, ctx) : undefined),
+		);
 		for (const hook of this._activeHooks) {
 			if (hook.beforeEnter) promises.push(Promise.resolve(hook.beforeEnter(ctx)));
 		}
@@ -254,7 +297,8 @@ export class PageTransitionManager<
 		applyLifecycleClasses('enter', this.lifecycleClassPrefix, this._lifecycleTransitionKey());
 		const ctx = this.makeContext(el);
 		const promises: Promise<void>[] = [];
-		promises.push(this._runningInstance.value?.enter?.(ctx) ?? Promise.resolve());
+		const instE = this._runningInstance.value;
+		promises.push(instE?.enter ? instE.enter.call(instE, ctx) : Promise.resolve());
 		for (const hook of this._activeHooks) {
 			if (hook.enter) promises.push(hook.enter(ctx));
 		}
@@ -266,7 +310,10 @@ export class PageTransitionManager<
 		applyLifecycleClasses('afterEnter', this.lifecycleClassPrefix, this._lifecycleTransitionKey());
 		const ctx = this.makeContext(el);
 		const promises: Promise<void>[] = [];
-		promises.push(Promise.resolve(this._runningInstance.value?.afterEnter?.(ctx)));
+		const instAE = this._runningInstance.value;
+		promises.push(
+			Promise.resolve(instAE?.afterEnter ? instAE.afterEnter.call(instAE, ctx) : undefined),
+		);
 		for (const hook of this._activeHooks) {
 			if (hook.afterEnter) promises.push(Promise.resolve(hook.afterEnter(ctx)));
 		}
@@ -274,9 +321,9 @@ export class PageTransitionManager<
 		this.finishTransition();
 	}
 
-	setContentElements(current?: Element, next?: Element) {
-		this._currentContent = current;
-		this._nextContent = next;
+	setContentElements(current?: Element | null, next?: Element | null) {
+		this._currentContent = contentRootFromElement(current);
+		this._nextContent = contentRootFromElement(next);
 	}
 
 	finishTransition(): void {
@@ -286,11 +333,13 @@ export class PageTransitionManager<
 		this._stage.value = 'cleanup';
 		applyLifecycleClasses('cleanup', this.lifecycleClassPrefix, key);
 
+		const cleanupCtx = this.makeContext(undefined);
+
 		for (const hook of this._activeHooks) {
 			hook.cleanup?.();
 		}
 
-		inst?.cleanup?.();
+		inst?.cleanup?.call(inst, cleanupCtx);
 
 		this._runningInstance.value = undefined;
 		this._runningName.value = undefined;
@@ -323,6 +372,13 @@ export class PageTransitionManager<
 
 	makeContext<O = PageTransitionOptions>(el?: Element): PageTransitionContext<O> {
 		const opts = this._currentOptions as Record<string, unknown>;
+		const stage = this._stage.value;
+		const cur = this._currentContent;
+		const nxt = this._nextContent;
+		const container =
+			stage === 'beforeEnter' || stage === 'enter' || stage === 'afterEnter'
+				? (nxt ?? cur)
+				: (cur ?? nxt);
 		return {
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 			name: this._runningName.value! as string,
@@ -331,8 +387,9 @@ export class PageTransitionManager<
 			options: this._currentOptions as O,
 			trigger: this._trigger,
 			el,
-			current: this._currentContent,
-			next: this._nextContent,
+			current: cur,
+			next: nxt,
+			container,
 		};
 	}
 }

@@ -60,7 +60,7 @@ export default withMermaid(
 		vite: {
 			resolve: {
 				alias: [
-					// Only the bare `dayjs` entry — subpaths like `dayjs/plugin/isoWeek` must stay intact.
+					// Only the bare `dayjs` entry - subpaths like `dayjs/plugin/isoWeek` must stay intact.
 					{ find: /^dayjs$/, replacement: dayjsEsm },
 				],
 			},

@@ -141,10 +141,9 @@ export function LifecycleDemo() {
 					<code>flyva-running</code> stays on for the whole swap. Phase tokens{' '}
 					<code>flyva-leave-*</code> / <code>flyva-enter-*</code> follow Vue-style steps;{' '}
 					<code>flyva-pending</code> covers the gap after leave hooks and before enter (so the nav border animation
-					never drops). <code>data-flyva-transition</code> on <code>{'<html>'}</code> is the transition key (e.g.{' '}
-					<code>overlayTransition</code>) — the playground hides the nav bar shimmer for overlay.{' '}
-					<code>flyva-transition-active</code> on <code>{'<body>'}</code> is separate (overlay) from those lifecycle
-					hooks.
+					never drops). 					<code>data-flyva-transition</code> on <code>{'<html>'}</code> is the transition key (e.g.{' '}
+					<code>overlayTransition</code>) — the playground hides the nav bar shimmer for overlay. The demo wait overlay
+					uses <code>html.flyva-running::after</code> in global CSS, aligned with the same lifecycle classes.
 				</p>
 			</section>
 		</>

@@ -24,39 +24,30 @@ export default {
 ```ts
 // src/page-transitions/fadeTransition.ts
 import { animate } from 'animejs';
-import type { PageTransition } from '@flyva/shared';
+import { defineTransition } from '@flyva/shared';
 
-class FadeTransitionClass implements PageTransition {
-  private content: HTMLElement | null = null;
-
-  async prepare() {
-    this.content = document.querySelector('[data-flyva-content]');
-  }
-
-  async leave() {
-    if (!this.content) return;
-    await animate(this.content, { opacity: 0, duration: 400 });
-  }
-
-  beforeEnter() {
-    this.content = document.querySelector('[data-flyva-content]');
-    if (this.content) this.content.style.opacity = '0';
-  }
-
-  async enter() {
-    if (!this.content) return;
-    await animate(this.content, { opacity: 1, duration: 400 });
-  }
-
-  cleanup() { this.content = null; }
-}
-
-export const fadeTransition = new FadeTransitionClass();
+export const fadeTransition = defineTransition({
+  async leave(ctx) {
+    const el = ctx.container;
+    if (!el) return;
+    await animate(el, { opacity: 0, duration: 400 });
+  },
+  beforeEnter(ctx) {
+    const el = ctx.container;
+    if (!el) return;
+    el.style.opacity = '0';
+  },
+  async enter(ctx) {
+    const el = ctx.container;
+    if (!el) return;
+    await animate(el, { opacity: 1, duration: 400 });
+  },
+});
 ```
 
 ### 2. Create a client provider
 
-Transition instances are classes — they can't be passed from Server Components. Create a client component:
+Nuxt’s module plugin and runtime config cover Flyva setup; in Next you typically use a small client provider as the entrypoint. Transitions use browser APIs, so mount `FlyvaRoot` in a `'use client'` component. Pass `transitions` and, if you need it, optional `config` (see [`docs/api/next.md`](../../docs/api/next.md#flyvaroot)).
 
 ```tsx
 // src/components/FlyvaProvider.tsx
@@ -77,13 +68,16 @@ export function FlyvaProvider({ children }) {
 ```tsx
 // src/app/layout.tsx
 import { FlyvaProvider } from '@/components/FlyvaProvider';
+import { FlyvaTransitionWrapper } from '@flyva/next';
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
         <FlyvaProvider>
-          <main data-flyva-content>{children}</main>
+          <main>
+            <FlyvaTransitionWrapper>{children}</FlyvaTransitionWrapper>
+          </main>
         </FlyvaProvider>
       </body>
     </html>
@@ -91,7 +85,7 @@ export default function RootLayout({ children }) {
 }
 ```
 
-The `data-flyva-content` attribute marks the element transitions animate.
+`FlyvaTransitionWrapper` registers the swapping subtree with the manager so hooks receive `context.container` / `current` / `next`.
 
 ### 4. Use FlyvaLink
 

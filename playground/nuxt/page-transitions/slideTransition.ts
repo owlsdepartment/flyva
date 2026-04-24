@@ -14,6 +14,7 @@ function isWorkIndexPath(toHref: string): boolean {
 
 class SlideOverTransitionClass implements PageTransition {
 	concurrent = true;
+	priority = 100;
 
 	condition(ctx: PageTransitionMatchContext) {
 		return isWorkIndexPath(ctx.toHref);

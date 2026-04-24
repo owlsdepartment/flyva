@@ -6,7 +6,7 @@ alwaysApply: false
 
 # Writing Page Transitions
 
-A transition is a class implementing the `PageTransition` interface from `@flyva/shared`.
+A transition is a `PageTransition` from `@flyva/shared` — typically a plain object from `defineTransition`, or a class instance.
 
 ## Lifecycle order
 
@@ -24,10 +24,7 @@ cleanup()      → called after afterEnter and when a new transition starts
 
 ## Targeting content
 
-Query `[data-flyva-content]` to get the transitioning content element:
-```ts
-this.content = document.querySelector('[data-flyva-content]');
-```
+Prefer **`context.container`** (or `context.current` / `context.next`) — adapters register the swapping roots with the manager. Use `document.querySelector` only when you need a node outside that subtree.
 
 ## Using refStack
 
@@ -41,11 +38,13 @@ if (hero?.current) { /* animate it */ }
 
 ## Blocking interaction during transition
 
-Toggle `document.body.classList.add/remove('flyva-transition-active')` in beforeLeave/afterEnter. The consuming app should style this class with a fixed overlay.
+Style **`html.<prefix>-running`** (default prefix `flyva`) on `document.documentElement` for a full-page overlay or wait cursor — Flyva applies those lifecycle classes automatically.
 
 ## Context object
 
 Every lifecycle method receives `PageTransitionContext`:
+- `container` — convenience root for the active phase (outgoing during leave, incoming during enter)
+- `current` / `next` — outgoing and incoming content roots when the adapter set them
 - `name` — transition key
 - `trigger` — the element or string that initiated the transition
 - `options` — arbitrary options passed from `FlyvaLink` (commonly `fromHref`, `toHref`)

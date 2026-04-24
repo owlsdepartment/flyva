@@ -1,6 +1,6 @@
 # Ref Stack
 
-The ref stack is a global registry for DOM element refs. It lets you access elements from one page inside transition code that runs between pages — the key ingredient for shared element / FLIP transitions.
+The ref stack is a global registry for DOM element refs. It lets you access elements from one page inside transition code that runs between pages - the key ingredient for shared element / FLIP transitions.
 
 ## The problem
 
@@ -8,7 +8,7 @@ During a page transition, you often need to know the position or size of an elem
 
 ## The solution
 
-`useRefStack` registers a ref under a string key in a global `Map`. Transition code can read that ref at any point during the lifecycle — even between page mounts — via `globalGetRefStackItem`.
+`useRefStack` registers a ref under a string key in a global `Map`. Transition code can read that ref at any point during the lifecycle - even between page mounts - via `globalGetRefStackItem`.
 
 ## Registering a ref
 
@@ -91,7 +91,7 @@ React refs use `.current` to access the DOM element. Vue refs use `.value`.
 
 ### Vue / Nuxt
 
-`useRefStack` cleans up in `onUnmounted` (not `onScopeDispose`). This is deliberate — `onUnmounted` fires after Vue's `<Transition>` `onLeave` callback completes, so the ref remains in the stack for the entire leave animation.
+`useRefStack` cleans up in `onUnmounted` (not `onScopeDispose`). This is deliberate - `onUnmounted` fires after Vue's `<Transition>` `onLeave` callback completes, so the ref remains in the stack for the entire leave animation.
 
 ## Detached roots (overlays)
 

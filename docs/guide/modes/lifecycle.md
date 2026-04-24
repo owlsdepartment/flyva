@@ -33,7 +33,7 @@ flowchart TD
 
 ---
 
-## Next.js — default (sequential JS)
+## Next.js - default (sequential JS)
 
 `leave()` is **awaited** before `router.push`. The new RSC payload renders; `FlyvaTransitionWrapper` reacts to `pathname` in a layout effect and calls `enter()`.
 
@@ -58,11 +58,11 @@ sequenceDiagram
 
 ---
 
-## Next.js — `concurrent: true`
+## Next.js - `concurrent: true`
 
 `leave()` is **not** awaited; navigation runs immediately. `prepare` inserts a **clone** of the content root; `leave` animates the clone as `current`. After swap, `enter` runs on the real new content.
 
-This clone exists because the App Router does not keep two React trees alive for overlap—see [Next.js — concurrent mode and content cloning](../next#concurrent-mode-and-content-cloning) for layout shift, replayed CSS, and ref caveats, or use [View Transitions](./view-transitions) instead.
+This clone exists because the App Router does not keep two React trees alive for overlap - see [Next.js - concurrent mode and content cloning](../next#concurrent-mode-and-content-cloning) for layout shift, replayed CSS, and ref caveats, or use [View Transitions](./view-transitions) instead.
 
 ```mermaid
 sequenceDiagram
@@ -87,7 +87,7 @@ sequenceDiagram
 
 ---
 
-## Next.js — CSS mode (`cssMode`, no app VT)
+## Next.js - CSS mode (`cssMode`, no app VT)
 
 `leave()` runs **CSS class phases** on the current content only; then `router.push`. After navigation, the wrapper adds `enter-from`, then `enter()` runs **enter** CSS phases and finishes the transition.
 
@@ -112,7 +112,7 @@ sequenceDiagram
 
 ---
 
-## Next.js — View Transitions (`config.viewTransition`)
+## Next.js - View Transitions (`config.viewTransition`)
 
 Navigation runs inside `document.startViewTransition`. The callback calls `router.push` and **awaits** a DOM-swap promise; the wrapper’s layout effect calls `resolveDomSwap()`. VT cleanup runs after `vt.finished`.
 
@@ -138,7 +138,7 @@ sequenceDiagram
 
 ---
 
-## Nuxt — default (sequential JS, `out-in`)
+## Nuxt - default (sequential JS, `out-in`)
 
 `FlyvaLink` calls `prepare` then `navigateTo`. **page:start** runs `beforeLeave` → `leave` → `afterLeave` **only when the manager is already running** (i.e. `prepare` ran); it always calls `resolveLeave()` so the leave promise from **page:loading:start** completes. Plain navigation (e.g. `NuxtLink` with `:flyva="false"`) never calls `prepare`, so **page:start** skips those manager hooks and only releases the leave gate. Vue’s `<Transition>` **onLeave** first **awaits** that leave promise, then the old page is torn down (`out-in`). **onEnter** runs `beforeEnter` → `enter` → `afterEnter` when a transition is active, then `finish()` (resolves the enter promise). **page:finish** on the sequential path only awaits the leave promise and does not run the manager enter again.
 
@@ -167,7 +167,7 @@ sequenceDiagram
 
 ---
 
-## Nuxt — `concurrent: true`
+## Nuxt - `concurrent: true`
 
 **page:start** skips manager leave but still calls `resolveLeave()` so the sequential leave gate is released. **onLeave** runs `beforeLeave` / `leave` / `afterLeave`, then **awaits getEnterPromise()**. Manager **enter** runs in **page:finish**, then `finish()` resolves the enter promise so **onLeave** can complete.
 
@@ -190,7 +190,7 @@ sequenceDiagram
 
 ---
 
-## Nuxt — CSS mode (`cssMode`, `flyva.viewTransition` off)
+## Nuxt - CSS mode (`cssMode`, `flyva.viewTransition` off)
 
 **page:start** resolves the leave gate without running manager JS leave. **onLeave** runs **CSS leave** classes only. **onBeforeEnter** adds `*-enter-from`; **onEnter** runs **CSS enter** classes, then `finishTransition` and `finish`.
 
@@ -209,7 +209,7 @@ sequenceDiagram
 
 ---
 
-## Nuxt — View Transitions (`flyva.viewTransition`)
+## Nuxt - View Transitions (`flyva.viewTransition`)
 
 `FlyvaLink` drives `startViewTransition` and sets **vt active**. **page:start** / **page:finish** short-circuit Flyva’s normal leave/enter when `isVtActive()`. **page:finish** calls `resolveDomSwap` so the VT callback can proceed.
 
@@ -307,7 +307,7 @@ html.flyva-running {
 
 Phase classes (`flyva-leave-active`, `flyva-enter-active`, etc.) still reflect the manager stage. **`flyva-running`** and **`data-flyva-transition`** apply across JS hooks, CSS mode, and View Transitions for anything driven by the shared manager.
 
-**Note:** Playgrounds often use **`flyva-transition-active` on `<body>`** inside a transition’s hooks for a full-screen overlay. That is **separate** from **`flyva-running`** on `<html>` (library lifecycle).
+**Note:** The bundled playgrounds style a wait cursor via **`html.flyva-running::after`** in global CSS so it tracks the same **`flyva-running`** span as the library - no extra classes from transition hooks are required for that pattern.
 
 ---
 

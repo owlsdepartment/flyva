@@ -48,7 +48,7 @@ Replaces `<NuxtPage />`. Wraps it with Vue's `<Transition>` (with `css: false`) 
 | Nuxt hook | Role |
 |-----------|------|
 | `page:loading:start` | Starts the leave / enter promise coordination |
-| `page:start` | Runs non–View-Transition leave path (or resolves early for VT / CSS-only cases) |
+| `page:start` | If a transition is already running (`prepare` ran from `FlyvaLink`), runs sequential `beforeLeave` → `leave` → `afterLeave`; otherwise only resolves the leave gate (plain `NuxtLink` / `:flyva="false"`). Early exit for VT / CSS-only cases |
 | `page:finish` | Runs concurrent enter, CSS-mode completion, or sequential enter depending on the active transition |
 
 Vue `<Transition>` uses `mode: 'out-in'` for sequential transitions and `undefined` when `concurrent` or View Transitions are active so both roots can exist during the handoff.

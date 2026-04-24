@@ -29,18 +29,13 @@ nuxtApp.hook('page:start', async () => {
 		return;
 	}
 
-	if (!$flyvaManager.isRunning) {
-		const flyvaConfig = config.flyva;
-		$flyvaManager.run(flyvaConfig?.defaultKey ?? 'defaultTransition', {});
-	}
-
 	if (isCssMode.value && !config.flyva?.viewTransition) {
 		resolveLeave?.();
 		resolveLeave = null;
 		return;
 	}
 
-	if (!isConcurrent.value) {
+	if ($flyvaManager.isRunning && !isConcurrent.value) {
 		$flyvaManager.beforeLeave();
 		await $flyvaManager.readyPromise;
 		await $flyvaManager.leave();

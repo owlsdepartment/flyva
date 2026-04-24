@@ -112,7 +112,7 @@ const { prepare, isRunning, stage, hasTransitioned } = useFlyvaTransition();
 
 ### useFlyvaLifecycle(callbacks, options?)
 
-Subscribe to transition lifecycle from any component. Uses `useNuxtApp().$flyvaManager` (same singleton as `FlyvaPage` / `FlyvaLink`).
+Subscribe to transition lifecycle from any component. Uses `useNuxtApp().$flyvaManager` (same singleton as `FlyvaPage` / `FlyvaLink`). The composable **always** registers an active hook with the manager (including for `prepare` on `run()`), same as the Next adapter.
 
 ```ts
 useFlyvaLifecycle({
@@ -123,34 +123,36 @@ useFlyvaLifecycle({
 
 **`FlyvaLifecycleCallbacks`:**
 
-| Callback | Type |
-|----------|------|
-| `beforeLeave` | `(context: PageTransitionContext) => void \| Promise<void>` |
-| `leave` | `(context: PageTransitionContext) => void \| Promise<void>` |
-| `afterLeave` | `(context: PageTransitionContext) => void \| Promise<void>` |
-| `beforeEnter` | `(context: PageTransitionContext) => void \| Promise<void>` |
-| `enter` | `(context: PageTransitionContext) => void \| Promise<void>` |
-| `afterEnter` | `(context: PageTransitionContext) => void \| Promise<void>` |
+| Callback | Type | Notes |
+|----------|------|--------|
+| `prepare` | `(context: PageTransitionContext) => void \| Promise<void>` | With `blocking: false`, the manager does not wait for returned promises |
+| `beforeLeave` | `(context: PageTransitionContext) => void` | Sync only |
+| `leave` | `(context: PageTransitionContext) => void \| Promise<void>` | With `blocking: true`, awaited with the transition’s `leave` |
+| `afterLeave` | `(context: PageTransitionContext) => void` | Sync only |
+| `beforeEnter` | `(context: PageTransitionContext) => void` | Sync only |
+| `enter` | `(context: PageTransitionContext) => void \| Promise<void>` | With `blocking: true`, awaited with the transition’s `enter` |
+| `afterEnter` | `(context: PageTransitionContext) => void` | Sync only |
+| `cleanup` | `() => void` | Sync only; no context |
 
 **`UseFlyvaLifecycleOptions`:**
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `active` | `boolean` | `false` | When `true`, callbacks are registered as active hooks and awaited in parallel with the transition’s own hooks at each stage |
+| `blocking` | `boolean` | `false` | When `false`, `prepare` / `leave` / `enter` still run on the manager timeline but are not awaited. When `true`, those steps await your work (and can be cancelled on unmount). |
 
-#### Passive mode (default)
+#### Non-blocking mode (default, `blocking: false`)
 
-Callbacks run when the manager’s `stage` changes. They do not block the transition.
+Same behavior as the Next adapter: always registered as an active hook; only `prepare` / `leave` / `enter` skip awaiting when `blocking` is `false`.
 
-#### Active mode
+#### Blocking mode (`blocking: true`)
 
-When `active: true`, each callback can return a `Promise` so your work is awaited together with the transition implementation (`Promise.all` on the manager side).
+`prepare`, `leave`, and `enter` return promises that the manager awaits in parallel with the transition implementation (`Promise.all` per stage).
 
-::: warning Vue clears template refs before active `leave` may finish
+::: warning Vue clears template refs before blocking `leave` may finish
 
-On a page navigation, Nuxt tears down the **old** page while Flyva may still be inside **`leave`**. Vue sets template `ref`s on that page to `null` as the DOM unmounts, so a normal `ref<HTMLElement>()` is often **`null` inside an async active `leave`** even though the transition has not finished.
+On a page navigation, Nuxt tears down the **old** page while Flyva may still be inside **`leave`**. Vue sets template `ref`s on that page to `null` as the DOM unmounts, so a normal `ref<HTMLElement>()` is often **`null` inside an async blocking `leave`** even though the transition has not finished.
 
-Use **`useFlyvaStickyRef()`** (below) for elements you must read or animate from active lifecycle hooks. It keeps the last mounted node until Flyva runs active-hook unregister cleanup (after `leave`, when queued hook GC runs), then releases it.
+Use **`useFlyvaStickyRef()`** (below) for elements you must read or animate from blocking lifecycle hooks. It keeps the last mounted node until Flyva runs active-hook unregister cleanup (after `leave`, when queued hook GC runs), then releases it.
 
 Teleporting UI out of the animating subtree (e.g. to `body`) is another way to avoid losing the node, but sticky refs match how `registerActiveHook` teardown is ordered.
 
@@ -167,7 +169,7 @@ useFlyvaLifecycle(
       await animate(el, { width: '100%', duration: 400 });
     },
   },
-  { active: true },
+  { blocking: true },
 );
 ```
 
@@ -175,7 +177,7 @@ useFlyvaLifecycle(
 
 ### useFlyvaStickyRef()
 
-Returns a **`Ref<T | null>`** (default `T` is `HTMLElement`) intended for template refs on markup you touch from **`useFlyvaLifecycle` with `active: true`**.
+Returns a **`Ref<T | null>`** (default `T` is `HTMLElement`) intended for template refs on markup you touch from **`useFlyvaLifecycle` with `blocking: true`**.
 
 - Implemented with **`customRef`**: assigning **`null`** (Vue’s unmount reset) does **not** drop the stored element.
 - On mount, registers an empty **`registerActiveHook({})`** so teardown participates in the same GC queue as other active hooks.

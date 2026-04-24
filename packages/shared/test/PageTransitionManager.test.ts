@@ -21,6 +21,18 @@ describe('PageTransitionManager', () => {
 		expect(manager.runningInstance).toBe(transitions.t);
 		await expect(p).resolves.toBeUndefined();
 		expect(prepare).toHaveBeenCalledTimes(1);
+		expect(manager.stage).toBe('prepare');
+	});
+
+	it('run awaits active prepare hooks together with transition prepare', async () => {
+		const transitionPrepare = vi.fn().mockResolvedValue(undefined);
+		const hookPrepare = vi.fn().mockResolvedValue(undefined);
+		const manager = new PageTransitionManager({ t: { prepare: transitionPrepare } as PageTransition }, factory);
+		manager.registerActiveHook({ prepare: hookPrepare });
+		await manager.run('t', {});
+		expect(transitionPrepare).toHaveBeenCalledTimes(1);
+		expect(hookPrepare).toHaveBeenCalledTimes(1);
+		expect(manager.stage).toBe('prepare');
 	});
 
 	it('run calls previous transition cleanup before replacing', () => {
@@ -104,6 +116,35 @@ describe('PageTransitionManager', () => {
 		expect(manager.runningName).toBeUndefined();
 		expect(manager.isRunning).toBe(false);
 		expect(manager.stage).toBe('none');
+	});
+
+	it('finishTransition runs active hook cleanup before transition cleanup', async () => {
+		const order: string[] = [];
+		const transition: PageTransition = {
+			beforeLeave: () => {},
+			leave: async () => {},
+			afterLeave: () => {},
+			beforeEnter: () => {},
+			enter: async () => {},
+			afterEnter: () => {},
+			cleanup: () => {
+				order.push('transition-cleanup');
+			},
+		};
+		const manager = new PageTransitionManager({ t: transition }, factory);
+		const hookCleanup = vi.fn(() => {
+			order.push('hook-cleanup');
+		});
+		manager.registerActiveHook({ cleanup: hookCleanup });
+		await manager.run('t', {});
+		await manager.beforeLeave();
+		await manager.leave();
+		await manager.afterLeave();
+		await manager.beforeEnter();
+		await manager.enter();
+		await manager.afterEnter();
+		expect(hookCleanup).toHaveBeenCalledTimes(1);
+		expect(order).toEqual(['hook-cleanup', 'transition-cleanup']);
 	});
 
 	it('registerActiveHook leave runs in parallel with transition leave; unregister stops future calls', async () => {

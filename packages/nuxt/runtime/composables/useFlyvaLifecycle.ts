@@ -1,34 +1,27 @@
-import { computed, onMounted, onScopeDispose, ref, shallowRef, watch, watchEffect } from 'vue';
+import { computed, onMounted, onScopeDispose, shallowRef, watchEffect } from 'vue';
 import { useNuxtApp } from '#app';
 
-import type {
-	ActiveHookRegistration,
-	PageTransitionContext,
-	PageTransitionStage,
-	RegisterActiveHookReturn,
-} from '@flyva/shared';
+import type { ActiveHookRegistration, PageTransitionContext, RegisterActiveHookReturn } from '@flyva/shared';
 
 export interface FlyvaLifecycleCallbacks {
-	beforeLeave?(context: PageTransitionContext): void | Promise<void>;
+	prepare?(context: PageTransitionContext): void | Promise<void>;
+	beforeLeave?(context: PageTransitionContext): void;
 	leave?(context: PageTransitionContext): void | Promise<void>;
-	afterLeave?(context: PageTransitionContext): void | Promise<void>;
-	beforeEnter?(context: PageTransitionContext): void | Promise<void>;
+	afterLeave?(context: PageTransitionContext): void;
+	beforeEnter?(context: PageTransitionContext): void;
 	enter?(context: PageTransitionContext): void | Promise<void>;
-	afterEnter?(context: PageTransitionContext): void | Promise<void>;
+	afterEnter?(context: PageTransitionContext): void;
+	cleanup?(): void;
 }
 
 export interface UseFlyvaLifecycleOptions {
-	active?: boolean;
+	/**
+	 * When `false` (default), callbacks still run for every manager stage but `prepare` / `leave` / `enter`
+	 * do not delay the transition (async work is scheduled, not awaited).
+	 * When `true`, those steps await your callback (including async work) and in-flight work can be cancelled on unmount.
+	 */
+	blocking?: boolean;
 }
-
-const STAGE_TO_CALLBACK: Record<string, keyof FlyvaLifecycleCallbacks> = {
-	beforeLeave: 'beforeLeave',
-	leave: 'leave',
-	afterLeave: 'afterLeave',
-	beforeEnter: 'beforeEnter',
-	enter: 'enter',
-	afterEnter: 'afterEnter',
-};
 
 function createCancellablePromise(promise: Promise<void>): { promise: Promise<void>; cancel: () => void } {
 	let cancel: () => void;
@@ -44,17 +37,25 @@ export function useFlyvaLifecycle(
 	options?: UseFlyvaLifecycleOptions,
 ): void {
 	const { $flyvaManager: manager } = useNuxtApp();
-	const active = computed(() => options?.active ?? false);
-	const prevStage = shallowRef<PageTransitionStage>('none');
+	const blocking = computed(() => options?.blocking ?? false);
+	const callbacksRef = shallowRef(callbacks);
+
+	watchEffect(() => {
+		callbacksRef.value = callbacks;
+	});
 
 	const cancellables: Array<{ cancel: () => void }> = [];
 
-	function wrapCallback(key: keyof FlyvaLifecycleCallbacks) {
+	function wrapAsync(key: 'prepare' | 'leave' | 'enter') {
 		return (ctx: PageTransitionContext): Promise<void> => {
-			if (!active.value) return Promise.resolve();
-
-			const cb = callbacks[key];
+			const cb = callbacksRef.value[key];
 			if (!cb) return Promise.resolve();
+			if (!blocking.value) {
+				void Promise.resolve()
+					.then(() => cb(ctx) as void | Promise<void>)
+					.catch(() => {});
+				return Promise.resolve();
+			}
 			const settled = Promise.resolve(cb(ctx) as void | Promise<void>).then(() => {});
 			const c = createCancellablePromise(settled);
 			cancellables.push(c);
@@ -66,16 +67,28 @@ export function useFlyvaLifecycle(
 	}
 
 	const registration: ActiveHookRegistration = {
-		beforeLeave: wrapCallback('beforeLeave'),
-		leave: wrapCallback('leave'),
-		afterLeave: wrapCallback('afterLeave'),
-		beforeEnter: wrapCallback('beforeEnter'),
-		enter: wrapCallback('enter'),
-		afterEnter: wrapCallback('afterEnter'),
+		prepare: wrapAsync('prepare'),
+		beforeLeave: ctx => {
+			callbacksRef.value.beforeLeave?.(ctx);
+		},
+		leave: wrapAsync('leave'),
+		afterLeave: ctx => {
+			callbacksRef.value.afterLeave?.(ctx);
+		},
+		beforeEnter: ctx => {
+			callbacksRef.value.beforeEnter?.(ctx);
+		},
+		enter: wrapAsync('enter'),
+		afterEnter: ctx => {
+			callbacksRef.value.afterEnter?.(ctx);
+		},
+		cleanup: () => {
+			callbacksRef.value.cleanup?.();
+		},
 	};
 
-	const unregister = ref<(RegisterActiveHookReturn | undefined)>(undefined);
-	
+	const unregister = shallowRef<RegisterActiveHookReturn | undefined>(undefined);
+
 	onMounted(() => {
 		unregister.value = manager.registerActiveHook(registration);
 	});
@@ -89,15 +102,4 @@ export function useFlyvaLifecycle(
 		});
 	});
 
-	const stage = computed(() => manager.stage);
-
-	watch(stage, s => {
-		if (active) return;
-		if (s === prevStage.value) return;
-		prevStage.value = s;
-		const key = STAGE_TO_CALLBACK[s];
-		if (!key) return;
-		const ctx = manager.makeContext();
-		callbacks[key]?.(ctx);
-	});
 }

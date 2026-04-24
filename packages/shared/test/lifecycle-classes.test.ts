@@ -66,6 +66,8 @@ function runFullSequence(prefix: string, transitionKey = 'demoTransition') {
 	const el = document.documentElement;
 	expect(el.hasAttribute(FLYVA_TRANSITION_DATA_ATTR)).toBe(false);
 	for (const token of [
+		'prepare',
+		'cleanup',
 		'running',
 		'pending',
 		'leave',

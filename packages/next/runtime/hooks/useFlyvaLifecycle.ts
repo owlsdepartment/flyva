@@ -2,31 +2,29 @@
 
 import { useEffect, useRef } from 'react';
 
-import type { ActiveHookRegistration, PageTransitionContext, PageTransitionStage } from '@flyva/shared';
+import type { ActiveHookRegistration, PageTransitionContext } from '@flyva/shared';
 
 import { useFlyvaManager } from './useFlyvaManager';
 
 export interface FlyvaLifecycleCallbacks {
-	beforeLeave?(context: PageTransitionContext): void | Promise<void>;
+	prepare?(context: PageTransitionContext): void | Promise<void>;
+	beforeLeave?(context: PageTransitionContext): void;
 	leave?(context: PageTransitionContext): void | Promise<void>;
-	afterLeave?(context: PageTransitionContext): void | Promise<void>;
-	beforeEnter?(context: PageTransitionContext): void | Promise<void>;
+	afterLeave?(context: PageTransitionContext): void;
+	beforeEnter?(context: PageTransitionContext): void;
 	enter?(context: PageTransitionContext): void | Promise<void>;
-	afterEnter?(context: PageTransitionContext): void | Promise<void>;
+	afterEnter?(context: PageTransitionContext): void;
+	cleanup?(): void;
 }
 
 export interface UseFlyvaLifecycleOptions {
-	active?: boolean;
+	/**
+	 * When `false` (default), callbacks still run for every manager stage but `prepare` / `leave` / `enter`
+	 * do not delay the transition (async work is scheduled, not awaited).
+	 * When `true`, those steps await your callback (including async work) and in-flight work can be cancelled on unmount.
+	 */
+	blocking?: boolean;
 }
-
-const STAGE_TO_CALLBACK: Record<string, keyof FlyvaLifecycleCallbacks> = {
-	beforeLeave: 'beforeLeave',
-	leave: 'leave',
-	afterLeave: 'afterLeave',
-	beforeEnter: 'beforeEnter',
-	enter: 'enter',
-	afterEnter: 'afterEnter',
-};
 
 function createCancellablePromise(promise: Promise<void>): { promise: Promise<void>; cancel: () => void } {
 	let cancel: () => void;
@@ -45,19 +43,22 @@ export function useFlyvaLifecycle(
 	const callbacksRef = useRef(callbacks);
 	callbacksRef.current = callbacks;
 
-	const active = options?.active ?? false;
-	const prevStageRef = useRef<PageTransitionStage>('none');
+	const blocking = options?.blocking ?? false;
 	const cancellablesRef = useRef<Array<{ cancel: () => void }>>([]);
 
 	useEffect(() => {
-		if (!active) return;
-
 		manager.flushDeferredActiveHookCleanupsIfIdle();
 
-		function wrapCallback(key: keyof FlyvaLifecycleCallbacks) {
+		function wrapAsync(key: 'prepare' | 'leave' | 'enter') {
 			return (ctx: PageTransitionContext): Promise<void> => {
 				const cb = callbacksRef.current[key];
 				if (!cb) return Promise.resolve();
+				if (!blocking) {
+					void Promise.resolve()
+						.then(() => cb(ctx) as void | Promise<void>)
+						.catch(() => {});
+					return Promise.resolve();
+				}
 				const settled = Promise.resolve(cb(ctx) as void | Promise<void>).then(() => {});
 				const c = createCancellablePromise(settled);
 				cancellablesRef.current.push(c);
@@ -69,12 +70,24 @@ export function useFlyvaLifecycle(
 		}
 
 		const registration: ActiveHookRegistration = {
-			beforeLeave: wrapCallback('beforeLeave'),
-			leave: wrapCallback('leave'),
-			afterLeave: wrapCallback('afterLeave'),
-			beforeEnter: wrapCallback('beforeEnter'),
-			enter: wrapCallback('enter'),
-			afterEnter: wrapCallback('afterEnter'),
+			prepare: wrapAsync('prepare'),
+			beforeLeave: ctx => {
+				callbacksRef.current.beforeLeave?.(ctx);
+			},
+			leave: wrapAsync('leave'),
+			afterLeave: ctx => {
+				callbacksRef.current.afterLeave?.(ctx);
+			},
+			beforeEnter: ctx => {
+				callbacksRef.current.beforeEnter?.(ctx);
+			},
+			enter: wrapAsync('enter'),
+			afterEnter: ctx => {
+				callbacksRef.current.afterEnter?.(ctx);
+			},
+			cleanup: () => {
+				callbacksRef.current.cleanup?.();
+			},
 		};
 
 		const unregister = manager.registerActiveHook(registration);
@@ -87,19 +100,5 @@ export function useFlyvaLifecycle(
 				cancellablesRef.current = [];
 			});
 		};
-	}, [active, manager]);
-
-	const stage = manager.stage;
-
-	useEffect(() => {
-		if (active) return;
-		if (stage === prevStageRef.current) return;
-		prevStageRef.current = stage;
-
-		const key = STAGE_TO_CALLBACK[stage];
-		if (!key) return;
-
-		const ctx = manager.makeContext();
-		callbacksRef.current[key]?.(ctx);
-	});
+	}, [blocking, manager]);
 }

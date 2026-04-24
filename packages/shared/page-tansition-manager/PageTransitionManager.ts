@@ -99,7 +99,16 @@ export class PageTransitionManager<
 
 		const el = trigger instanceof Element ? trigger : undefined;
 
-		this._readyPromise = current?.prepare?.(this.makeContext(el)) ?? Promise.resolve();
+		this._stage.value = 'prepare';
+		applyLifecycleClasses('prepare', this.lifecycleClassPrefix, this._lifecycleTransitionKey());
+
+		const ctx = this.makeContext(el);
+		const prepares: Promise<void>[] = [];
+		if (current?.prepare) prepares.push(current.prepare(ctx));
+		for (const hook of this._activeHooks) {
+			if (hook.prepare) prepares.push(hook.prepare(ctx));
+		}
+		this._readyPromise = prepares.length ? Promise.all(prepares).then(() => {}) : Promise.resolve();
 
 		return this._readyPromise;
 	}
@@ -144,7 +153,7 @@ export class PageTransitionManager<
 		const promises: Promise<void>[] = [];
 		promises.push(Promise.resolve(this._runningInstance.value?.beforeLeave?.(ctx)));
 		for (const hook of this._activeHooks) {
-			if (hook.beforeLeave) promises.push(hook.beforeLeave(ctx));
+			if (hook.beforeLeave) promises.push(Promise.resolve(hook.beforeLeave(ctx)));
 		}
 		await Promise.all(promises);
 	}
@@ -177,7 +186,7 @@ export class PageTransitionManager<
 		const promises: Promise<void>[] = [];
 		promises.push(Promise.resolve(this._runningInstance.value?.afterLeave?.(ctx)));
 		for (const hook of this._activeHooks) {
-			if (hook.afterLeave) promises.push(hook.afterLeave(ctx));
+			if (hook.afterLeave) promises.push(Promise.resolve(hook.afterLeave(ctx)));
 		}
 		await Promise.all(promises);
 	}
@@ -189,7 +198,7 @@ export class PageTransitionManager<
 		const promises: Promise<void>[] = [];
 		promises.push(Promise.resolve(this._runningInstance.value?.beforeEnter?.(ctx)));
 		for (const hook of this._activeHooks) {
-			if (hook.beforeEnter) promises.push(hook.beforeEnter(ctx));
+			if (hook.beforeEnter) promises.push(Promise.resolve(hook.beforeEnter(ctx)));
 		}
 		await Promise.all(promises);
 	}
@@ -213,7 +222,7 @@ export class PageTransitionManager<
 		const promises: Promise<void>[] = [];
 		promises.push(Promise.resolve(this._runningInstance.value?.afterEnter?.(ctx)));
 		for (const hook of this._activeHooks) {
-			if (hook.afterEnter) promises.push(hook.afterEnter(ctx));
+			if (hook.afterEnter) promises.push(Promise.resolve(hook.afterEnter(ctx)));
 		}
 		await Promise.all(promises);
 		this.finishTransition();
@@ -224,8 +233,19 @@ export class PageTransitionManager<
 		this._nextContent = next;
 	}
 
-	finishTransition() {
-		this.runningInstance?.cleanup?.();
+	finishTransition(): void {
+		const inst = this.runningInstance;
+		const key = this._lifecycleTransitionKey();
+
+		this._stage.value = 'cleanup';
+		applyLifecycleClasses('cleanup', this.lifecycleClassPrefix, key);
+
+		for (const hook of this._activeHooks) {
+			hook.cleanup?.();
+		}
+
+		inst?.cleanup?.();
+
 		this._runningInstance.value = undefined;
 		this._runningName.value = undefined;
 		this._isRunning.value = false;

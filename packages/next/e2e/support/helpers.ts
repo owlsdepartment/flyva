@@ -12,5 +12,6 @@ export function navLinkByHref(page: Page, href: string) {
 }
 
 export function aboutLinkWithBadge(page: Page, badge: 'default' | 'bypass') {
-	return navLinkByHref(page, '/about').filter({ hasText: badge });
+	const href = badge === 'bypass' ? '/bypass' : '/about';
+	return navLinkByHref(page, href).filter({ hasText: badge });
 }

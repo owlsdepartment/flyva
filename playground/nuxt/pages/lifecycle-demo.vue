@@ -7,6 +7,9 @@ const barRef = useFlyvaStickyRef<HTMLDivElement>();
 const log = ref<string[]>([]);
 
 useFlyvaLifecycle({
+	prepare(ctx) {
+		log.value = [...log.value, `prepare → ${ctx.name}`];
+	},
 	beforeLeave(ctx) {
 		log.value = [...log.value, `beforeLeave → ${ctx.name}`];
 	},
@@ -24,6 +27,9 @@ useFlyvaLifecycle({
 	},
 	afterEnter(ctx) {
 		log.value = [...log.value, `afterEnter → ${ctx.name}`];
+	},
+	cleanup() {
+		log.value = [...log.value, 'cleanup → —'];
 	},
 });
 
@@ -56,7 +62,7 @@ useFlyvaLifecycle(
 			teleportActive.value = false;
 		},
 	},
-	{ active: true },
+	{ blocking: true },
 );
 
 const indicator = ref(false);
@@ -68,14 +74,14 @@ const indicator = ref(false);
 			<section class="section">
 				<h1>Lifecycle hooks</h1>
 				<p>
-					This page demonstrates <code>useFlyvaLifecycle</code> in both passive
-					and active modes, plus <code>FlyvaLink</code> callback props.
+					This page demonstrates <code>useFlyvaLifecycle</code> in non-blocking (default) and
+					blocking (<code>blocking: true</code>) modes, plus <code>FlyvaLink</code> callback props.
 				</p>
 			</section>
 
 			<section class="section">
 				<h2>Passive mode log</h2>
-				<p>Events logged by <code>useFlyvaLifecycle</code> (passive, fire-and-forget).</p>
+				<p>Events logged by <code>useFlyvaLifecycle</code> (non-blocking, fire-and-forget).</p>
 				<div class="lifecycle-log">
 					<div v-if="log.length === 0" class="lifecycle-log-entry">Navigate to see events...</div>
 					<div v-for="(entry, i) in log" :key="i" class="lifecycle-log-entry">
@@ -85,9 +91,9 @@ const indicator = ref(false);
 			</section>
 
 			<section class="section">
-				<h2>Active mode progress bar</h2>
+				<h2>Blocking lifecycle (<code>blocking: true</code>) progress bar</h2>
 				<p>
-					A progress bar animated via <code>useFlyvaLifecycle</code> in active mode.
+					A progress bar animated via <code>useFlyvaLifecycle</code> with <code>blocking: true</code>.
 					The transition awaits this animation before proceeding. It sits above the
 					<code>lifecycleLinkOverlayTransition</code> black overlay (<code>z-index</code>).
 				</p>

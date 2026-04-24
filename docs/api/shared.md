@@ -41,17 +41,17 @@ new PageTransitionManager(transitions, reactiveFactory, config?)
 
 | Method | Returns | Description |
 |--------|---------|-------------|
-| `run(name, options, trigger?)` | `Promise<void>` | Start a transition: sets running state and calls `prepare()` |
+| `run(name, options, trigger?)` | `Promise<void>` | Start a transition: sets running state, then awaits the active transition’s `prepare` and every registered active-hook `prepare` in parallel (`Promise.all`) |
 | `beforeLeave(el?)` | `Promise<void>` | Run `beforeLeave` on the active transition + registered active hooks |
 | `leave(el?)` | `Promise<void>` | Run `leave` on the active transition + registered active hooks |
 | `afterLeave(el?)` | `Promise<void>` | Run `afterLeave` on the active transition + registered active hooks |
 | `beforeEnter(el?)` | `Promise<void>` | Run `beforeEnter` on the active transition + registered active hooks |
 | `enter(el?)` | `Promise<void>` | Run `enter` on the active transition + registered active hooks |
-| `afterEnter(el?)` | `Promise<void>` | Run `afterEnter` + active hooks, then `finishTransition()` (cleanup + reset) |
+| `afterEnter(el?)` | `Promise<void>` | Run `afterEnter` + active hooks, then `finishTransition()` (sync): active-hook `cleanup`, transition `cleanup`, reset state |
 | `setContentElements(current?, next?)` | `void` | Store roots passed into `context.current` / `context.next` |
 | `makeContext(el?)` | `PageTransitionContext` | Build context for the active transition (used by adapters) |
-| `finishTransition()` | `void` | Run `cleanup()`, clear running state, content refs, and lifecycle classes |
-| `registerActiveHook(registration)` | `() => void` | Register an `ActiveHookRegistration`; returns an unregister function |
+| `finishTransition()` | `void` | Run active-hook `cleanup`, transition `cleanup()`, clear running state, content refs, and lifecycle classes |
+| `registerActiveHook(registration)` | `(cleanup?: () => void) => void` | Register an `ActiveHookRegistration`; returns an unregister function |
 | `getInstance(name)` | `PageTransition` | Get a transition instance by key |
 
 ---
@@ -128,6 +128,8 @@ interface PageTransitionContext<O = PageTransitionOptions> {
 ```ts
 type PageTransitionStage =
   | 'none'
+  | 'prepare'
+  | 'cleanup'
   | 'beforeEnter' | 'enter' | 'afterEnter'
   | 'beforeLeave' | 'leave' | 'afterLeave'
 ```
@@ -173,20 +175,26 @@ Each adapter supplies its own implementation:
 
 ## ActiveHookRegistration
 
-Used with `registerActiveHook()` to participate in the transition lifecycle from outside the transition definition. All methods are optional and async — they run in parallel with the transition's own hooks via `Promise.all`.
+Used with `registerActiveHook()` to participate in the transition lifecycle from outside the transition definition. All fields are optional.
+
+At each stage the manager runs the **transition** hook and **every** registered active hook. Sync hooks (`beforeLeave`, `afterLeave`, `beforeEnter`, `afterEnter`) are wrapped with `Promise.resolve` so they participate in the same `Promise.all` batch as async steps. `prepare`, `leave`, and `enter` must return **`Promise<void>`** from the registration object (adapters may wrap user callbacks that return `void`).
 
 ```ts
 interface ActiveHookRegistration {
-  beforeLeave?(context: PageTransitionContext): Promise<void>
+  prepare?(context: PageTransitionContext): Promise<void>
+  beforeLeave?(context: PageTransitionContext): void
   leave?(context: PageTransitionContext): Promise<void>
-  afterLeave?(context: PageTransitionContext): Promise<void>
-  beforeEnter?(context: PageTransitionContext): Promise<void>
+  afterLeave?(context: PageTransitionContext): void
+  beforeEnter?(context: PageTransitionContext): void
   enter?(context: PageTransitionContext): Promise<void>
-  afterEnter?(context: PageTransitionContext): Promise<void>
+  afterEnter?(context: PageTransitionContext): void
+  cleanup?(): void
 }
 ```
 
-Used internally by `useFlyvaLifecycle` (Next.js) in active mode. You can also use it directly for framework-agnostic integrations.
+`cleanup` runs synchronously inside `finishTransition()` (no context argument).
+
+Used internally by `useFlyvaLifecycle` in both Next.js and Nuxt (always registered). You can also call `registerActiveHook` directly for framework-agnostic integrations.
 
 ---
 

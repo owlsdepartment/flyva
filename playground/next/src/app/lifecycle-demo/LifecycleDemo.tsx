@@ -10,18 +10,20 @@ function PassiveLogger() {
 	const [log, setLog] = useState<string[]>([]);
 
 	useFlyvaLifecycle({
+		prepare(ctx) { setLog(prev => [...prev, `prepare → ${ctx.name}`]); },
 		beforeLeave(ctx) { setLog(prev => [...prev, `beforeLeave → ${ctx.name}`]); },
 		leave(ctx) { setLog(prev => [...prev, `leave → ${ctx.name}`]); },
 		afterLeave(ctx) { setLog(prev => [...prev, `afterLeave → ${ctx.name}`]); },
 		beforeEnter(ctx) { setLog(prev => [...prev, `beforeEnter → ${ctx.name}`]); },
 		enter(ctx) { setLog(prev => [...prev, `enter → ${ctx.name}`]); },
 		afterEnter(ctx) { setLog(prev => [...prev, `afterEnter → ${ctx.name}`]); },
+		cleanup() { setLog(prev => [...prev, 'cleanup → —']); },
 	});
 
 	return (
 		<section className="section">
 			<h2>Passive mode log</h2>
-			<p>Events logged by <code>useFlyvaLifecycle</code> (passive, fire-and-forget).</p>
+			<p>Events logged by <code>useFlyvaLifecycle</code> (non-blocking, fire-and-forget).</p>
 			<div className="lifecycle-log">
 				{log.length === 0 && <div className="lifecycle-log-entry">Navigate to see events...</div>}
 				{log.map((entry, i) => (
@@ -61,14 +63,14 @@ function ActiveProgressBar() {
 				ease: 'outQuad',
 			});
 		},
-	}, { active: true });
+	}, { blocking: true });
 
 	return (
 		<section className="section">
-			<h2>Active mode progress bar</h2>
+			<h2>Blocking lifecycle (<code>{'{ blocking: true }'}</code>) progress bar</h2>
 			<p>
-				A progress bar animated via <code>useFlyvaLifecycle</code> in active mode.
-				The transition awaits this animation before proceeding. The bar is portaled to{' '}
+				A progress bar animated via <code>useFlyvaLifecycle</code> with{' '}
+				<code>{'{ blocking: true }'}</code> so the transition awaits this animation. The bar is portaled to{' '}
 				<code>{'<body>'}</code> so the page fade does not affect its opacity.
 			</p>
 			{mounted

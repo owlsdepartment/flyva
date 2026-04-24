@@ -34,12 +34,14 @@ const FlyvaLink = forwardRef<HTMLAnchorElement, PropsWithChildren<FlyvaLinkProps
 		flyvaTransition,
 		flyvaOptions,
 		onTransitionStart,
+		onPrepare,
 		onBeforeLeave,
 		onLeave,
 		onAfterLeave,
 		onBeforeEnter,
 		onEnter,
 		onAfterEnter,
+		onCleanup,
 		children,
 		...linkProps
 	} = props;
@@ -50,16 +52,36 @@ const FlyvaLink = forwardRef<HTMLAnchorElement, PropsWithChildren<FlyvaLinkProps
 	const config = useFlyvaConfig();
 	const pathname = usePathname();
 
-	const callbacksRef = useRef({ onBeforeLeave, onLeave, onAfterLeave, onBeforeEnter, onEnter, onAfterEnter });
-	callbacksRef.current = { onBeforeLeave, onLeave, onAfterLeave, onBeforeEnter, onEnter, onAfterEnter };
+	const callbacksRef = useRef({
+		onPrepare,
+		onBeforeLeave,
+		onLeave,
+		onAfterLeave,
+		onBeforeEnter,
+		onEnter,
+		onAfterEnter,
+		onCleanup,
+	});
+	callbacksRef.current = {
+		onPrepare,
+		onBeforeLeave,
+		onLeave,
+		onAfterLeave,
+		onBeforeEnter,
+		onEnter,
+		onAfterEnter,
+		onCleanup,
+	};
 
 	const lifecycleCallbacks = useMemo(() => ({
+		prepare: (ctx: PageTransitionContext) => { callbacksRef.current.onPrepare?.(ctx); },
 		beforeLeave: (ctx: PageTransitionContext) => { callbacksRef.current.onBeforeLeave?.(ctx); },
 		leave: (ctx: PageTransitionContext) => { callbacksRef.current.onLeave?.(ctx); },
 		afterLeave: (ctx: PageTransitionContext) => { callbacksRef.current.onAfterLeave?.(ctx); },
 		beforeEnter: (ctx: PageTransitionContext) => { callbacksRef.current.onBeforeEnter?.(ctx); },
 		enter: (ctx: PageTransitionContext) => { callbacksRef.current.onEnter?.(ctx); },
 		afterEnter: (ctx: PageTransitionContext) => { callbacksRef.current.onAfterEnter?.(ctx); },
+		cleanup: () => { callbacksRef.current.onCleanup?.(); },
 	}), []);
 
 	useFlyvaLifecycle(lifecycleCallbacks);

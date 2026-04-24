@@ -4,6 +4,8 @@ import type { PageTransitionStage } from './page-tansition-manager/types';
 export const FLYVA_TRANSITION_DATA_ATTR = 'data-flyva-transition' as const;
 
 const ALL_CLASSES = [
+	'prepare',
+	'cleanup',
 	'running',
 	'pending',
 	'leave', 'leave-active', 'leave-to',
@@ -42,6 +44,14 @@ export function applyLifecycleClasses(
 	}
 
 	switch (stage) {
+		case 'prepare':
+			removeAll(el, prefix);
+			el.classList.add(prefixed(prefix, 'prepare'));
+			break;
+		case 'cleanup':
+			removeAll(el, prefix);
+			el.classList.add(prefixed(prefix, 'cleanup'));
+			break;
 		case 'beforeLeave':
 			removeAll(el, prefix);
 			el.classList.add(

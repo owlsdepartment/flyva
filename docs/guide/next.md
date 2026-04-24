@@ -215,9 +215,9 @@ import { FlyvaLink } from '@flyva/next';
 
 ### From any component: `useFlyvaLifecycle`
 
-`useFlyvaLifecycle` lets any component inside `FlyvaRoot` react to transition lifecycle stages.
+`useFlyvaLifecycle` lets any component inside `FlyvaRoot` react to transition lifecycle stages. It **always** registers with `PageTransitionManager` as an active hook. With **`blocking: false`** (default), `prepare` / `leave` / `enter` do not hold up the manager (returned promises are not awaited); with **`blocking: true`**, those three steps await your work like the transition’s own hooks.
 
-**Passive mode** (default) — callbacks fire without blocking the transition:
+**Non-blocking mode** (default, `blocking: false`) — boundary hooks are synchronous; `prepare` / `leave` / `enter` run without delaying the transition:
 
 ```tsx
 'use client';
@@ -232,7 +232,7 @@ function Analytics() {
 }
 ```
 
-**Active mode** — callbacks are awaited in parallel with the transition's own hooks. Useful when a component needs to run its own animation that should complete before the lifecycle step proceeds:
+**Blocking mode** (`blocking: true`) — `prepare`, `leave`, and `enter` are awaited in parallel with the transition’s own hooks (`Promise.all` per stage). Use when a component must finish its own animation before that step completes:
 
 ```tsx
 'use client';
@@ -247,7 +247,7 @@ function ProgressBar() {
         await animate(barRef.current, { scaleX: 1, duration: 400 });
       }
     },
-  }, { active: true });
+  }, { blocking: true });
 
   return <div ref={barRef} className="progress-bar" />;
 }
@@ -257,7 +257,7 @@ If the component unmounts mid-transition, the hook unregisters automatically and
 
 ### From FlyvaLink: callback props
 
-`FlyvaLink` exposes lifecycle callback props that fire in passive mode:
+`FlyvaLink` exposes lifecycle callback props with the same delivery as non-blocking `useFlyvaLifecycle` (`onPrepare` / `onLeave` / `onEnter` do not block navigation):
 
 ```tsx
 <FlyvaLink

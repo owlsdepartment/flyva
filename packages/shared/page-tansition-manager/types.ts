@@ -50,6 +50,8 @@ export interface PageTransitionCtor<T = PageTransition> {
 
 export type PageTransitionStage =
 	| 'none'
+	| 'prepare'
+	| 'cleanup'
 	| 'beforeEnter'
 	| 'enter'
 	| 'afterEnter'
@@ -58,12 +60,14 @@ export type PageTransitionStage =
 	| 'afterLeave';
 
 export interface ActiveHookRegistration {
-	beforeLeave?(context: PageTransitionContext): Promise<void>;
+	prepare?(context: PageTransitionContext): Promise<void>;
+	beforeLeave?(context: PageTransitionContext): void;
 	leave?(context: PageTransitionContext): Promise<void>;
-	afterLeave?(context: PageTransitionContext): Promise<void>;
-	beforeEnter?(context: PageTransitionContext): Promise<void>;
+	afterLeave?(context: PageTransitionContext): void;
+	beforeEnter?(context: PageTransitionContext): void;
 	enter?(context: PageTransitionContext): Promise<void>;
-	afterEnter?(context: PageTransitionContext): Promise<void>;
+	afterEnter?(context: PageTransitionContext): void;
+	cleanup?(): void;
 }
 
 export type RegisterActiveHookReturn = (cleanup?: () => void) => void;

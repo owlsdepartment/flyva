@@ -76,7 +76,7 @@ When `flyva={false}`, the component renders a plain `next/link` with no click in
 
 #### Lifecycle callbacks
 
-The `on*` callback props fire in **passive mode** — they are called at each lifecycle stage but do not block the transition. Use them for side effects like analytics, logging, or toggling UI state:
+The `on*` callback props mirror `useFlyvaLifecycle` delivery: they run for each stage but **`onPrepare` / `onLeave` / `onEnter` do not delay navigation** (returned promises are not awaited by the link). `onPrepare` may still be `async`. Use them for side effects like analytics, logging, or toggling UI state:
 
 ```tsx
 <FlyvaLink
@@ -153,7 +153,7 @@ manager.stage      // PageTransitionStage
 
 ### useFlyvaLifecycle(callbacks, options?)
 
-Subscribe to transition lifecycle events from any component inside `FlyvaRoot`. Supports two modes:
+Subscribe to transition lifecycle events from any component inside `FlyvaRoot`. The hook **always** registers with `PageTransitionManager` as an active hook, so your callbacks run in the same pipeline as transition implementations (including `prepare` on `run()`).
 
 ```ts
 useFlyvaLifecycle({
@@ -164,37 +164,39 @@ useFlyvaLifecycle({
 
 **`FlyvaLifecycleCallbacks`:**
 
-| Callback | Type |
-|----------|------|
-| `beforeLeave` | `(context: PageTransitionContext) => void \| Promise<void>` |
-| `leave` | `(context: PageTransitionContext) => void \| Promise<void>` |
-| `afterLeave` | `(context: PageTransitionContext) => void \| Promise<void>` |
-| `beforeEnter` | `(context: PageTransitionContext) => void \| Promise<void>` |
-| `enter` | `(context: PageTransitionContext) => void \| Promise<void>` |
-| `afterEnter` | `(context: PageTransitionContext) => void \| Promise<void>` |
+| Callback | Type | Notes |
+|----------|------|--------|
+| `prepare` | `(context: PageTransitionContext) => void \| Promise<void>` | With `blocking: false`, the manager does not wait for returned promises |
+| `beforeLeave` | `(context: PageTransitionContext) => void` | Sync only (matches `PageTransition`) |
+| `leave` | `(context: PageTransitionContext) => void \| Promise<void>` | With `blocking: true`, awaited in parallel with the transition’s `leave` |
+| `afterLeave` | `(context: PageTransitionContext) => void` | Sync only |
+| `beforeEnter` | `(context: PageTransitionContext) => void` | Sync only |
+| `enter` | `(context: PageTransitionContext) => void \| Promise<void>` | With `blocking: true`, awaited in parallel with the transition’s `enter` |
+| `afterEnter` | `(context: PageTransitionContext) => void` | Sync only |
+| `cleanup` | `() => void` | Sync only; no context (matches `PageTransition.cleanup`) |
 
 **`UseFlyvaLifecycleOptions`:**
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `active` | `boolean` | `false` | When `true`, the hook's callbacks are awaited in parallel with the transition's own lifecycle hooks |
+| `blocking` | `boolean` | `false` | When `false`, `prepare` / `leave` / `enter` are still invoked on the manager timeline but returned promises are **not** awaited — work is scheduled so the transition is not held up. When `true`, those three steps await your callback (including async work); cancellable in-flight work is cleared on unmount. |
 
-#### Passive mode (default)
+#### Non-blocking mode (default, `blocking: false`)
 
-Callbacks fire when the manager's stage changes. They do not block or delay the transition — fire-and-forget.
+Boundary hooks (`beforeLeave`, `afterLeave`, …) run synchronously when the manager enters each stage. For `prepare`, `leave`, and `enter`, the adapter returns an immediately resolved promise to the manager while your callback runs on a microtask chain so async errors do not reject the transition.
 
-#### Active mode
+#### Blocking mode (`blocking: true`)
 
-When `active: true`, the hook registers itself with the `PageTransitionManager`. At each lifecycle step, the manager runs the transition's hook and all registered active hooks in parallel (`Promise.all`). Your callback can return a `Promise` to co-animate alongside the main transition.
+`prepare`, `leave`, and `enter` are awaited together with the transition’s hooks (`Promise.all` per stage). Use this when a component must finish its own animation before the lifecycle step completes.
 
-If the component unmounts mid-transition, the hook automatically unregisters and resolves any outstanding promises so the transition is never blocked by a destroyed component.
+If the component unmounts mid-transition, the hook unregisters and in-flight cancellable work is settled so the transition is not left hanging.
 
 ```ts
 useFlyvaLifecycle({
   async leave(ctx) {
     await animateProgressBar(ctx);
   },
-}, { active: true });
+}, { blocking: true });
 ```
 
 ---

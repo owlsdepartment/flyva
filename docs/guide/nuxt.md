@@ -164,7 +164,7 @@ The module registers these composables as auto-imports — use them anywhere in 
 | Composable | Returns |
 |------------|---------|
 | `useFlyvaTransition()` | `{ prepare, isRunning, stage, hasTransitioned }` |
-| `useFlyvaLifecycle(callbacks, options?)` | Subscribes to transition lifecycle (passive or active); see below |
+| `useFlyvaLifecycle(callbacks, options?)` | Registers lifecycle callbacks as active hooks (default `blocking: false` skips awaiting `prepare` / `leave` / `enter`); see below |
 | `useFlyvaStickyRef()` | `Ref<HTMLElement \| null>` that keeps the last mounted DOM node through page teardown until Flyva clears active hooks |
 | `useFlyvaState()` | Internal coordination helpers used by `FlyvaPage` |
 | `useRefStack(key, ref)` | Registers a Vue ref in the global stack |
@@ -176,9 +176,9 @@ For explicit imports (e.g. transition virtual modules, tests, or when your IDE d
 
 ### `useFlyvaLifecycle` and template refs
 
-`useFlyvaLifecycle` mirrors the Next adapter: **passive** mode (default) reacts to manager stage changes without blocking the transition; **`active: true`** registers with `PageTransitionManager` so your hooks run in parallel with the transition and awaited `Promise`s extend the same phase.
+`useFlyvaLifecycle` mirrors the Next adapter: it **always** registers with `PageTransitionManager`. **`blocking: false`** (default) still runs every hook on the manager timeline but does not await `prepare` / `leave` / `enter`. **`blocking: true`** awaits those three in parallel with the transition implementation.
 
-On Nuxt, the outgoing page component often **unmounts before** Flyva’s `leave` phase finishes. Vue then sets bound template refs to `null` while your async `leave` callback may still be running. A plain `ref()` on markup inside that page is therefore unreliable for DOM work in **active** `leave` / `afterLeave`.
+On Nuxt, the outgoing page component often **unmounts before** Flyva’s `leave` phase finishes. Vue then sets bound template refs to `null` while your async `leave` callback may still be running. A plain `ref()` on markup inside that page is therefore unreliable for DOM work in **blocking** `leave` / `afterLeave`.
 
 Use **`useFlyvaStickyRef()`** for those elements: it ignores Vue’s unmount `null` write, keeps the last non-null element until active-hook unregister cleanup runs (after `leave`, when the manager flushes hook GC), then clears. See the [Nuxt API reference](/api/nuxt#useflyvalifecycle-callbacks-options) for signatures and options.
 

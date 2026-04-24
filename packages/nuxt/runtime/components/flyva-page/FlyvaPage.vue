@@ -64,7 +64,7 @@ nuxtApp.hook('page:finish', async () => {
 		$flyvaManager.beforeEnter();
 		await $flyvaManager.readyPromise;
 		await $flyvaManager.enter();
-		$flyvaManager.afterEnter();
+		await $flyvaManager.afterEnter();
 		finish();
 	}
 });
@@ -139,7 +139,7 @@ const transition = computed<TransitionProps>(() => ({
 		$flyvaManager.beforeEnter(el);
 		await $flyvaManager.readyPromise;
 		await $flyvaManager.enter(el);
-		$flyvaManager.afterEnter(el);
+		await $flyvaManager.afterEnter(el);
 		finish();
 		done();
 	},

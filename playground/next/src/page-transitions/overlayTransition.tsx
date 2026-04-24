@@ -107,6 +107,7 @@ class OverlayTransitionClass implements PageTransition {
 		if (!this.overlay) return;
 
 		const root = refEl(this.overlay.refs.root);
+		const logoBox = refEl(this.overlay.refs.logoBox);
 		const blobs = [
 			refEl(this.overlay.refs.blobA),
 			refEl(this.overlay.refs.blobB),
@@ -114,7 +115,6 @@ class OverlayTransitionClass implements PageTransition {
 			refEl(this.overlay.refs.blobD),
 			refEl(this.overlay.refs.blobE),
 		].filter(Boolean) as HTMLElement[];
-		const logoBox = refEl(this.overlay.refs.logoBox);
 		const chars = logoChars(logoBox);
 		const app = appRootEl();
 

@@ -7,8 +7,8 @@ export default function LifecycleDemoPage() {
 				<section className="section">
 					<h1>Lifecycle hooks</h1>
 					<p>
-						This page demonstrates <code>useFlyvaLifecycle</code> in both passive
-						and active modes, plus <code>FlyvaLink</code> callback props.
+						This page demonstrates <code>useFlyvaLifecycle</code> in non-blocking (default) and
+						blocking (<code>blocking: true</code>) modes, plus <code>FlyvaLink</code> callback props.
 					</p>
 				</section>
 				<LifecycleDemo />

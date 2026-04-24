@@ -38,12 +38,14 @@ const nuxtLinkBind = computed(() => {
 		flyvaTransition: _ft,
 		flyvaOptions: _fo,
 		onTransitionStart: _ts,
+		onPrepare: _op,
 		onBeforeLeave: _obl,
 		onLeave: _ol,
 		onAfterLeave: _oal,
 		onBeforeEnter: _obe,
 		onEnter: _oe,
 		onAfterEnter: _oae,
+		onCleanup: _oc,
 		...rest
 	} = props;
 	return rest;

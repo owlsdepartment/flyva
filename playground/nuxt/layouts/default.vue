@@ -1,10 +1,36 @@
 <script setup lang="ts">
+const navLogoRef = ref<HTMLSpanElement | null>(null);
+
+useFlyvaLifecycle({
+	leave() {
+		navLogoRef.value?.classList.add('is-expanded');
+	},
+	enter() {
+		navLogoRef.value?.classList.remove('is-expanded');
+	},
+});
 </script>
 
 <template>
 	<div>
 		<nav class="nav">
-			<span class="nav-logo">flyva<span class="nav-logo-tag">:nuxt</span></span>
+			<span ref="navLogoRef" class="nav-logo">
+				<span class="nav-logo__flyva">flyva</span>
+				<span class="nav-logo__tail">
+					<span class="nav-logo__bars" aria-hidden="true">
+						<span class="nav-logo__bars-inner">
+							<span class="nav-logo__bars-bracket nav-logo__bars-bracket--open">[</span>
+							<span class="nav-logo__bars-mid">
+								<span class="nav-logo__bars-pipe nav-logo__bars-pipe--1">|</span>
+								<span class="nav-logo__bars-pipe nav-logo__bars-pipe--2">|</span>
+								<span class="nav-logo__bars-pipe nav-logo__bars-pipe--3">|</span>
+							</span>
+							<span class="nav-logo__bars-bracket nav-logo__bars-bracket--close">]</span>
+						</span>
+					</span>
+					<span class="nav-logo-tag">:nuxt</span>
+				</span>
+			</span>
 			<div class="nav-links">
 				<FlyvaLink to="/" :class="{ active: $route.path === '/' }">
 					Home
@@ -46,11 +72,11 @@
 				</FlyvaLink>
 
 				<FlyvaLink
-					to="/about"
+					to="/bypass"
 					:flyva="false"
-					:class="{ active: $route.path === '/about' }"
+					:class="{ active: $route.path === '/bypass' }"
 				>
-					About <span class="nav-badge">bypass</span>
+					Bypass <span class="nav-badge">bypass</span>
 				</FlyvaLink>
 			</div>
 		</nav>

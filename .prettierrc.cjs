@@ -3,5 +3,5 @@ module.exports = {
 	useTabs: true,
 	printWidth: 100,
 	htmlWhitespaceSensitivity: 'ignore',
-	arrowParens: 'avoid'
+	arrowParens: 'avoid',
 };

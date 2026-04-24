@@ -1,0 +1,64 @@
+.log {
+	background: var(--card-bg);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	padding: 16px;
+	max-height: 280px;
+	overflow-y: auto;
+	font-size: 12px;
+	line-height: 180%;
+}
+
+.logEntry {
+	color: var(--muted);
+
+	span {
+		color: var(--accent);
+		font-weight: 600;
+	}
+}
+
+.indicator {
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: var(--border);
+	transition: background 0.2s;
+	vertical-align: middle;
+	margin-left: 6px;
+
+	&.active {
+		background: var(--accent);
+	}
+}
+
+.progressFloat {
+	position: fixed;
+	bottom: 10vh;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 110;
+	padding: 2rem;
+	border-radius: var(--radius);
+	background: rgba(0, 0, 0, 0.55);
+	backdrop-filter: blur(14px);
+	-webkit-backdrop-filter: blur(14px);
+	box-sizing: border-box;
+}
+
+.progressFloat .progress {
+	width: min(22rem, calc(100vw - 6rem));
+	margin-top: 0;
+	height: 3px;
+	background: var(--border);
+	border-radius: 2px;
+	overflow: hidden;
+}
+
+.progressBar {
+	height: 100%;
+	width: 0%;
+	background: var(--accent);
+	border-radius: 2px;
+}

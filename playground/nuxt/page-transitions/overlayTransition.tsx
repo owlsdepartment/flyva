@@ -7,6 +7,8 @@ import {
 	type RefMap,
 } from '@flyva/nuxt/runtime/composables/useDetachedRoot';
 
+import detached from '~/page-transitions/OverlayDetached.module.scss';
+
 type OverlayRefs = {
 	root: HTMLDivElement | null;
 	blobA: HTMLSpanElement | null;
@@ -26,7 +28,7 @@ function appRootEl(): Element | null {
 
 function logoChars(logoBox: HTMLElement | null): HTMLElement[] {
 	if (!logoBox) return [];
-	return [...logoBox.querySelectorAll<HTMLElement>('.flyva-detached-logo__char')];
+	return [...logoBox.querySelectorAll<HTMLElement>('[data-overlay-logo-char]')];
 }
 
 class OverlayTransitionClass implements PageTransition {
@@ -34,44 +36,48 @@ class OverlayTransitionClass implements PageTransition {
 
 	async prepare() {
 		this.overlay = useDetachedRoot((refs: RefMap<OverlayRefs>) => (
-			<div class="flyva-detached-overlay" ref={refs.root}>
-				<div class="flyva-detached-overlay__blobs">
-					<span class="flyva-detached-blob flyva-detached-blob--a" ref={refs.blobA}>
-						<span class="flyva-detached-blob__drift">
-							<span class="flyva-detached-blob__glow" />
+			<div class={detached.overlay} ref={refs.root}>
+				<div class={detached.blobs}>
+					<span class={detached.blobA} ref={refs.blobA}>
+						<span class={detached.drift}>
+							<span class={detached.glow} />
 						</span>
 					</span>
-					<span class="flyva-detached-blob flyva-detached-blob--b" ref={refs.blobB}>
-						<span class="flyva-detached-blob__drift">
-							<span class="flyva-detached-blob__glow" />
+					<span class={detached.blobB} ref={refs.blobB}>
+						<span class={detached.drift}>
+							<span class={detached.glow} />
 						</span>
 					</span>
-					<span class="flyva-detached-blob flyva-detached-blob--c" ref={refs.blobC}>
-						<span class="flyva-detached-blob__drift">
-							<span class="flyva-detached-blob__glow" />
+					<span class={detached.blobC} ref={refs.blobC}>
+						<span class={detached.drift}>
+							<span class={detached.glow} />
 						</span>
 					</span>
-					<span class="flyva-detached-blob flyva-detached-blob--d" ref={refs.blobD}>
-						<span class="flyva-detached-blob__drift">
-							<span class="flyva-detached-blob__glow" />
+					<span class={detached.blobD} ref={refs.blobD}>
+						<span class={detached.drift}>
+							<span class={detached.glow} />
 						</span>
 					</span>
-					<span class="flyva-detached-blob flyva-detached-blob--e" ref={refs.blobE}>
-						<span class="flyva-detached-blob__drift">
-							<span class="flyva-detached-blob__glow" />
+					<span class={detached.blobE} ref={refs.blobE}>
+						<span class={detached.drift}>
+							<span class={detached.glow} />
 						</span>
 					</span>
 				</div>
-				<div class="flyva-detached-logo" ref={refs.logoBox}>
-					<span class="flyva-detached-logo__stack">
+				<div class={detached.logo} ref={refs.logoBox}>
+					<span class={detached.logoStack}>
 						{LOGO_MARK.split('').map((ch, i) => (
-							<span key={`m-${i}-${ch}`} class="flyva-detached-logo__clip">
-								<span class="flyva-detached-logo__char flyva-detached-logo__char--mark">{ch}</span>
+							<span key={`m-${i}-${ch}`} class={detached.logoClip}>
+								<span class={[detached.char, detached.charMark]} data-overlay-logo-char>
+									{ch}
+								</span>
 							</span>
 						))}
 						{LOGO_SUFFIX.split('').map((ch, i) => (
-							<span key={`s-${i}-${ch}`} class="flyva-detached-logo__clip">
-								<span class="flyva-detached-logo__char flyva-detached-logo__char--suffix">{ch}</span>
+							<span key={`s-${i}-${ch}`} class={detached.logoClip}>
+								<span class={[detached.char, detached.charSuffix]} data-overlay-logo-char>
+									{ch}
+								</span>
 							</span>
 						))}
 					</span>

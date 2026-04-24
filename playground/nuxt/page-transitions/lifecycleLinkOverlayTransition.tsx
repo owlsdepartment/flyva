@@ -7,6 +7,8 @@ import {
 	type RefMap,
 } from '@flyva/nuxt/runtime/composables/useDetachedRoot';
 
+import linkOverlay from '~/page-transitions/LifecycleLinkOverlay.module.scss';
+
 type OverlayRefs = {
 	root: HTMLDivElement | null;
 };
@@ -16,7 +18,7 @@ class LifecycleLinkOverlayTransitionClass implements PageTransition {
 
 	async prepare() {
 		this.overlay = useDetachedRoot((refs: RefMap<OverlayRefs>) => (
-			<div class="flyva-lifecycle-link-overlay" ref={refs.root} />
+			<div class={linkOverlay.overlay} ref={refs.root} />
 		));
 
 		await this.overlay.waitForRender();

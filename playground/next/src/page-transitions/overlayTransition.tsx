@@ -6,6 +6,8 @@ import { type RefObject } from 'react';
 import { useDetachedRoot, type DetachedRoot } from '@flyva/next';
 import type { PageTransition, PageTransitionContext } from '@flyva/shared';
 
+import detached from './OverlayDetached.module.scss';
+
 type OverlayRefs = {
 	root: HTMLDivElement | null;
 	blobA: HTMLSpanElement | null;
@@ -29,7 +31,7 @@ function refEl<T extends HTMLElement>(r: RefObject<T | null>): T | null {
 
 function logoChars(logoBox: HTMLElement | null): HTMLElement[] {
 	if (!logoBox) return [];
-	return [...logoBox.querySelectorAll<HTMLElement>('.flyva-detached-logo__char')];
+	return [...logoBox.querySelectorAll<HTMLElement>('[data-overlay-logo-char]')];
 }
 
 class OverlayTransitionClass implements PageTransition {
@@ -37,44 +39,54 @@ class OverlayTransitionClass implements PageTransition {
 
 	async prepare() {
 		this.overlay = useDetachedRoot(refs => (
-			<div className="flyva-detached-overlay" ref={refs.root}>
-				<div className="flyva-detached-overlay__blobs">
-					<span className="flyva-detached-blob flyva-detached-blob--a" ref={refs.blobA}>
-						<span className="flyva-detached-blob__drift">
-							<span className="flyva-detached-blob__glow" />
+			<div className={detached.overlay} ref={refs.root}>
+				<div className={detached.blobs}>
+					<span className={detached.blobA} ref={refs.blobA}>
+						<span className={detached.drift}>
+							<span className={detached.glow} />
 						</span>
 					</span>
-					<span className="flyva-detached-blob flyva-detached-blob--b" ref={refs.blobB}>
-						<span className="flyva-detached-blob__drift">
-							<span className="flyva-detached-blob__glow" />
+					<span className={detached.blobB} ref={refs.blobB}>
+						<span className={detached.drift}>
+							<span className={detached.glow} />
 						</span>
 					</span>
-					<span className="flyva-detached-blob flyva-detached-blob--c" ref={refs.blobC}>
-						<span className="flyva-detached-blob__drift">
-							<span className="flyva-detached-blob__glow" />
+					<span className={detached.blobC} ref={refs.blobC}>
+						<span className={detached.drift}>
+							<span className={detached.glow} />
 						</span>
 					</span>
-					<span className="flyva-detached-blob flyva-detached-blob--d" ref={refs.blobD}>
-						<span className="flyva-detached-blob__drift">
-							<span className="flyva-detached-blob__glow" />
+					<span className={detached.blobD} ref={refs.blobD}>
+						<span className={detached.drift}>
+							<span className={detached.glow} />
 						</span>
 					</span>
-					<span className="flyva-detached-blob flyva-detached-blob--e" ref={refs.blobE}>
-						<span className="flyva-detached-blob__drift">
-							<span className="flyva-detached-blob__glow" />
+					<span className={detached.blobE} ref={refs.blobE}>
+						<span className={detached.drift}>
+							<span className={detached.glow} />
 						</span>
 					</span>
 				</div>
-				<div className="flyva-detached-logo" ref={refs.logoBox}>
-					<span className="flyva-detached-logo__stack">
+				<div className={detached.logo} ref={refs.logoBox}>
+					<span className={detached.logoStack}>
 						{LOGO_MARK.split('').map((ch, i) => (
-							<span key={`m-${i}-${ch}`} className="flyva-detached-logo__clip">
-								<span className="flyva-detached-logo__char flyva-detached-logo__char--mark">{ch}</span>
+							<span key={`m-${i}-${ch}`} className={detached.logoClip}>
+								<span
+									className={`${detached.char} ${detached.charMark}`}
+									data-overlay-logo-char
+								>
+									{ch}
+								</span>
 							</span>
 						))}
 						{LOGO_SUFFIX.split('').map((ch, i) => (
-							<span key={`s-${i}-${ch}`} className="flyva-detached-logo__clip">
-								<span className="flyva-detached-logo__char flyva-detached-logo__char--suffix">{ch}</span>
+							<span key={`s-${i}-${ch}`} className={detached.logoClip}>
+								<span
+									className={`${detached.char} ${detached.charSuffix}`}
+									data-overlay-logo-char
+								>
+									{ch}
+								</span>
 							</span>
 						))}
 					</span>

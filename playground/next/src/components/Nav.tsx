@@ -5,90 +5,96 @@ import { useRef } from 'react';
 import { FlyvaLink, useFlyvaLifecycle } from '@flyva/next';
 import { usePathname } from 'next/navigation';
 
+import styles from './Nav.module.scss';
+
 export function Nav() {
 	const pathname = usePathname();
 	const navLogoRef = useRef<HTMLSpanElement>(null);
 
-	useFlyvaLifecycle({
-		prepare() {
-			navLogoRef.current?.classList.add('is-expanded');
-			console.log('prepare')
+	useFlyvaLifecycle(
+		{
+			prepare() {
+				navLogoRef.current?.classList.add(styles.expanded);
+			},
+			cleanup() {
+				navLogoRef.current?.classList.remove(styles.expanded);
+			},
 		},
-		cleanup() {
-			navLogoRef.current?.classList.remove('is-expanded');
-			console.log('cleanup')
+		{
+			blocking: false,
 		},
-	}, {
-		blocking: false
-	});
+	);
 
 	return (
-		<nav className="nav">
-			<span ref={navLogoRef} className="nav-logo">
-				<span className="nav-logo__flyva">flyva</span>
-				<span className="nav-logo__tail">
-					<span className="nav-logo__bars" aria-hidden>
-						<span className="nav-logo__bars-inner">
-							<span className="nav-logo__bars-bracket nav-logo__bars-bracket--open">[</span>
-							<span className="nav-logo__bars-mid">
-								<span className="nav-logo__bars-pipe nav-logo__bars-pipe--1">|</span>
-								<span className="nav-logo__bars-pipe nav-logo__bars-pipe--2">|</span>
-								<span className="nav-logo__bars-pipe nav-logo__bars-pipe--3">|</span>
+		<nav className={styles.root} data-demo-nav>
+			<span ref={navLogoRef} className={styles.logo}>
+				<span className={styles.flyva}>flyva</span>
+				<span className={styles.tail}>
+					<span className={styles.bars} aria-hidden>
+						<span className={styles.barsInner}>
+							<span className={`${styles.bracket} ${styles.bracketOpen}`}>[</span>
+							<span className={styles.barsMid}>
+								<span className={`${styles.pipe} ${styles.pipe1}`}>|</span>
+								<span className={`${styles.pipe} ${styles.pipe2}`}>|</span>
+								<span className={`${styles.pipe} ${styles.pipe3}`}>|</span>
 							</span>
-							<span className="nav-logo__bars-bracket nav-logo__bars-bracket--close">]</span>
+							<span className={`${styles.bracket} ${styles.bracketClose}`}>]</span>
 						</span>
 					</span>
-					<span className="nav-logo-tag">:next</span>
+					<span className={styles.tag}>:next</span>
 				</span>
 			</span>
-			<div className="nav-links">
-				<FlyvaLink href="/" className={pathname === '/' ? 'active' : ''}>
+			<div className={styles.links}>
+				<FlyvaLink href="/" className={`${styles.link} ${pathname === '/' ? styles.linkActive : ''}`}>
 					Home
 				</FlyvaLink>
 
-				<FlyvaLink href="/about" className={pathname === '/about' ? 'active' : ''}>
-					About <span className="nav-badge">default</span>
+				<FlyvaLink
+					href="/about"
+					className={`${styles.link} ${pathname === '/about' ? styles.linkActive : ''}`}
+				>
+					About <span className={styles.badge}>default</span>
 				</FlyvaLink>
 
 				<FlyvaLink
 					href="/work"
 					flyvaTransition="slideTransition"
-					className={pathname.startsWith('/work') ? 'active' : ''}
+					className={`${styles.link} ${pathname.startsWith('/work') ? styles.linkActive : ''}`}
 				>
-					Work <span className="nav-badge">slide</span>
+					Work <span className={styles.badge}>slide</span>
 				</FlyvaLink>
 
-			<FlyvaLink
-				href="/css-demo"
-				flyvaTransition="cssFadeTransition"
-				className={pathname === '/css-demo' ? 'active' : ''}
-			>
-				CSS Mode <span className="nav-badge">css</span>
-			</FlyvaLink>
+				<FlyvaLink
+					href="/css-demo"
+					flyvaTransition="cssFadeTransition"
+					className={`${styles.link} ${pathname === '/css-demo' ? styles.linkActive : ''}`}
+				>
+					CSS Mode <span className={styles.badge}>css</span>
+				</FlyvaLink>
 
-		<FlyvaLink
-			href="/overlay"
-			flyvaTransition="overlayTransition"
-			className={pathname === '/overlay' ? 'active' : ''}
-		>
-			Overlay <span className="nav-badge">detached</span>
-		</FlyvaLink>
+				<FlyvaLink
+					href="/overlay"
+					flyvaTransition="overlayTransition"
+					className={`${styles.link} ${pathname === '/overlay' ? styles.linkActive : ''}`}
+				>
+					Overlay <span className={styles.badge}>detached</span>
+				</FlyvaLink>
 
-		<FlyvaLink
-			href="/lifecycle-demo"
-			className={pathname === '/lifecycle-demo' ? 'active' : ''}
-		>
-			Lifecycle <span className="nav-badge">hooks</span>
-		</FlyvaLink>
+				<FlyvaLink
+					href="/lifecycle-demo"
+					className={`${styles.link} ${pathname === '/lifecycle-demo' ? styles.linkActive : ''}`}
+				>
+					Lifecycle <span className={styles.badge}>hooks</span>
+				</FlyvaLink>
 
-		<FlyvaLink
-			href="/bypass"
-			flyva={false}
-			className={pathname === '/bypass' ? 'active' : ''}
-		>
-			Bypass <span className="nav-badge">bypass</span>
-		</FlyvaLink>
-		</div>
+				<FlyvaLink
+					href="/bypass"
+					flyva={false}
+					className={`${styles.link} ${pathname === '/bypass' ? styles.linkActive : ''}`}
+				>
+					Bypass <span className={styles.badge}>bypass</span>
+				</FlyvaLink>
+			</div>
 		</nav>
 	);
 }

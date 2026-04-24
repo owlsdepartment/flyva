@@ -3,13 +3,15 @@
 import { useRefStack } from '@flyva/next';
 import { useRef } from 'react';
 
+import styles from './HeroBlock.module.scss';
+
 export function HeroBlock() {
 	const heroRef = useRef<HTMLDivElement>(null);
 	useRefStack('hero', heroRef);
 
 	return (
-		<div ref={heroRef} className="hero-block">
-			<div className="hero-block-inner">
+		<div ref={heroRef} className={styles.root}>
+			<div className={styles.inner}>
 				<h2>refStack demo</h2>
 				<p>
 					This element is registered via <code>useRefStack(&apos;hero&apos;, ref)</code>.

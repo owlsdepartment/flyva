@@ -17,6 +17,7 @@
     "next": "^16.2.0"
   },
   "devDependencies": {
+    "sass": "^1.85.0",
     "typescript": "^5.8.0",
     "@types/node": "^22",
     "@types/react": "^19",

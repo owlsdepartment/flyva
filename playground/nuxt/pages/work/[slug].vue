@@ -1,4 +1,11 @@
 <script setup lang="ts">
+import DemoBackLink from '~/components/demo/DemoBackLink.vue';
+import DemoPage from '~/components/demo/DemoPage.vue';
+import DemoSection from '~/components/demo/DemoSection.vue';
+import DemoWorkBody from '~/components/demo/DemoWorkBody.vue';
+import DemoWorkHero from '~/components/demo/DemoWorkHero.vue';
+import DemoWorkIntro from '~/components/demo/DemoWorkIntro.vue';
+
 const route = useRoute();
 
 const projectData: Record<string, { title: string; description: string; body: string }> = {
@@ -33,27 +40,18 @@ const project = projectData[slug] ?? {
 </script>
 
 <template>
-	<div class="page work-detail">
-		<div class="page-content">
-			<section class="work-detail-hero" data-work-hero>
-				<h1>{{ project.title }}</h1>
-				<p class="work-detail-intro">{{ project.description }}</p>
-			</section>
-	
-			<section class="section">
-				<p class="work-detail-body">{{ project.body }}</p>
-			</section>
-	
-			<section class="section">
-				<FlyvaLink
-					to="/work"
-					flyva-transition="slideTransition"
-					:flyva-options="{ direction: 'left' }"
-					class="back-link"
-				>
-					← Back to Work
-				</FlyvaLink>
-			</section>
-		</div>
-	</div>
+	<DemoPage work-detail>
+		<DemoWorkHero>
+			<h1>{{ project.title }}</h1>
+			<DemoWorkIntro>{{ project.description }}</DemoWorkIntro>
+		</DemoWorkHero>
+
+		<DemoSection>
+			<DemoWorkBody>{{ project.body }}</DemoWorkBody>
+		</DemoSection>
+
+		<DemoSection>
+			<DemoBackLink>← Back to Work</DemoBackLink>
+		</DemoSection>
+	</DemoPage>
 </template>

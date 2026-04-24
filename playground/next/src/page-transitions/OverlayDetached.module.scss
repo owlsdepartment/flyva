@@ -1,0 +1,243 @@
+@keyframes blobLinear1 {
+	0%,
+	100% {
+		transform: translate(0, 0) scale(1);
+	}
+	25% {
+		transform: translate(12vmin, 9vmin) scale(0.9);
+	}
+	50% {
+		transform: translate(22vmin, 17vmin) scale(1.1);
+	}
+	75% {
+		transform: translate(8vmin, 6vmin) scale(1);
+	}
+}
+
+@keyframes blobLinear2 {
+	0%,
+	100% {
+		transform: translate(0, 0) scale(1);
+	}
+	25% {
+		transform: translate(-11vmin, 9vmin) scale(0.9);
+	}
+	50% {
+		transform: translate(-21vmin, 16vmin) scale(1.1);
+	}
+	75% {
+		transform: translate(-7vmin, 6vmin) scale(1);
+	}
+}
+
+@keyframes blobLinear3 {
+	0%,
+	100% {
+		transform: translate(0, 0) scale(1);
+	}
+	25% {
+		transform: translate(11vmin, -9vmin) scale(0.9);
+	}
+	50% {
+		transform: translate(21vmin, -16vmin) scale(1.1);
+	}
+	75% {
+		transform: translate(7vmin, -6vmin) scale(1);
+	}
+}
+
+@keyframes blobLinear4 {
+	0%,
+	100% {
+		transform: translate(0, 0) scale(1);
+	}
+	25% {
+		transform: translate(-12vmin, -9vmin) scale(0.9);
+	}
+	50% {
+		transform: translate(-22vmin, -17vmin) scale(1.1);
+	}
+	75% {
+		transform: translate(-8vmin, -6vmin) scale(1);
+	}
+}
+
+@keyframes blobLinear5 {
+	0%,
+	100% {
+		transform: translate(0, 0) scale(1);
+	}
+	25% {
+		transform: translate(10vmin, -9vmin) scale(0.9);
+	}
+	50% {
+		transform: translate(9vmin, 11vmin) scale(1.1);
+	}
+	75% {
+		transform: translate(-10vmin, 9vmin) scale(1);
+	}
+}
+
+@mixin blob-base {
+	position: absolute;
+	display: block;
+	border-radius: 50%;
+	width: min(98vw, 800px);
+	transform: translate(-50%, -50%);
+	aspect-ratio: 1;
+}
+
+.overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 100000;
+	pointer-events: none;
+	visibility: hidden;
+	overflow: hidden;
+	background: #000000;
+}
+
+.blobs {
+	position: absolute;
+	inset: 0;
+}
+
+.drift {
+	display: block;
+	width: 100%;
+	height: 100%;
+	border-radius: 50%;
+	will-change: transform;
+}
+
+.glow {
+	display: block;
+	width: 100%;
+	height: 100%;
+	border-radius: 50%;
+	filter: blur(150px);
+	opacity: 0.5;
+}
+
+.blobA {
+	@include blob-base;
+	left: 30%;
+	top: 15%;
+
+	.drift {
+		animation: blobLinear1 7.2s linear infinite;
+	}
+
+	.glow {
+		background: #4584ef;
+	}
+}
+
+.blobB {
+	@include blob-base;
+	left: 85%;
+	top: 25%;
+
+	.drift {
+		animation: blobLinear2 7.95s linear infinite;
+	}
+
+	.glow {
+		background: #1f4a4a;
+	}
+}
+
+.blobC {
+	@include blob-base;
+	left: 20%;
+	top: 75%;
+
+	.drift {
+		animation: blobLinear3 6.45s linear infinite;
+	}
+
+	.glow {
+		background: #6ee7b7;
+	}
+}
+
+.blobD {
+	@include blob-base;
+	left: 60%;
+	top: 80%;
+
+	.drift {
+		animation: blobLinear4 7.5s linear infinite;
+	}
+
+	.glow {
+		background: #4584ef;
+	}
+}
+
+.blobE {
+	@include blob-base;
+	left: 50%;
+	top: 50%;
+
+	.drift {
+		animation: blobLinear5 6.9s linear infinite;
+	}
+
+	.glow {
+		background: #4584ef;
+	}
+}
+
+.logo {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	z-index: 2;
+	transform: translate(-50%, -50%);
+	padding: 14px 22px;
+	background: #000000;
+	border-radius: 12px;
+	font-family:
+		ui-monospace,
+		SFMono-Regular,
+		Menlo,
+		Monaco,
+		Consolas,
+		'Liberation Mono',
+		'Courier New',
+		monospace;
+	font-size: 15px;
+	font-weight: 600;
+	letter-spacing: -0.02em;
+	line-height: 1;
+	white-space: nowrap;
+}
+
+.logoStack {
+	display: flex;
+	align-items: center;
+	flex-wrap: nowrap;
+	line-height: 1;
+}
+
+.logoClip {
+	overflow: hidden;
+	display: inline-block;
+	vertical-align: top;
+	height: 1em;
+}
+
+.char {
+	display: inline-block;
+	transform: translateY(1.12em);
+	will-change: transform;
+}
+
+.charMark {
+	color: #4584ef;
+}
+
+.charSuffix {
+	color: #5a7aad;
+}

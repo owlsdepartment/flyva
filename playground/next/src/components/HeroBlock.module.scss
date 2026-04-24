@@ -1,0 +1,33 @@
+.root {
+	border: 1px solid var(--accent);
+	border-radius: var(--radius);
+	padding: 2px;
+	transform-origin: center;
+}
+
+.inner {
+	background: linear-gradient(135deg, rgba(69, 132, 239, 0.1), transparent);
+	border-radius: calc(var(--radius) - 2px);
+	padding: 32px;
+}
+
+.root h2 {
+	color: var(--accent);
+	font-size: 16px;
+	margin-bottom: 8px;
+}
+
+.root p {
+	color: var(--muted);
+	font-size: 13px;
+	line-height: 170%;
+}
+
+.root code {
+	background: var(--card-bg);
+	border: 1px solid var(--border);
+	padding: 1px 5px;
+	border-radius: 4px;
+	font-size: 11px;
+	color: var(--accent);
+}

@@ -8,7 +8,7 @@ export async function waitForTransitionIdle(page: Page, timeout = 20_000) {
 }
 
 export function navLinkByHref(page: Page, href: string) {
-	return page.locator('nav.nav a[href="' + href + '"]');
+	return page.locator('nav[data-demo-nav] a[href="' + href + '"]');
 }
 
 export function aboutLinkWithBadge(page: Page, badge: 'default' | 'bypass') {

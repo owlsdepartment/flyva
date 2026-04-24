@@ -23,6 +23,7 @@ Playgrounds are minimal apps that exercise the library features. They are privat
 - Config key: `flyva` in `nuxt.config.ts`
 - Transitions live in a folder specified by `transitionsDir` config
 - Uses auto-imported composables (`useFlyvaTransition`, `useFlyvaState`)
+- Demo UI lives under `components/demo/`. **`:deep(h3)` / `:deep(p)`-style selectors (bare tags) are unreliable** in those components (slot content, FLIP clone, CSS modules). Prefer explicit classes on slotted markup or other patterns; do not revert manual fixes there without checking in the browser.
 
 ## When modifying library code
 

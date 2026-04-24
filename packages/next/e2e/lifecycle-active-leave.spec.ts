@@ -18,7 +18,7 @@ test.describe('active lifecycle leave vs navigation', () => {
 	test('concurrent transition navigates before leave animation completes', async ({ page }) => {
 		await page.goto('/');
 		const t0 = Date.now();
-		await page.locator('nav.nav a[href="/work"]').click();
+		await page.locator('nav[data-demo-nav] a[href="/work"]').click();
 		await page.waitForURL('**/work');
 		const elapsed = Date.now() - t0;
 		await waitForTransitionIdle(page);

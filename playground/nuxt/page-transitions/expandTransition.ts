@@ -47,14 +47,14 @@ class ExpandTransitionClass implements PageTransition {
 	async leave() {
 		if (!this.content || !this.clone) return;
 
-		const page = this.content.querySelector('.page-content') ?? this.content;
+		const page = this.content.querySelector('[data-demo-page-content]') ?? this.content;
 		const pageRect = page.getBoundingClientRect();
 		const pageStyle = getComputedStyle(page);
 		const padTop = parseFloat(pageStyle.paddingTop) || 0;
 		const padLeft = parseFloat(pageStyle.paddingLeft) || 0;
 		const padRight = parseFloat(pageStyle.paddingRight) || 0;
 
-		const navEl = document.querySelector('.nav');
+		const navEl = document.querySelector('[data-demo-nav]');
 		const navHeight = navEl?.getBoundingClientRect().height ?? 0;
 
 		const targetTop = navHeight + padTop;

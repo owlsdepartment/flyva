@@ -3,6 +3,8 @@
 import { useParams } from 'next/navigation';
 import { FlyvaLink } from '@flyva/next';
 
+import demo from '@/styles/demo-pages.module.scss';
+
 const projectData: Record<string, { title: string; description: string; body: string }> = {
 	alpha: {
 		title: 'Project Alpha',
@@ -35,23 +37,23 @@ export default function WorkDetail() {
 	};
 
 	return (
-		<div className="page work-detail">
-			<div className="page-content">
-				<section className="work-detail-hero" data-work-hero>
+		<div className={demo.page}>
+			<div className={`${demo.pageContent} ${demo.workDetail}`} data-demo-page-content>
+				<section className={demo.workDetailHero} data-work-hero>
 					<h1>{project.title}</h1>
-					<p className="work-detail-intro">{project.description}</p>
+					<p className={demo.intro}>{project.description}</p>
 				</section>
 
-				<section className="section">
-					<p className="work-detail-body">{project.body}</p>
+				<section className={demo.section}>
+					<p className={demo.body}>{project.body}</p>
 				</section>
 
-				<section className="section">
+				<section className={demo.section}>
 					<FlyvaLink
 						href="/work"
 						flyvaTransition="slideTransition"
 						flyvaOptions={{ direction: 'left' }}
-						className="back-link"
+						className={demo.backLink}
 					>
 						← Back to Work
 					</FlyvaLink>

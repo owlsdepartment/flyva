@@ -28,7 +28,7 @@ See each package's README for setup instructions or check the [full documentatio
 packages/
   shared/     Framework-agnostic transition manager
   next/       Next.js (App Router) adapter
-  nuxt/       Nuxt 3 module
+  nuxt/       Nuxt 4 module
 playground/
   next/       Next.js test playground
   nuxt/       Nuxt test playground

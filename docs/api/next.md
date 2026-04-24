@@ -51,7 +51,7 @@ Drop-in replacement for `next/link` with transition support. Intercepts clicks, 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `flyva` | `boolean` | `true` | Set to `false` to bypass Flyva and render a plain `next/link` |
-| `flyvaTransition` | `string` | - (optional) | When set, that map key runs. When omitted, the manager resolves a key via each transition’s optional `condition`, then `config.defaultKey` as `defaultTransitionKey` (see [Writing transitions](/guide/transitions#transition-resolution)) |
+| `flyvaTransition` | `string` | - (optional) | When set, that map key runs. When omitted, the manager resolves a key via each transition’s optional `condition`, then `config.defaultKey` as `defaultTransitionKey` (see [Writing transitions](/guide/next/writing-transitions#transition-resolution)) |
 | `flyvaOptions` | `PageTransitionOptions \| () => PageTransitionOptions` | `{}` | Data passed to `context.options` |
 | `onTransitionStart` | `() => void` | - | Callback fired before the transition starts |
 | `onBeforeLeave` | `(context: PageTransitionContext) => void` | - | Fired at the `beforeLeave` stage |
@@ -94,7 +94,7 @@ The `on*` callback props mirror `useFlyvaLifecycle` delivery: they run for each 
 
 Client component that wraps the part of the tree that swaps on navigation. It registers that subtree with `PageTransitionManager` (so transition hooks get `context.container` / `current` / `next`), runs `enter()` after `usePathname` changes, and supports **concurrent** clones, **CSS mode**, and **View Transitions** coordination. Wrap `{children}` (or the segment you want to treat as page content) in your App Router layout.
 
-For **`concurrent: true`**, Flyva inserts a **DOM clone** during `prepare` so leave can run against pixels while navigation proceeds; that pattern is inherently fragile on the App Router (layout shift, replayed CSS, refs). See the [Next.js guide - concurrent mode and content cloning](/guide/next#concurrent-mode-and-content-cloning) or prefer **View Transitions** in config.
+For **`concurrent: true`**, Flyva inserts a **DOM clone** during `prepare` so leave can run against pixels while navigation proceeds; that pattern is inherently fragile on the App Router (layout shift, replayed CSS, refs). See the [Next.js guide - concurrent mode and content cloning](/guide/next/#concurrent-mode-and-content-cloning) or prefer **View Transitions** in config.
 
 ---
 

@@ -1,6 +1,6 @@
 # @flyva/nuxt
 
-Nuxt 3 module. Components and composables are auto-imported - no explicit imports needed in Vue files.
+Nuxt 4 module. Components and composables are auto-imported - no explicit imports needed in Vue files.
 
 Named composables are also available from **`@flyva/nuxt/composables`** (or the package root **`@flyva/nuxt`**) when you need an explicit import path.
 
@@ -74,7 +74,7 @@ Wraps `NuxtLink` with transition support. Auto-imported.
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `flyva-transition` | `string` | - (optional) | When set, that map key runs. When omitted, conditions are evaluated, then `flyva.defaultKey` as fallback (see [Writing transitions](/guide/transitions#transition-resolution)) |
+| `flyva-transition` | `string` | - (optional) | When set, that map key runs. When omitted, conditions are evaluated, then `flyva.defaultKey` as fallback (see [Writing transitions](/guide/nuxt/writing-transitions#transition-resolution)) |
 | `:flyva-options` | `PageTransitionOptions \| () => PageTransitionOptions` | `{}` | Data passed to `context.options` |
 
 | Event | Payload | Description |

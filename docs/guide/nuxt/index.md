@@ -28,7 +28,7 @@ export default defineNuxtConfig({
 | `defaultKey` | `string` | `'defaultTransition'` | Fallback map key when no `condition` matches and the link has no `flyva-transition` |
 | `transitionsDir` | `string` | `'flyva-transitions'` | Directory containing transition files (relative to project root) |
 | `useNamedExports` | `boolean` | `true` | Use named exports from transition files as individual transitions |
-| `viewTransition` | `boolean` | `undefined` | When `true`, `FlyvaLink` wraps navigation in `document.startViewTransition` (see [View Transitions mode](./modes/view-transitions)) |
+| `viewTransition` | `boolean` | `undefined` | When `true`, `FlyvaLink` wraps navigation in `document.startViewTransition` (see [View Transition API](/guide/nuxt/view-transition-api)) |
 
 If you enable Nuxt’s built-in `app.viewTransition` and Flyva’s `flyva.viewTransition` at the same time, the module logs a warning - turn off Nuxt’s global View Transitions and let Flyva drive them, or keep only one system.
 
@@ -74,7 +74,7 @@ export const defaultTransition = defineTransition({
 });
 ```
 
-The file name doesn't matter - the **export name** (`defaultTransition`) becomes the transition key. Because the generated map’s key order follows file discovery, use optional **`priority`** on a transition when **`condition`**-based matching must run in a specific order (see [Writing transitions](/guide/transitions#transition-resolution)).
+The file name doesn't matter - the **export name** (`defaultTransition`) becomes the transition key. Because the generated map’s key order follows file discovery, use optional **`priority`** on a transition when **`condition`**-based matching must run in a specific order (see [Writing transitions](/guide/nuxt/writing-transitions#transition-resolution)).
 
 ### 3. Add FlyvaPage
 
@@ -91,70 +91,7 @@ Replace `<NuxtPage />` with `<FlyvaPage />` in your `app.vue`:
 
 Under the hood, `FlyvaPage` wraps `NuxtPage` with Vue's `<Transition>` (`css: false`) and hooks into Nuxt's page lifecycle. It registers **outgoing and incoming page roots** with the manager, so transition hooks receive [`PageTransitionContext`](/api/shared#pagetransitioncontext) (`container`, `current`, `next`) the same way as on Next - you normally animate those nodes rather than querying the document. It branches on the active transition: **sequential** (default `out-in`), **`concurrent: true`** (leave can overlap navigation; enter runs after the new page is ready), **`cssMode: true`** (class-based phases via `@flyva/shared`), and **`viewTransition`** when enabled in config (coordinates with `FlyvaLink`’s `startViewTransition` callback).
 
-### 4. Use FlyvaLink
-
-`FlyvaLink` wraps `NuxtLink` and is auto-imported - no explicit import needed.
-
-```vue
-<template>
-  <FlyvaLink to="/about">About</FlyvaLink>
-</template>
-```
-
-## Choosing a transition per link
-
-Override the default transition for a specific link:
-
-```vue
-<FlyvaLink to="/work" flyva-transition="slideTransition">Work</FlyvaLink>
-```
-
-## Passing options to transitions
-
-Pass arbitrary data via `:flyva-options`. It lands on `context.options` inside every lifecycle hook:
-
-```vue
-<FlyvaLink to="/work" :flyva-options="{ direction: 'left' }">
-  Back to work
-</FlyvaLink>
-```
-
-```ts
-// Inside your transition
-async leave(context) {
-  const el = context.container;
-  if (!el) return;
-  const dir = context.options.direction === 'left' ? '100%' : '-100%';
-  await animate(el, { translateX: dir, duration: 500 });
-}
-```
-
-`:flyva-options` also accepts a function `() => PageTransitionOptions`.
-
-## Auto-imported composables
-
-The module registers these composables as auto-imports - use them anywhere in Vue components without an import statement:
-
-| Composable | Returns |
-|------------|---------|
-| `useFlyvaTransition()` | `{ prepare, isRunning, stage, hasTransitioned }` |
-| `useFlyvaLifecycle(callbacks, options?)` | Registers lifecycle callbacks as active hooks (default `blocking: false` skips awaiting `prepare` / `leave` / `enter`); see below |
-| `useFlyvaStickyRef()` | `Ref<HTMLElement \| null>` that keeps the last mounted DOM node through page teardown until Flyva clears active hooks |
-| `useFlyvaState()` | Internal coordination helpers used by `FlyvaPage` |
-| `useRefStack(key, ref)` | Registers a Vue ref in the global stack |
-| `useDetachedRoot(render)` | Renders a small Vue tree into a detached DOM node (e.g. transition overlays); returns `{ refs, waitForRender, destroy }` |
-| `globalGetRefStackItem(key)` | Gets a ref by key |
-| `globalGetRefStack()` | Gets the entire stack |
-
-For explicit imports (e.g. transition virtual modules, tests, or when your IDE does not resolve auto-imports), import from **`@flyva/nuxt/composables`** or **`@flyva/nuxt`** (both re-export the same surface).
-
-### `useFlyvaLifecycle` and template refs
-
-`useFlyvaLifecycle` mirrors the Next adapter: it **always** registers with `PageTransitionManager`. **`blocking: false`** (default) still runs every hook on the manager timeline but does not await `prepare` / `leave` / `enter`. **`blocking: true`** awaits those three in parallel with the transition implementation.
-
-On Nuxt, the outgoing page component often **unmounts before** Flyva’s `leave` phase finishes. Vue then sets bound template refs to `null` while your async `leave` callback may still be running. A plain `ref()` on markup inside that page is therefore unreliable for DOM work in **blocking** `leave` / `afterLeave`.
-
-Use **`useFlyvaStickyRef()`** for those elements: it ignores Vue’s unmount `null` write, keeps the last non-null element until active-hook unregister cleanup runs (after `leave`, when the manager flushes hook GC), then clears. See the [Nuxt API reference](/api/nuxt#useflyvalifecycle-callbacks-options) for signatures and options.
+Use **[FlyvaLink](/guide/nuxt/flyva-link)** for navigations and **[Hooks](/guide/nuxt/hooks)** for composables (`useFlyvaLifecycle`, `useFlyvaStickyRef`, and others). **[View Transition API](/guide/nuxt/view-transition-api)** covers `flyva.viewTransition` and transition-object VT fields.
 
 ## Complete example
 

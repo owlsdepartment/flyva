@@ -1,6 +1,6 @@
 # @flyva/nuxt
 
-Nuxt 3 module for flyva page transitions.
+Nuxt 4 module for Flyva page transitions.
 
 ## Install
 

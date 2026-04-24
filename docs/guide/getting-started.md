@@ -12,7 +12,7 @@ When a user clicks a `FlyvaLink`:
 
 1. **Intercept** — the click is prevented; the URL and trigger element are captured
 2. **Prepare** — your transition snapshots any DOM state it needs (rects, refs, clones)
-3. **Leave** — the outgoing page animates out (or overlaps with navigation when `concurrent: true` - see [Transition modes](./modes/))
+3. **Leave** — the outgoing page animates out (or overlaps with navigation when `concurrent: true` - see [Next transition modes](/guide/next/transition-modes) or [Nuxt transition modes](/guide/nuxt/transition-modes))
 4. **Navigate** — the framework pushes the new route, the DOM updates
 5. **Enter** — the incoming page animates in
 6. **Cleanup** — the transition resets itself for the next run
@@ -84,4 +84,4 @@ pnpm add @flyva/nuxt @flyva/shared
 
 :::
 
-Continue with the [Next.js guide](./next) or the [Nuxt guide](./nuxt).
+Continue with the [Next.js guide](/guide/next/) or the [Nuxt guide](/guide/nuxt/).

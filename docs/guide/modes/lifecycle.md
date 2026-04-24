@@ -1,6 +1,6 @@
 # Lifecycle vs framework
 
-How Flyva’s **PageTransition** hooks line up with **Next.js (App Router)** and **Nuxt 3** mechanics. Diagrams are aligned with the current adapters (`FlyvaLink`, `FlyvaTransitionWrapper`, `FlyvaPage`).
+How Flyva’s **PageTransition** hooks line up with **Next.js (App Router)** and **Nuxt 4** mechanics. Diagrams are aligned with the current adapters (`FlyvaLink`, `FlyvaTransitionWrapper`, `FlyvaPage`).
 
 ## Shared transition contract
 

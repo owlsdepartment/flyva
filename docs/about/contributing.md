@@ -65,3 +65,7 @@ Before pushing, the `pre-push` hook will run linters automatically. You can also
 ```bash
 pnpm lint
 ```
+
+## Support us
+
+Flyva is currently fully sponsored and maintained by **Owls Department**. If you would like to sponsor the project, invite us to an event, or feature us in a publication, please reach out at [opensource@owlsdepartment.com](mailto:opensource@owlsdepartment.com).

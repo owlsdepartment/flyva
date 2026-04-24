@@ -18,26 +18,47 @@ export default withMermaid(
 			nav: [
 				{ text: 'Guide', link: '/guide/getting-started' },
 				{ text: 'API', link: '/api/shared' },
+				{
+					text: 'About',
+					items: [
+						{ text: 'Authors', link: '/about/authors' },
+						{ text: 'Links', link: '/about/links' },
+						{ text: 'Contributing', link: '/about/contributing' },
+						{ text: 'License', link: '/about/license' },
+					],
+				},
 			],
 			sidebar: [
 				{
 					text: 'Guide',
 					items: [
 						{ text: 'Getting Started', link: '/guide/getting-started' },
-						{ text: 'Next.js', link: '/guide/next' },
-						{ text: 'Nuxt', link: '/guide/nuxt' },
 						{
-							text: 'Transition modes',
+							text: 'Next.js',
 							collapsed: false,
 							items: [
-								{ text: 'Overview', link: '/guide/modes/' },
-								{ text: 'Lifecycle diagrams', link: '/guide/modes/lifecycle' },
-								{ text: 'CSS mode', link: '/guide/modes/css-mode' },
-								{ text: 'View Transitions', link: '/guide/modes/view-transitions' },
+								{ text: 'Overview', link: '/guide/next/' },
+								{ text: 'Transition modes', link: '/guide/next/transition-modes' },
+								{ text: 'View Transition API', link: '/guide/next/view-transition-api' },
+								{ text: 'Writing transitions', link: '/guide/next/writing-transitions' },
+								{ text: 'FlyvaLink', link: '/guide/next/flyva-link' },
+								{ text: 'Hooks', link: '/guide/next/hooks' },
+								{ text: 'Ref Stack', link: '/guide/next/ref-stack' },
 							],
 						},
-						{ text: 'Writing transitions', link: '/guide/transitions' },
-						{ text: 'Ref Stack', link: '/guide/ref-stack' },
+						{
+							text: 'Nuxt',
+							collapsed: false,
+							items: [
+								{ text: 'Overview', link: '/guide/nuxt/' },
+								{ text: 'Transition modes', link: '/guide/nuxt/transition-modes' },
+								{ text: 'View Transition API', link: '/guide/nuxt/view-transition-api' },
+								{ text: 'Writing transitions', link: '/guide/nuxt/writing-transitions' },
+								{ text: 'FlyvaLink', link: '/guide/nuxt/flyva-link' },
+								{ text: 'Hooks', link: '/guide/nuxt/hooks' },
+								{ text: 'Ref Stack', link: '/guide/nuxt/ref-stack' },
+							],
+						},
 					],
 				},
 				{
@@ -46,6 +67,15 @@ export default withMermaid(
 						{ text: '@flyva/shared', link: '/api/shared' },
 						{ text: '@flyva/next', link: '/api/next' },
 						{ text: '@flyva/nuxt', link: '/api/nuxt' },
+					],
+				},
+				{
+					text: 'About',
+					items: [
+						{ text: 'Authors', link: '/about/authors' },
+						{ text: 'Links', link: '/about/links' },
+						{ text: 'Contributing', link: '/about/contributing' },
+						{ text: 'License', link: '/about/license' },
 					],
 				},
 			],

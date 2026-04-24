@@ -1,1 +1,1 @@
-export * from '../../shared/page-tansition-manager';
+export * from '../../shared/page-transition-manager';

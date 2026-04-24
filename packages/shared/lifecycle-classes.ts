@@ -1,4 +1,4 @@
-import type { PageTransitionStage } from './page-tansition-manager/types';
+import type { PageTransitionStage } from './page-transition-manager/types';
 
 /** `document.documentElement` attribute set for the active transition key (e.g. `defaultTransition`). */
 export const FLYVA_TRANSITION_DATA_ATTR = 'data-flyva-transition' as const;

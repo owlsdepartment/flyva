@@ -1,4 +1,4 @@
-import type { PageTransitionContext } from './page-tansition-manager/types';
+import type { PageTransitionContext } from './page-transition-manager/types';
 
 export type ApplyCssStageClassesOptions = {
 	retainLeaveComputedStyle?: boolean;

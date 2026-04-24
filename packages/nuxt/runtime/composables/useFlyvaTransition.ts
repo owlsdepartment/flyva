@@ -1,7 +1,7 @@
 import { useNuxtApp } from 'nuxt/app';
 import { computed } from 'vue';
 
-import type { PageTransitionOptions } from '../../../shared/page-tansition-manager';
+import type { PageTransitionOptions } from '../../../shared/page-transition-manager';
 
 let hasTransitioned = false;
 

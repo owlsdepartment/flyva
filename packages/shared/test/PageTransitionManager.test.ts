@@ -3,8 +3,8 @@ import type { Reactive, ReactiveFactory } from '../types';
 import {
 	PageTransitionManager,
 	sortTransitionKeysForMatching,
-} from '../page-tansition-manager/PageTransitionManager';
-import type { PageTransition } from '../page-tansition-manager/types';
+} from '../page-transition-manager/PageTransitionManager';
+import type { PageTransition } from '../page-transition-manager/types';
 
 function refReactiveFactory<V>(initial?: V): Reactive<V> {
 	return { value: initial as V };

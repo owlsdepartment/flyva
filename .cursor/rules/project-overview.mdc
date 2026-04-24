@@ -36,5 +36,5 @@ Each framework adapter provides:
 ## Key conventions
 
 - Workspace deps use `"workspace:*"` protocol
-- The folder `page-tansition-manager` is intentionally misspelled (legacy) — do not rename without a coordinated migration
+- Shared manager sources: `packages/shared/page-transition-manager/`
 - Root scripts: `pnpm dev:nuxt`, `pnpm dev:next` to run playgrounds

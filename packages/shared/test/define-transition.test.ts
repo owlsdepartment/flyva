@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { defineTransition } from '../page-tansition-manager/define-transition';
-import type { PageTransitionContext, PageTransitionMatchContext } from '../page-tansition-manager/types';
+import { defineTransition } from '../page-transition-manager/define-transition';
+import type { PageTransitionContext, PageTransitionMatchContext } from '../page-transition-manager/types';
 
 function minimalContext(over: Partial<PageTransitionContext> = {}): PageTransitionContext {
 	return {

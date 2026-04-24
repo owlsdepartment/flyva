@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as vt from '../view-transition';
-import type { PageTransitionContext } from '../page-tansition-manager/types';
+import type { PageTransitionContext } from '../page-transition-manager/types';
 
 const {
 	applyCssStageClasses,

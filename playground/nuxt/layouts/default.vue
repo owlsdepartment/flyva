@@ -46,7 +46,7 @@ useFlyvaLifecycle(
 
 				<FlyvaLink
 					to="/work"
-					flyva-transition="slideTransition"
+					:flyva-options="{ direction: 'right' }"
 					:class="[navCss.link, route.path.startsWith('/work') ? navCss.linkActive : '']"
 				>
 					Work <span :class="navCss.badge">slide</span>

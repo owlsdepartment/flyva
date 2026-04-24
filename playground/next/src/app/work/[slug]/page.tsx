@@ -51,7 +51,6 @@ export default function WorkDetail() {
 				<section className={demo.section}>
 					<FlyvaLink
 						href="/work"
-						flyvaTransition="slideTransition"
 						flyvaOptions={{ direction: 'left' }}
 						className={demo.backLink}
 					>

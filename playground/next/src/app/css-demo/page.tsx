@@ -27,9 +27,6 @@ export default function CssDemo() {
 						<FlyvaLink href="/" flyvaTransition="cssFadeTransition" className={demo.cssDemoBtn}>
 							Home (fade)
 						</FlyvaLink>
-						<FlyvaLink href="/about" flyvaTransition="cssFadeTransition" className={demo.cssDemoBtn}>
-							About (fade)
-						</FlyvaLink>
 					</div>
 				</section>
 
@@ -39,9 +36,6 @@ export default function CssDemo() {
 					<div className={demo.cssDemoLinks}>
 						<FlyvaLink href="/" flyvaTransition="cssSlideTransition" className={demo.cssDemoBtn}>
 							Home (slide)
-						</FlyvaLink>
-						<FlyvaLink href="/about" flyvaTransition="cssSlideTransition" className={demo.cssDemoBtn}>
-							About (slide)
 						</FlyvaLink>
 					</div>
 				</section>

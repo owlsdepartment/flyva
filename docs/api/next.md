@@ -51,7 +51,7 @@ Drop-in replacement for `next/link` with transition support. Intercepts clicks, 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `flyva` | `boolean` | `true` | Set to `false` to bypass Flyva and render a plain `next/link` |
-| `flyvaTransition` | `string` | `config.defaultKey` | Which transition to run |
+| `flyvaTransition` | `string` | — (optional) | When set, that map key runs. When omitted, the manager resolves a key via each transition’s optional `condition`, then `config.defaultKey` as `defaultTransitionKey` (see [Writing transitions](/guide/transitions#transition-resolution)) |
 | `flyvaOptions` | `PageTransitionOptions \| () => PageTransitionOptions` | `{}` | Data passed to `context.options` |
 | `onTransitionStart` | `() => void` | — | Callback fired before the transition starts |
 | `onBeforeLeave` | `(context: PageTransitionContext) => void` | — | Fired at the `beforeLeave` stage |

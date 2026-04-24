@@ -47,25 +47,88 @@ describe('PageTransitionManager', () => {
 		expect(manager.runningName).toBe('b');
 	});
 
-	it('makeContext reflects name, options, trigger, el, current, and next', () => {
+	it('makeContext reflects name, options, trigger, el, current, next, fromHref, and toHref', () => {
 		const transitions = { nav: {} as PageTransition };
 		const manager = new PageTransitionManager(transitions, factory);
 		const btn = document.createElement('button');
 
-		manager.run('nav', { x: true }, btn);
+		manager.run('nav', { x: true, fromHref: '/from', toHref: '/to' }, btn);
 		const cur = document.createElement('div');
 		const nxt = document.createElement('div');
 		manager.setContentElements(cur, nxt);
 
 		const ctx = manager.makeContext();
 		expect(ctx.name).toBe('nav');
-		expect(ctx.options).toEqual({ x: true });
+		expect(ctx.options).toEqual({ x: true, fromHref: '/from', toHref: '/to' });
+		expect(ctx.fromHref).toBe('/from');
+		expect(ctx.toHref).toBe('/to');
 		expect(ctx.trigger).toBe(btn);
 		expect(ctx.current).toBe(cur);
 		expect(ctx.next).toBe(nxt);
 
 		const ctxWithEl = manager.makeContext(btn);
 		expect(ctxWithEl.el).toBe(btn);
+	});
+
+	it('matchTransitionKey returns first transition whose condition is true (object key order)', async () => {
+		const transitions = {
+			skip: { condition: () => false } as PageTransition,
+			pick: { condition: () => true } as PageTransition,
+			after: { condition: () => true } as PageTransition,
+			defaultTransition: {} as PageTransition,
+		};
+		const manager = new PageTransitionManager(transitions, factory);
+		const key = await manager.matchTransitionKey({ fromHref: '/', toHref: '/x' });
+		expect(key).toBe('pick');
+	});
+
+	it('matchTransitionKey falls back to defaultTransitionKey when no condition matches', async () => {
+		const transitions = {
+			skip: { condition: () => false } as PageTransition,
+			defaultTransition: {} as PageTransition,
+		};
+		const manager = new PageTransitionManager(transitions, factory);
+		const key = await manager.matchTransitionKey({});
+		expect(key).toBe('defaultTransition');
+	});
+
+	it('keeps the same options object and fromHref / toHref across the full lifecycle', async () => {
+		const options = { fromHref: '/a', toHref: '/b', tag: 'stable' };
+		const optionRefs: unknown[] = [];
+		const fromHrefs: string[] = [];
+		const toHrefs: string[] = [];
+		const transition: PageTransition = {
+			prepare(ctx) {
+				optionRefs.push(ctx.options);
+				fromHrefs.push(ctx.fromHref);
+				toHrefs.push(ctx.toHref);
+			},
+			beforeLeave(ctx) {
+				optionRefs.push(ctx.options);
+				fromHrefs.push(ctx.fromHref);
+				toHrefs.push(ctx.toHref);
+			},
+			leave: async () => {},
+			afterLeave: () => {},
+			beforeEnter: () => {},
+			enter: async () => {},
+			afterEnter(ctx) {
+				optionRefs.push(ctx.options);
+				fromHrefs.push(ctx.fromHref);
+				toHrefs.push(ctx.toHref);
+			},
+		};
+		const manager = new PageTransitionManager({ t: transition }, factory);
+		await manager.run('t', options);
+		await manager.beforeLeave();
+		await manager.leave();
+		await manager.afterLeave();
+		await manager.beforeEnter();
+		await manager.enter();
+		await manager.afterEnter();
+		expect(optionRefs.every(o => o === options)).toBe(true);
+		expect(fromHrefs.every(f => f === '/a')).toBe(true);
+		expect(toHrefs.every(t => t === '/b')).toBe(true);
 	});
 
 	it('runs lifecycle hooks in order and finishTransition clears running state', async () => {

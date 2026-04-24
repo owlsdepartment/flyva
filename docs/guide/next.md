@@ -133,7 +133,7 @@ import { FlyvaLink } from '@flyva/next';
 
 ## Choosing a transition per link
 
-By default, every `FlyvaLink` uses the transition named by `config.defaultKey` (defaults to `'defaultTransition'`). Override it with the `flyvaTransition` prop:
+If you set **`flyvaTransition`**, that map key always runs. If you omit it, Flyva calls **`matchTransitionKey`**: each registered transition’s optional **`condition`** is evaluated in map order until one matches; if none do, **`config.defaultKey`** is used as `defaultTransitionKey` (default `'defaultTransition'`). See [Transition resolution](/guide/transitions#transition-resolution).
 
 ```tsx
 <FlyvaLink href="/work" flyvaTransition="slideTransition">Work</FlyvaLink>

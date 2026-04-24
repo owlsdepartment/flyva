@@ -1,7 +1,6 @@
 <template>
 	<FlyvaLink
 		to="/work"
-		flyva-transition="slideTransition"
 		:flyva-options="{ direction: 'left' }"
 		:class="$style.backLink"
 	>

@@ -2,6 +2,7 @@
 import { NuxtLink } from '#components';
 import { navigateTo, useNuxtApp, useRoute, useRuntimeConfig } from '#app';
 import { computed, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 import { useFlyvaTransition } from '../../composables';
 import { useFlyvaLifecycle } from '../../composables/useFlyvaLifecycle';
@@ -57,8 +58,25 @@ const emit = defineEmits<{
 
 const rootEl = ref<InstanceType<typeof NuxtLink>>();
 const route = useRoute();
+const router = useRouter();
 const { $flyvaManager } = useNuxtApp();
 const { prepare } = useFlyvaTransition();
+
+function resolveFlyvaPath(to: unknown, href: unknown): string {
+	const raw = to ?? href;
+	if (raw == null || raw === '') return '/';
+	if (typeof raw === 'string') {
+		if (/^https?:\/\//i.test(raw)) {
+			try {
+				return new URL(raw).pathname;
+			} catch {
+				return '/';
+			}
+		}
+		return raw.split('?')[0]?.split('#')[0] ?? '/';
+	}
+	return router.resolve(raw).path;
+}
 
 function normalizeHref(href: string): string {
 	return href.replace(/\/+$/, '') || '/';
@@ -70,30 +88,30 @@ async function onClick() {
 		return;
 	}
 
-	const target = (props.to ?? props.href)?.toString() ?? '';
+	const targetPath = resolveFlyvaPath(props.to, props.href);
 	const currentPath = route.path;
 
-	if (normalizeHref(currentPath) === normalizeHref(target)) return;
+	if (normalizeHref(currentPath) === normalizeHref(targetPath)) return;
 
 	emit('transitionStart');
 	props.onTransitionStart?.();
 
-	const config = useRuntimeConfig().public;
 	const options = typeof props.flyvaOptions === 'function' ? props.flyvaOptions() : props.flyvaOptions;
 
 	const el = rootEl.value?.$el as Element | undefined;
 
 	await prepare(
-		props.flyvaTransition ?? config.flyva?.defaultKey ?? 'defaultTransition',
+		props.flyvaTransition,
 		{
 			fromHref: currentPath,
-			toHref: target,
+			toHref: targetPath,
 			...options,
 		},
 		el,
 	);
 
 	const transition = $flyvaManager.runningInstance;
+	const config = useRuntimeConfig().public;
 	const vtEnabled = config.flyva?.viewTransition && supportsViewTransitions();
 
 	if (vtEnabled && transition) {

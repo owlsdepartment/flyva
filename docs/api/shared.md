@@ -24,6 +24,7 @@ new PageTransitionManager(transitions, reactiveFactory, config?)
 |-------|------|---------|-------------|
 | `viewTransition` | `boolean` | `undefined` | When `true`, dev warnings reference VT-specific rules |
 | `lifecycleClassPrefix` | `string` | `'flyva'` | Prefix for lifecycle CSS classes on `document.documentElement`; `data-flyva-transition` is not prefixed and always holds the transition map key |
+| `defaultTransitionKey` | `string` | `'defaultTransition'` | Map key used when no transition’s `condition` matches during `matchTransitionKey` |
 
 ### Properties
 
@@ -42,6 +43,7 @@ new PageTransitionManager(transitions, reactiveFactory, config?)
 | Method | Returns | Description |
 |--------|---------|-------------|
 | `run(name, options, trigger?)` | `Promise<void>` | Start a transition: sets running state, then awaits the active transition’s `prepare` and every registered active-hook `prepare` in parallel (`Promise.all`) |
+| `matchTransitionKey(options, el?)` | `Promise<keyof T>` | When the link omits an explicit transition key, pick one: iterate map keys in insertion order, await each `condition` until the first truthy result; otherwise return `defaultTransitionKey` |
 | `beforeLeave(el?)` | `Promise<void>` | Run `beforeLeave` on the active transition + registered active hooks |
 | `leave(el?)` | `Promise<void>` | Run `leave` on the active transition + registered active hooks |
 | `afterLeave(el?)` | `Promise<void>` | Run `afterLeave` on the active transition + registered active hooks |
@@ -66,7 +68,7 @@ interface PageTransition<O = PageTransitionOptions> {
   cssMode?: boolean
   viewTransitionNames?: Record<string, string> | ((ctx: PageTransitionContext<O>) => Record<string, string>)
   animateViewTransition?(viewTransition: ViewTransition, context: PageTransitionContext<O>): Promise<void>
-  condition?(context: PageTransitionContext<O>): Promise<boolean> | boolean
+  condition?(context: PageTransitionMatchContext<O>): Promise<boolean> | boolean
   prepare?(context: PageTransitionContext<O>): Promise<void>
   beforeLeave?(context: PageTransitionContext<O>): void
   leave?(context: PageTransitionContext<O>): Promise<void>
@@ -95,18 +97,40 @@ class Slide implements PageTransition<SlideOptions> {
 
 ---
 
-## PageTransitionContext
+## PageTransitionMatchContext
 
-Passed to every lifecycle method.
+Passed **only** to `PageTransition.condition` while resolving which map key to run. It is a subset of the full lifecycle context: there is no `name` yet (the transition has not been chosen) and no `viewTransition`.
 
 ```ts
-interface PageTransitionContext<O = PageTransitionOptions> {
-  name: string
-  trigger: PageTransitionTrigger
+interface PageTransitionMatchContext<O = PageTransitionOptions> {
+  fromHref: string
+  toHref: string
   options: O
+  trigger: PageTransitionTrigger
   el?: Element
   current?: Element
   next?: Element
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `fromHref` | `string` | Path the navigation leaves from |
+| `toHref` | `string` | Path the navigation targets |
+| `options` | `O` | Same object later passed to `prepare` / hooks: `{ fromHref, toHref, ...flyvaOptions }` |
+| `trigger` | `PageTransitionTrigger` | Clicked element when available, otherwise `'internal'` |
+| `el` | `Element \| undefined` | Anchor (or control) that started the navigation when known |
+| `current` / `next` | `Element \| undefined` | Content roots if the manager already tracked them (often empty at match time) |
+
+---
+
+## PageTransitionContext
+
+Passed to every lifecycle method (`prepare` through `afterEnter`). Extends `PageTransitionMatchContext` with the resolved key and optional View Transition handle.
+
+```ts
+interface PageTransitionContext<O = PageTransitionOptions> extends PageTransitionMatchContext<O> {
+  name: string
   viewTransition?: ViewTransition
 }
 ```
@@ -116,6 +140,8 @@ interface PageTransitionContext<O = PageTransitionOptions> {
 | `name` | `string` | Transition key (e.g. `'fadeTransition'`) |
 | `trigger` | `string \| Element` | `'internal'` for programmatic navigation, or the clicked DOM element |
 | `options` | `O` | Merged options: `{ fromHref, toHref, ...flyvaOptions }` |
+| `fromHref` | `string` | Same as `options.fromHref` |
+| `toHref` | `string` | Same as `options.toHref` |
 | `el` | `Element \| undefined` | The trigger DOM element (same as `trigger` when it's an Element) |
 | `current` | `Element \| undefined` | Outgoing content root when the adapter set it |
 | `next` | `Element \| undefined` | Incoming content root when the adapter set it |

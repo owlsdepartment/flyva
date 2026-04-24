@@ -2,7 +2,7 @@
 
 Flyva doesn't ship any built-in animations. This page covers the **JS hook** style: lifecycle, patterns, and recipes. For **CSS-driven** or **View Transitions** setups, start at [Transition modes](/guide/modes/).
 
-You implement transitions using whatever animation library fits your project (anime.js, GSAP, Motion, etc.). The sections below focus on the shared interface and common patterns.
+You implement transitions using whatever animation library fits your project (anime.js, GSAP, Motion, etc.). The sections below focus on the shared interface and common patterns. Import `PageTransition`, `PageTransitionContext`, and `PageTransitionMatchContext` from `@flyva/shared` when typing implementations.
 
 ## The interface
 
@@ -14,7 +14,7 @@ interface PageTransition {
   cssMode?: boolean;
   viewTransitionNames?: Record<string, string> | ((ctx) => Record<string, string>);
   animateViewTransition?(vt: ViewTransition, context): Promise<void>;
-  condition?(context): boolean | Promise<boolean>;
+  condition?(context: PageTransitionMatchContext): boolean | Promise<boolean>;
   prepare?(context): Promise<void>;
   beforeLeave?(context): void;
   leave?(context): Promise<void>;
@@ -40,17 +40,21 @@ On the **App Router**, `concurrent` depends on **content cloning** (App Router c
 | `cssMode` | Animation via generated CSS classes instead of `leave`/`enter`. See [CSS mode](/guide/modes/css-mode). |
 | `viewTransitionNames` | Used with app-level View Transitions. See [View Transitions mode](/guide/modes/view-transitions). |
 | `animateViewTransition` | Optional hook after `vt.ready` when using View Transitions. See [View Transitions mode](/guide/modes/view-transitions). |
-
-`condition` can return `false` to skip running this transition (same frame as `prepare`).
+| `condition` | Optional predicate used **only** when the link did not set an explicit transition key. The manager walks registered transitions in **map insertion order**, evaluates each `condition` with a [`PageTransitionMatchContext`](/api/shared#pagetransitionmatchcontext), and runs the **first** transition whose `condition` is truthy. Transitions without `condition` are never auto-selected this way. |
 
 ## Transition resolution
 
 When a user clicks a `FlyvaLink`, the framework adapter decides which transition to run:
 
-1. If the link has `flyvaTransition` / `flyva-transition` set, that key is used
-2. Otherwise, the `defaultKey` from config is used (defaults to `'defaultTransition'`)
+1. If the link has `flyvaTransition` / `flyva-transition` set to a non-empty string, that key is used.
+2. Otherwise the manager calls `matchTransitionKey`: it iterates the transition map in **insertion order**, runs each transition’s `condition` (if defined), and uses the **first** match.
+3. If no `condition` matches, the manager uses `defaultTransitionKey` on `PageTransitionManager` (Next: `defaultKey` on `FlyvaRoot` config; Nuxt: `flyva.defaultKey` in runtime config). That defaults to `'defaultTransition'`.
 
-The key must match a transition registered in the transition map (Next.js) or auto-discovered from the transitions directory (Nuxt).
+The key must exist on the transition map (Next.js object passed to `FlyvaRoot`, Nuxt auto-built map from the transitions directory).
+
+### `condition` vs explicit keys
+
+Use an explicit `flyvaTransition` when the same target URL could match more than one rule and you need a deterministic choice (for example project cards to `/work/[slug]` use `expandTransition` while the nav “Work” link targets `/work` and relies on `slideTransition`’s `condition`).
 
 ## Class-based pattern
 
@@ -133,9 +137,18 @@ async prepare(context: PageTransitionContext) {
 }
 ```
 
+## Navigation context (`fromHref`, `toHref`)
+
+Adapters pass the current and target paths into the options object as **`fromHref`** and **`toHref`** (pathname-style strings, no query). They are duplicated on the context for convenience:
+
+- `context.fromHref` / `context.toHref` — same values as `context.options.fromHref` / `context.options.toHref`
+- **`PageTransitionMatchContext`** (passed only to `condition`) includes the same fields plus `options`, so you can branch on URL **and** on merged link options (for example `direction` from `flyvaOptions`).
+
+`condition` runs **before** `prepare`; `name` is not set yet on the match context.
+
 ## Using options
 
-Pass per-link data via `flyvaOptions` (React) or `:flyva-options` (Vue):
+Pass per-link data via `flyvaOptions` (React) or `:flyva-options` (Vue). They are shallow-merged into the object passed to `prepare` / lifecycle hooks together with `fromHref` and `toHref`:
 
 ::: code-group
 

@@ -9,7 +9,9 @@ export default function Home() {
 					<h1>Home</h1>
 					<p>
 						Navigate using the links above. The <strong>About</strong> link uses the default fade transition. The{' '}
-						<strong>Work</strong> link uses a slide transition selected via <code>flyvaTransition</code> prop on FlyvaLink.
+						<strong>Work</strong> link uses the slide transition when the target path is <code>/work</code>, via a{' '}
+						<code>condition</code> on that transition (no <code>flyvaTransition</code> on the link). Per-link{' '}
+						<code>flyvaOptions</code> still passes <code>direction</code>.
 					</p>
 				</section>
 
@@ -23,8 +25,8 @@ export default function Home() {
 							<code>defaultTransition</code>
 						</li>
 						<li>
-							<strong>Transition selection</strong> — FlyvaLink with <code>flyvaTransition=&quot;slideTransition&quot;</code>{' '}
-							uses the slide transition
+							<strong>Transition selection</strong> — Work nav uses <code>slideTransition</code> matched by{' '}
+							<code>condition</code> on the target URL; project cards use explicit <code>expandTransition</code>
 						</li>
 						<li>
 							<strong>refStack</strong> — The hero block registers itself via <code>useRefStack</code>. The default

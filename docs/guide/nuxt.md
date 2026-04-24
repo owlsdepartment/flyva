@@ -25,7 +25,7 @@ export default defineNuxtConfig({
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `defaultKey` | `string` | `'defaultTransition'` | Transition key used when none is specified on a link |
+| `defaultKey` | `string` | `'defaultTransition'` | Fallback map key when no `condition` matches and the link has no `flyva-transition` |
 | `transitionsDir` | `string` | `'flyva-transitions'` | Directory containing transition files (relative to project root) |
 | `useNamedExports` | `boolean` | `true` | Use named exports from transition files as individual transitions |
 | `viewTransition` | `boolean` | `undefined` | When `true`, `FlyvaLink` wraps navigation in `document.startViewTransition` (see [View Transitions mode](./modes/view-transitions)) |

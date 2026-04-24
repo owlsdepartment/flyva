@@ -22,7 +22,7 @@ export default defineNuxtConfig({
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `defaultKey` | `string` | `'defaultTransition'` | Transition key used when `flyva-transition` is not set on a link |
+| `defaultKey` | `string` | `'defaultTransition'` | Fallback map key after `matchTransitionKey` when no `condition` matches (and when the link omits `flyva-transition`) |
 | `transitionsDir` | `string` | `'flyva-transitions'` | Directory containing transition files (relative to project root) |
 | `useNamedExports` | `boolean` | `true` | If `true`, each named export becomes a separate transition. If `false`, the default export is used. |
 | `viewTransition` | `boolean` | `undefined` | Enables `document.startViewTransition` in `FlyvaLink` when the browser supports it |
@@ -74,7 +74,7 @@ Wraps `NuxtLink` with transition support. Auto-imported.
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `flyva-transition` | `string` | `config.defaultKey` | Which transition to run |
+| `flyva-transition` | `string` | — (optional) | When set, that map key runs. When omitted, conditions are evaluated, then `flyva.defaultKey` as fallback (see [Writing transitions](/guide/transitions#transition-resolution)) |
 | `:flyva-options` | `PageTransitionOptions \| () => PageTransitionOptions` | `{}` | Data passed to `context.options` |
 
 | Event | Payload | Description |

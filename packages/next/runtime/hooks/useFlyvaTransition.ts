@@ -54,10 +54,17 @@ export function useFlyvaTransition() {
 	const flyvaManager = useFlyvaManager();
 	const config = useFlyvaConfig();
 
-	async function prepare(name: string, options: PageTransitionOptions, el?: Element) {
+	async function prepare(
+		transitionKey: string | undefined | null,
+		options: PageTransitionOptions,
+		el?: Element,
+	) {
 		initializedManually = true;
 		hasTransitioned = true;
-		await flyvaManager.run(name, options, el);
+		const explicit =
+			typeof transitionKey === 'string' && transitionKey.length > 0 ? transitionKey : undefined;
+		const resolved = explicit ?? (await flyvaManager.matchTransitionKey(options, el));
+		await flyvaManager.run(resolved, options, el);
 
 		if (!config.viewTransition && flyvaManager.runningInstance?.concurrent && flyvaManager.currentContent) {
 			injectCloneStyles();

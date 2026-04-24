@@ -17,7 +17,7 @@ test.describe('navigation', () => {
 		await expect(page.getByRole('heading', { name: 'About' })).toBeVisible();
 	});
 
-	test('FlyvaLink with flyvaTransition navigates to Work', async ({ page }) => {
+	test('FlyvaLink navigates to Work (condition-selected slide)', async ({ page }) => {
 		await page.goto('/');
 		await navLinkByHref(page, '/work').click();
 		await page.waitForURL('**/work');

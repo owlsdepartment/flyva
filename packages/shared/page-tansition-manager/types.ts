@@ -4,13 +4,23 @@ export interface PageTransitionOptions {
 
 export type PageTransitionTrigger = string | 'internal' | Element;
 
-export interface PageTransitionContext<O = PageTransitionOptions> {
-	name: string;
-	trigger: PageTransitionTrigger;
+/**
+ * Context passed to `PageTransition.condition` before a transition is chosen.
+ * `name` is not set yet; use `fromHref`, `toHref`, and `options` (including link-level
+ * `flyvaOptions` / `flyva-options`) to decide which registered transition applies.
+ */
+export interface PageTransitionMatchContext<O = PageTransitionOptions> {
+	fromHref: string;
+	toHref: string;
 	options: O;
+	trigger: PageTransitionTrigger;
 	el?: Element;
 	current?: Element;
 	next?: Element;
+}
+
+export interface PageTransitionContext<O = PageTransitionOptions> extends PageTransitionMatchContext<O> {
+	name: string;
 	viewTransition?: ViewTransition;
 }
 
@@ -27,7 +37,7 @@ export interface PageTransition<O = PageTransitionOptions> {
 		context: PageTransitionContext<O>
 	): Promise<void>;
 
-	condition?(context: PageTransitionContext<O>): Promise<boolean> | boolean;
+	condition?(context: PageTransitionMatchContext<O>): Promise<boolean> | boolean;
 
 	prepare?(context: PageTransitionContext<O>): Promise<void>;
 

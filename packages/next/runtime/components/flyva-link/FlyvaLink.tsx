@@ -6,7 +6,7 @@ import { forwardRef, PropsWithChildren, useImperativeHandle, useMemo, useRef } f
 
 import type { PageTransitionContext } from '@flyva/shared';
 
-import { useFlyvaConfig, useFlyvaTransition } from '../../hooks';
+import { useFlyvaTransition } from '../../hooks';
 import { useFlyvaLifecycle } from '../../hooks/useFlyvaLifecycle';
 import type { FlyvaLinkProps } from './types';
 
@@ -49,7 +49,6 @@ const FlyvaLink = forwardRef<HTMLAnchorElement, PropsWithChildren<FlyvaLinkProps
 	const rootEl = useRef<HTMLAnchorElement>(null);
 	const transition = useFlyvaTransition();
 	const router = useRouter();
-	const config = useFlyvaConfig();
 	const pathname = usePathname();
 
 	const callbacksRef = useRef({
@@ -114,7 +113,7 @@ const FlyvaLink = forwardRef<HTMLAnchorElement, PropsWithChildren<FlyvaLinkProps
 
 		const resolvedOptions = typeof flyvaOptions === 'function' ? flyvaOptions() : flyvaOptions;
 
-		await transition.prepare(flyvaTransition ?? config.defaultKey, {
+		await transition.prepare(flyvaTransition, {
 			fromHref: extractPath(currentUrl),
 			toHref: extractPath(href),
 			...(resolvedOptions ?? {}),

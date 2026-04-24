@@ -16,6 +16,7 @@ export default defineNuxtPlugin(() => {
 
 	const manager = new PageTransitionManager(flyvaTransitions ?? {}, refReactiveFactory, {
 		viewTransition: vtEnabled,
+		defaultTransitionKey: config.flyva?.defaultKey ?? 'defaultTransition',
 	});
 
 	return {

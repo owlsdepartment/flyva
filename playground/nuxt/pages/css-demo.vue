@@ -25,7 +25,6 @@ import DemoTestList from '~/components/demo/DemoTestList.vue';
 			</p>
 			<DemoCssDemoLinks>
 				<DemoCssDemoBtn to="/" transition="cssFadeTransition">Home (fade)</DemoCssDemoBtn>
-				<DemoCssDemoBtn to="/about" transition="cssFadeTransition">About (fade)</DemoCssDemoBtn>
 			</DemoCssDemoLinks>
 		</DemoSection>
 
@@ -34,7 +33,6 @@ import DemoTestList from '~/components/demo/DemoTestList.vue';
 			<p>A horizontal slide — the old page moves left and fades while the new page slides in from the right.</p>
 			<DemoCssDemoLinks>
 				<DemoCssDemoBtn to="/" transition="cssSlideTransition">Home (slide)</DemoCssDemoBtn>
-				<DemoCssDemoBtn to="/about" transition="cssSlideTransition">About (slide)</DemoCssDemoBtn>
 			</DemoCssDemoLinks>
 		</DemoSection>
 

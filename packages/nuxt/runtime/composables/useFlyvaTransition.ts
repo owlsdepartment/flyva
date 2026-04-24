@@ -8,9 +8,16 @@ let hasTransitioned = false;
 export function useFlyvaTransition() {
 	const { $flyvaManager } = useNuxtApp();
 
-	function prepare(name: string, options: PageTransitionOptions, el?: Element) {
+	async function prepare(
+		transitionKey: string | undefined | null,
+		options: PageTransitionOptions,
+		el?: Element,
+	) {
 		hasTransitioned = true;
-		return $flyvaManager.run(name, options, el);
+		const explicit =
+			typeof transitionKey === 'string' && transitionKey.length > 0 ? transitionKey : undefined;
+		const resolved = explicit ?? (await $flyvaManager.matchTransitionKey(options, el));
+		return $flyvaManager.run(resolved, options, el);
 	}
 
 	const isRunning = computed(() => $flyvaManager.isRunning);

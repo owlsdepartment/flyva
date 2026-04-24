@@ -12,7 +12,9 @@ import HeroBlock from '~/components/HeroBlock.vue';
 			<h1>Home</h1>
 			<p>
 				Navigate using the links above. The <strong>About</strong> link uses the default fade transition. The
-				<strong>Work</strong> link uses a slide transition selected via the <code>flyva-transition</code> prop on FlyvaLink.
+				<strong>Work</strong> link uses the slide transition when the target path is <code>/work</code>, via a
+				<code>condition</code> on that transition (no <code>flyva-transition</code> on the link). Per-link
+				<code>flyva-options</code> still passes <code>direction</code>.
 			</p>
 		</DemoSection>
 
@@ -26,8 +28,8 @@ import HeroBlock from '~/components/HeroBlock.vue';
 					<code>defaultTransition</code>
 				</li>
 				<li>
-					<strong>Transition selection</strong> — FlyvaLink with <code>flyva-transition="slideTransition"</code> uses the slide
-					transition
+					<strong>Transition selection</strong> — Work nav uses <code>slideTransition</code> matched by <code>condition</code> on
+					the target URL; project cards use explicit <code>expandTransition</code>
 				</li>
 				<li>
 					<strong>refStack</strong> — The hero block registers itself via <code>useRefStack</code>. The default transition accesses

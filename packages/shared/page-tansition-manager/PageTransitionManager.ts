@@ -4,6 +4,7 @@ import type {
 	ActiveHookRegistration,
 	PageTransition,
 	PageTransitionContext,
+	PageTransitionMatchContext,
 	PageTransitionOptions,
 	PageTransitionStage,
 	PageTransitionTrigger,
@@ -13,6 +14,8 @@ import type {
 export interface PageTransitionManagerConfig {
 	viewTransition?: boolean;
 	lifecycleClassPrefix?: string;
+	/** Fallback map key when no transition's `condition` matches (default `defaultTransition`). */
+	defaultTransitionKey?: string;
 }
 
 export class PageTransitionManager<
@@ -69,6 +72,49 @@ export class PageTransitionManager<
 
 	get readyPromise() {
 		return this._readyPromise ?? Promise.resolve();
+	}
+
+	/**
+	 * Picks a transition by evaluating each registered `condition` in **object key insertion order**;
+	 * the first match wins. Transitions without `condition` are skipped here. If none match, returns
+	 * `defaultTransitionKey` from config (default `defaultTransition`).
+	 */
+	async matchTransitionKey(
+		options: T[keyof T] extends PageTransition<infer O> ? O : PageTransitionOptions,
+		el?: Element,
+	): Promise<keyof T> {
+		const rec = options as Record<string, unknown>;
+		const ctx: PageTransitionMatchContext = {
+			fromHref: String(rec.fromHref ?? ''),
+			toHref: String(rec.toHref ?? ''),
+			options: options as PageTransitionOptions,
+			trigger: el ?? 'internal',
+			el,
+			current: this._currentContent,
+			next: this._nextContent,
+		};
+
+		for (const key of Object.keys(this.transitions) as (keyof T)[]) {
+			const t = this.transitions[key];
+			if (!t?.condition) continue;
+			const ok = await Promise.resolve(t.condition(ctx));
+			if (ok) return key;
+		}
+
+		const fb = (this._config.defaultTransitionKey ?? 'defaultTransition') as keyof T;
+		if (!(String(fb) in this.transitions)) {
+			const keys = Object.keys(this.transitions) as (keyof T)[];
+			if (!keys.length) {
+				throw new Error('[flyva] No transitions registered');
+			}
+			if (process.env.NODE_ENV === 'development') {
+				console.warn(
+					`[flyva] defaultTransitionKey "${String(fb)}" not in transitions map; using "${String(keys[0])}"`,
+				);
+			}
+			return keys[0];
+		}
+		return fb;
 	}
 
 	get currentContent() {
@@ -276,9 +322,12 @@ export class PageTransitionManager<
 	}
 
 	makeContext<O = PageTransitionOptions>(el?: Element): PageTransitionContext<O> {
+		const opts = this._currentOptions as Record<string, unknown>;
 		return {
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 			name: this._runningName.value! as string,
+			fromHref: String(opts?.fromHref ?? ''),
+			toHref: String(opts?.toHref ?? ''),
 			options: this._currentOptions as O,
 			trigger: this._trigger,
 			el,

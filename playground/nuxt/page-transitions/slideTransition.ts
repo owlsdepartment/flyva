@@ -1,9 +1,23 @@
 import { animate } from 'animejs';
 
-import type { PageTransition, PageTransitionContext } from '@flyva/shared';
+import type { PageTransition, PageTransitionContext, PageTransitionMatchContext } from '@flyva/shared';
+
+function isWorkIndexPath(toHref: string): boolean {
+	try {
+		const pathname = new URL(toHref, 'http://local').pathname.replace(/\/+$/, '') || '/';
+		return pathname === '/work';
+	} catch {
+		const p = toHref.split('?')[0]?.split('#')[0]?.replace(/\/+$/, '') || '/';
+		return p === '/work';
+	}
+}
 
 class SlideOverTransitionClass implements PageTransition {
 	concurrent = true;
+
+	condition(ctx: PageTransitionMatchContext) {
+		return isWorkIndexPath(ctx.toHref);
+	}
 
 	async prepare() {
 		document.body.style.overflow = 'hidden';

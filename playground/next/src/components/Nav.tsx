@@ -58,7 +58,7 @@ export function Nav() {
 
 				<FlyvaLink
 					href="/work"
-					flyvaTransition="slideTransition"
+					flyvaOptions={{ direction: 'right' }}
 					className={`${styles.link} ${pathname.startsWith('/work') ? styles.linkActive : ''}`}
 				>
 					Work <span className={styles.badge}>slide</span>

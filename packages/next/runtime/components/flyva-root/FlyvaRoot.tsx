@@ -17,7 +17,11 @@ export function FlyvaRoot<T extends Record<string, PageTransition> = Record<stri
 	children, transitions, config,
 }: PropsWithChildren<{ transitions: T; config?: Partial<FlyvaConfig> }>) {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const manager = singleton ?? new PageTransitionManager<T, RefState<unknown>>(transitions ?? {}, refReactiveFactory, { viewTransition: config?.viewTransition, lifecycleClassPrefix: config?.lifecycleClassPrefix }) as any;
+	const manager = singleton ?? new PageTransitionManager<T, RefState<unknown>>(transitions ?? {}, refReactiveFactory, {
+		viewTransition: config?.viewTransition,
+		lifecycleClassPrefix: config?.lifecycleClassPrefix,
+		defaultTransitionKey: config?.defaultKey ?? 'defaultTransition',
+	}) as any;
 	singleton = manager;
 
 	const configWithDefaults: FlyvaConfig = {

@@ -36,6 +36,7 @@ pnpm dev:nuxt:vt      # Nuxt VT playground
 pnpm dev:docs         # VitePress dev server
 pnpm docs:build       # verify docs compile
 pnpm test:unit        # Vitest — @flyva/shared
+pnpm playwright:install  # first-time: browsers (Playwright CLI is not on the root package)
 pnpm test:e2e         # Playwright — next + nuxt packages
 pnpm lint             # eslint (packages) + stylelint
 pnpm build            # package build script

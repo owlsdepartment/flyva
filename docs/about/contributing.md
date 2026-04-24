@@ -47,6 +47,16 @@ pnpm dev:next
 
 Use the playgrounds to test your changes against a real app.
 
+### End-to-end tests (Playwright)
+
+`@playwright/test` lives in **`packages/next`** and **`packages/nuxt`**, not the repo root. After `pnpm install`, download browsers once (shared cache for both packages):
+
+```bash
+pnpm playwright:install
+```
+
+If you prefer the long form: `pnpm --filter @flyva/next exec playwright install` (either package works). Then `pnpm test` / `pnpm test:e2e` can launch Chromium.
+
 ## Commits
 
 Commits must follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification. A commit message linter will reject non-conforming messages.

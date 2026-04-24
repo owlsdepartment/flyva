@@ -17,6 +17,7 @@
     "test": "pnpm test:e2e",
     "test:unit": "pnpm --filter @flyva/shared test",
     "test:e2e": "pnpm --filter @flyva/next test:e2e && pnpm --filter @flyva/nuxt test:e2e",
+    "playwright:install": "pnpm --filter @flyva/next exec playwright install",
     "lint": "pnpm eslint && pnpm stylelint",
     "lint:no-fix": "pnpm eslint:no-fix && pnpm stylelint:no-fix",
     "eslint": "eslint packages --fix",

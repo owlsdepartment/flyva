@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { PropsWithChildren, useEffect, useLayoutEffect, useRef } from 'react';
+import { PropsWithChildren, useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 
 import { useFlyvaTransition, getCapturedClone, resolveDomSwap, isVtActive } from '../../hooks';
 import { useFlyvaConfig } from '../../hooks/useFlyvaConfig';
@@ -13,9 +13,19 @@ export function FlyvaTransitionWrapper({ children }: PropsWithChildren) {
 	const config = useFlyvaConfig();
 	const transition = useFlyvaTransition();
 
-	const contentRef = useRef<HTMLDivElement>(null);
+	const contentRef = useRef<HTMLDivElement | null>(null);
 	const cloneRef = useRef<HTMLDivElement | null>(null);
-	const isMount = useRef(true);
+	const lastCommittedPathnameRef = useRef<string | null>(null);
+
+	const setContentRef = useCallback(
+		(el: HTMLDivElement | null) => {
+			contentRef.current = el;
+			if (el && !manager.isRunning) {
+				manager.setContentElements(el);
+			}
+		},
+		[manager],
+	);
 
 	useEffect(() => {
 		if (!manager.isRunning && contentRef.current) {
@@ -24,8 +34,12 @@ export function FlyvaTransitionWrapper({ children }: PropsWithChildren) {
 	});
 
 	useLayoutEffect(() => {
-		if (isMount.current) {
-			isMount.current = false;
+		if (lastCommittedPathnameRef.current === pathname) {
+			return;
+		}
+		const prevPathname = lastCommittedPathnameRef.current;
+		lastCommittedPathnameRef.current = pathname;
+		if (prevPathname === null) {
 			return;
 		}
 
@@ -81,7 +95,7 @@ export function FlyvaTransitionWrapper({ children }: PropsWithChildren) {
 	}, [pathname]);
 
 	return (
-		<div ref={contentRef}>
+		<div ref={setContentRef}>
 			{children}
 		</div>
 	);

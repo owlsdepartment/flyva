@@ -84,16 +84,16 @@ interface PageTransition<O = PageTransitionOptions> {
   cssMode?: boolean
   priority?: number
   viewTransitionNames?: Record<string, string> | ((ctx: PageTransitionContext<O>) => Record<string, string>)
-  animateViewTransition?(viewTransition: ViewTransition, context: PageTransitionContext<O>): Promise<void>
+  animateViewTransition?(viewTransition: ViewTransition, context: PageTransitionContext<O>): void | Promise<void>
   condition?(context: PageTransitionMatchContext<O>): Promise<boolean> | boolean
-  prepare?(context: PageTransitionContext<O>): Promise<void>
+  prepare?(context: PageTransitionContext<O>): void | Promise<void>
   beforeLeave?(context: PageTransitionContext<O>): void
-  leave?(context: PageTransitionContext<O>): Promise<void>
+  leave?(context: PageTransitionContext<O>): void | Promise<void>
   afterLeave?(context: PageTransitionContext<O>): void
   beforeEnter?(context: PageTransitionContext<O>): void
-  enter?(context: PageTransitionContext<O>): Promise<void>
+  enter?(context: PageTransitionContext<O>): void | Promise<void>
   afterEnter?(context: PageTransitionContext<O>): void
-  cooldown?(context: PageTransitionContext<O>): Promise<void>
+  cooldown?(context: PageTransitionContext<O>): void | Promise<void>
   cleanup?(): void
 }
 ```
@@ -222,16 +222,16 @@ Each adapter supplies its own implementation:
 
 Used with `registerActiveHook()` to participate in the transition lifecycle from outside the transition definition. All fields are optional.
 
-At each stage the manager runs the **transition** hook and **every** registered active hook. Sync hooks (`beforeLeave`, `afterLeave`, `beforeEnter`, `afterEnter`) are wrapped with `Promise.resolve` so they participate in the same `Promise.all` batch as async steps. `prepare`, `leave`, and `enter` must return **`Promise<void>`** from the registration object (adapters may wrap user callbacks that return `void`).
+At each stage the manager runs the **transition** hook and **every** registered active hook. Sync hooks (`beforeLeave`, `afterLeave`, `beforeEnter`, `afterEnter`) are wrapped with `Promise.resolve` so they participate in the same `Promise.all` batch as async steps. `prepare`, `leave`, and `enter` may return **`void`** or **`Promise<void>`**; the manager normalizes with `Promise.resolve` before awaiting.
 
 ```ts
 interface ActiveHookRegistration {
-  prepare?(context: PageTransitionContext): Promise<void>
+  prepare?(context: PageTransitionContext): void | Promise<void>
   beforeLeave?(context: PageTransitionContext): void
-  leave?(context: PageTransitionContext): Promise<void>
+  leave?(context: PageTransitionContext): void | Promise<void>
   afterLeave?(context: PageTransitionContext): void
   beforeEnter?(context: PageTransitionContext): void
-  enter?(context: PageTransitionContext): Promise<void>
+  enter?(context: PageTransitionContext): void | Promise<void>
   afterEnter?(context: PageTransitionContext): void
   cleanup?(): void
 }

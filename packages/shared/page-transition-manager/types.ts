@@ -4,6 +4,9 @@ export interface PageTransitionOptions {
 
 export type PageTransitionTrigger = string | 'internal' | Element;
 
+/** Return type for hooks the manager may await (`prepare`, `leave`, `enter`, …). */
+export type PageTransitionHookResult = void | Promise<void>;
+
 /**
  * Context passed to `PageTransition.condition` before a transition is chosen.
  * `name` is not set yet; use `fromHref`, `toHref`, and `options` (including link-level
@@ -51,21 +54,21 @@ export interface PageTransition<O = PageTransitionOptions> {
 	animateViewTransition?(
 		viewTransition: ViewTransition,
 		context: PageTransitionContext<O>
-	): Promise<void>;
+	): PageTransitionHookResult;
 
 	condition?(context: PageTransitionMatchContext<O>): Promise<boolean> | boolean;
 
-	prepare?(context: PageTransitionContext<O>): Promise<void>;
+	prepare?(context: PageTransitionContext<O>): PageTransitionHookResult;
 
 	beforeLeave?(context: PageTransitionContext<O>): void;
-	leave?(context: PageTransitionContext<O>): Promise<void>;
+	leave?(context: PageTransitionContext<O>): PageTransitionHookResult;
 	afterLeave?(context: PageTransitionContext<O>): void;
 
 	beforeEnter?(context: PageTransitionContext<O>): void;
-	enter?(context: PageTransitionContext<O>): Promise<void>;
+	enter?(context: PageTransitionContext<O>): PageTransitionHookResult;
 	afterEnter?(context: PageTransitionContext<O>): void;
 
-	cooldown?(context: PageTransitionContext<O>): Promise<void>;
+	cooldown?(context: PageTransitionContext<O>): PageTransitionHookResult;
 
 	cleanup?(context?: PageTransitionContext<O>): void;
 }
@@ -101,12 +104,12 @@ export type PageTransitionStage =
 	| 'afterLeave';
 
 export interface ActiveHookRegistration {
-	prepare?(context: PageTransitionContext): Promise<void>;
+	prepare?(context: PageTransitionContext): PageTransitionHookResult;
 	beforeLeave?(context: PageTransitionContext): void;
-	leave?(context: PageTransitionContext): Promise<void>;
+	leave?(context: PageTransitionContext): PageTransitionHookResult;
 	afterLeave?(context: PageTransitionContext): void;
 	beforeEnter?(context: PageTransitionContext): void;
-	enter?(context: PageTransitionContext): Promise<void>;
+	enter?(context: PageTransitionContext): PageTransitionHookResult;
 	afterEnter?(context: PageTransitionContext): void;
 	cleanup?(): void;
 }

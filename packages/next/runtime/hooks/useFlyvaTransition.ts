@@ -108,7 +108,7 @@ export function useFlyvaTransition() {
 
 		if (transition.animateViewTransition) {
 			await vt.ready;
-			await transition.animateViewTransition.call(transition, vt, context);
+			await Promise.resolve(transition.animateViewTransition.call(transition, vt, context));
 		}
 
 		await vt.finished;

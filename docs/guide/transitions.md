@@ -14,21 +14,21 @@ interface PageTransition {
   cssMode?: boolean;
   priority?: number;
   viewTransitionNames?: Record<string, string> | ((ctx) => Record<string, string>);
-  animateViewTransition?(vt: ViewTransition, context): Promise<void>;
+  animateViewTransition?(vt: ViewTransition, context): void | Promise<void>;
   condition?(context: PageTransitionMatchContext): boolean | Promise<boolean>;
-  prepare?(context): Promise<void>;
+  prepare?(context): void | Promise<void>;
   beforeLeave?(context): void;
-  leave?(context): Promise<void>;
+  leave?(context): void | Promise<void>;
   afterLeave?(context): void;
   beforeEnter?(context): void;
-  enter?(context): Promise<void>;
+  enter?(context): void | Promise<void>;
   afterEnter?(context): void;
-  cooldown?(context): Promise<void>;
+  cooldown?(context): void | Promise<void>;
   cleanup?(): void;
 }
 ```
 
-All hooks are optional. A transition that only defines `leave` and `enter` is perfectly valid.
+All hooks are optional. A transition that only defines `leave` and `enter` is perfectly valid. Hooks that may perform async work (`prepare`, `leave`, `enter`, `cooldown`, `animateViewTransition`) may be **sync** (`void`) or **async** (`Promise<void>`); you do not need `async` when the body is synchronous.
 
 | Flag / field | Effect |
 |--------------|--------|

@@ -2,17 +2,17 @@
 
 import { useEffect, useRef } from 'react';
 
-import type { ActiveHookRegistration, PageTransitionContext } from '@flyva/shared';
+import type { ActiveHookRegistration, PageTransitionContext, PageTransitionHookResult } from '@flyva/shared';
 
 import { useFlyvaManager } from './useFlyvaManager';
 
 export interface FlyvaLifecycleCallbacks {
-	prepare?(context: PageTransitionContext): void | Promise<void>;
+	prepare?(context: PageTransitionContext): PageTransitionHookResult;
 	beforeLeave?(context: PageTransitionContext): void;
-	leave?(context: PageTransitionContext): void | Promise<void>;
+	leave?(context: PageTransitionContext): PageTransitionHookResult;
 	afterLeave?(context: PageTransitionContext): void;
 	beforeEnter?(context: PageTransitionContext): void;
-	enter?(context: PageTransitionContext): void | Promise<void>;
+	enter?(context: PageTransitionContext): PageTransitionHookResult;
 	afterEnter?(context: PageTransitionContext): void;
 	cleanup?(): void;
 }
@@ -55,11 +55,11 @@ export function useFlyvaLifecycle(
 				if (!cb) return Promise.resolve();
 				if (!blocking) {
 					void Promise.resolve()
-						.then(() => cb(ctx) as void | Promise<void>)
+						.then(() => cb(ctx))
 						.catch(() => {});
 					return Promise.resolve();
 				}
-				const settled = Promise.resolve(cb(ctx) as void | Promise<void>).then(() => {});
+				const settled = Promise.resolve(cb(ctx)).then(() => {});
 				const c = createCancellablePromise(settled);
 				cancellablesRef.current.push(c);
 				return c.promise.then(() => {

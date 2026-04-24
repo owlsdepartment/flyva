@@ -185,7 +185,7 @@ export class PageTransitionManager<
 		const prepares: Promise<void>[] = [];
 		if (current?.prepare) prepares.push(Promise.resolve(current.prepare.call(current, ctx)));
 		for (const hook of this._activeHooks) {
-			if (hook.prepare) prepares.push(hook.prepare(ctx));
+			if (hook.prepare) prepares.push(Promise.resolve(hook.prepare(ctx)));
 		}
 		this._readyPromise = prepares.length ? Promise.all(prepares).then(() => {}) : Promise.resolve();
 
@@ -246,9 +246,9 @@ export class PageTransitionManager<
 		const ctx = this.makeContext(el);
 		const promises: Promise<void>[] = [];
 		const instL = this._runningInstance.value;
-		promises.push(instL?.leave ? instL.leave.call(instL, ctx) : Promise.resolve());
+		promises.push(Promise.resolve(instL?.leave ? instL.leave.call(instL, ctx) : undefined));
 		for (const hook of this._activeHooks) {
-			if (hook.leave) promises.push(hook.leave(ctx));
+			if (hook.leave) promises.push(Promise.resolve(hook.leave(ctx)));
 		}
 		await Promise.all(promises);
 	}
@@ -298,9 +298,9 @@ export class PageTransitionManager<
 		const ctx = this.makeContext(el);
 		const promises: Promise<void>[] = [];
 		const instE = this._runningInstance.value;
-		promises.push(instE?.enter ? instE.enter.call(instE, ctx) : Promise.resolve());
+		promises.push(Promise.resolve(instE?.enter ? instE.enter.call(instE, ctx) : undefined));
 		for (const hook of this._activeHooks) {
-			if (hook.enter) promises.push(hook.enter(ctx));
+			if (hook.enter) promises.push(Promise.resolve(hook.enter(ctx)));
 		}
 		await Promise.all(promises);
 	}

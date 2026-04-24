@@ -14,12 +14,12 @@ Every transition is a class (or plain object) implementing the `PageTransition` 
 
 ```ts
 interface PageTransition {
-  prepare?(context): Promise<void>;
+  prepare?(context): void | Promise<void>;
   beforeLeave?(context): void;
-  leave?(context): Promise<void>;
+  leave?(context): void | Promise<void>;
   afterLeave?(context): void;
   beforeEnter?(context): void;
-  enter?(context): Promise<void>;
+  enter?(context): void | Promise<void>;
   afterEnter?(context): void;
   cleanup?(): void;
 }

@@ -1,15 +1,20 @@
 import { computed, onMounted, onScopeDispose, shallowRef, watchEffect } from 'vue';
 import { useNuxtApp } from '#app';
 
-import type { ActiveHookRegistration, PageTransitionContext, RegisterActiveHookReturn } from '@flyva/shared';
+import type {
+	ActiveHookRegistration,
+	PageTransitionContext,
+	PageTransitionHookResult,
+	RegisterActiveHookReturn,
+} from '@flyva/shared';
 
 export interface FlyvaLifecycleCallbacks {
-	prepare?(context: PageTransitionContext): void | Promise<void>;
+	prepare?(context: PageTransitionContext): PageTransitionHookResult;
 	beforeLeave?(context: PageTransitionContext): void;
-	leave?(context: PageTransitionContext): void | Promise<void>;
+	leave?(context: PageTransitionContext): PageTransitionHookResult;
 	afterLeave?(context: PageTransitionContext): void;
 	beforeEnter?(context: PageTransitionContext): void;
-	enter?(context: PageTransitionContext): void | Promise<void>;
+	enter?(context: PageTransitionContext): PageTransitionHookResult;
 	afterEnter?(context: PageTransitionContext): void;
 	cleanup?(): void;
 }
@@ -52,11 +57,11 @@ export function useFlyvaLifecycle(
 			if (!cb) return Promise.resolve();
 			if (!blocking.value) {
 				void Promise.resolve()
-					.then(() => cb(ctx) as void | Promise<void>)
+					.then(() => cb(ctx))
 					.catch(() => {});
 				return Promise.resolve();
 			}
-			const settled = Promise.resolve(cb(ctx) as void | Promise<void>).then(() => {});
+			const settled = Promise.resolve(cb(ctx)).then(() => {});
 			const c = createCancellablePromise(settled);
 			cancellables.push(c);
 			return c.promise.then(() => {

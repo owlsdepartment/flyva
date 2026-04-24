@@ -96,6 +96,14 @@ export const defaultTransition = defineTransition({
 | `transitionsDir` | `string` | `'flyva-transitions'` | Directory containing transition files |
 | `useNamedExports` | `boolean` | `true` | Use named exports from transition files |
 
+## Explicit imports
+
+- **`@flyva/nuxt`** — components, composables, and shared transition types in one barrel
+- **`@flyva/nuxt/composables`** — `useFlyvaTransition`, `useRefStack`, `globalGetRefStackItem`, `useDetachedRoot`, etc.
+- **`@flyva/nuxt/components`** — `FlyvaPage`, `FlyvaLink`
+
+Avoid deep paths under `runtime/`; composables and components use the `exports` map in `package.json`.
+
 ## Auto-imported composables
 
 The module auto-imports these — no explicit import needed in Vue files:

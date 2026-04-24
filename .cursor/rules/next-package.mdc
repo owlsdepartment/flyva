@@ -23,7 +23,7 @@ packages/next/
 ## Conventions
 
 - Every file that uses React hooks or browser APIs must have `'use client';` as the first line
-- Import shared types from `@flyva/shared` or `@flyva/shared/page-transition-manager`, not relative `../../shared`
+- Import shared code from **`@flyva/shared`** (barrel) or documented subpaths (**`@flyva/shared/page-transition-manager`**, **`@flyva/shared/view-transition`**, …), not relative `../../shared`
 - Components use `forwardRef` when they wrap native elements (e.g. FlyvaLink wraps `<Link>`)
 - Avoid external runtime deps — no lodash, no classnames. Destructure/inline instead
 - `FlyvaRoot` uses a module-level singleton for the manager to survive React re-renders

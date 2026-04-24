@@ -2,6 +2,16 @@
 
 Next.js (App Router) adapter. All exports are client-side (`'use client'`).
 
+Named hooks and components are also available from **`@flyva/next/hooks`** and **`@flyva/next/components`** (or the package root **`@flyva/next`**) when you want an explicit import path.
+
+## Import paths
+
+| Subpath | Contents |
+|---------|----------|
+| **`@flyva/next`** | Full adapter: components, hooks, and re-exports from `@flyva/shared` |
+| **`@flyva/next/hooks`** | `useFlyvaTransition`, `useFlyvaLifecycle`, `useFlyvaConfig`, `useFlyvaManager`, `useRefStack`, `globalGetRefStackItem`, `useDetachedRoot`, … |
+| **`@flyva/next/components`** | `FlyvaRoot`, `FlyvaLink`, `FlyvaTransitionWrapper` |
+
 ## Components
 
 ### FlyvaRoot

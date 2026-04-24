@@ -27,3 +27,4 @@ Lifecycle methods are all optional. `condition` gates whether a transition runs.
 
 - Keep types generic — avoid `any` where possible, use generics
 - Every public type/class must be re-exported from the barrel `index.ts`
+- Stable **`package.json` `exports`** subpaths (`./page-transition-manager`, `./view-transition`, `./lifecycle-classes`, `./types`) must resolve to the same public API as the root barrel for those areas — update `exports` when adding new user-facing modules

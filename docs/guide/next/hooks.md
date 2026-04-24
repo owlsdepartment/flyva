@@ -1,5 +1,7 @@
 # Hooks (Next.js)
 
+For explicit imports, use **`@flyva/next/hooks`** or the package root **`@flyva/next`** (see [Next API — import paths](/api/next#import-paths)).
+
 ## `useFlyvaLifecycle`
 
 `useFlyvaLifecycle` lets any component inside `FlyvaRoot` react to transition lifecycle stages. It **always** registers with `PageTransitionManager` as an active hook. With **`blocking: false`** (default), `prepare` / `leave` / `enter` do not hold up the manager (returned promises are not awaited); with **`blocking: true`**, those three steps await your work like the transition’s own hooks.

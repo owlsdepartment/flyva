@@ -11,18 +11,25 @@ Playground and package code must import from flyva packages using the `@flyva/` 
 
 ```ts
 // CORRECT
-import { useFlyvaStickyRef, globalGetRefStackItem } from '@flyva/nuxt/composables';
-import { useDetachedRoot } from '@flyva/nuxt/runtime/composables/useDetachedRoot';
-import { useFlyvaTransition } from '@flyva/next';
+import { useFlyvaStickyRef, globalGetRefStackItem, useDetachedRoot } from '@flyva/nuxt/composables';
+import { FlyvaLink } from '@flyva/nuxt/components';
+import { FlyvaRoot } from '@flyva/next/components';
+import { useFlyvaTransition, useRefStack } from '@flyva/next/hooks';
+import { defineTransition } from '@flyva/shared';
+import { supportsViewTransitions } from '@flyva/shared/view-transition';
 import type { PageTransition } from '@flyva/shared';
 
 // WRONG — never use relative paths to cross package boundaries
 import { globalGetRefStackItem } from '../../../packages/nuxt/runtime/composables/useRefStack';
 ```
 
-## Deep imports are expected
+## Subpath exports
 
-Flyva packages expose subpath exports (`"./*": "./*"` in package.json). Prefer **`@flyva/nuxt/composables`** for Nuxt composables when importing explicitly; per-composable paths under `@flyva/nuxt/runtime/composables/…` remain supported.
+- **Nuxt:** **`@flyva/nuxt/composables`**, **`@flyva/nuxt/components`**, or **`@flyva/nuxt`**
+- **Next:** **`@flyva/next/hooks`**, **`@flyva/next/components`**, or **`@flyva/next`**
+- **Shared:** **`@flyva/shared`** (full), or **`@flyva/shared/page-transition-manager`**, **`@flyva/shared/view-transition`**, **`@flyva/shared/lifecycle-classes`**, **`@flyva/shared/types`** for narrower imports
+
+Avoid deep paths under `packages/*/runtime/` in consuming apps.
 
 ## Nuxt playground: use `nuxi typecheck` (not raw `tsc`)
 

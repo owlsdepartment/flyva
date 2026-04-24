@@ -2,7 +2,7 @@
 
 Nuxt 4 module. Components and composables are auto-imported - no explicit imports needed in Vue files.
 
-Named composables are also available from **`@flyva/nuxt/composables`** (or the package root **`@flyva/nuxt`**) when you need an explicit import path.
+Named composables are available from **`@flyva/nuxt/composables`** (or the package root **`@flyva/nuxt`**). **`FlyvaPage`**, **`FlyvaLink`**, and other runtime components are available from **`@flyva/nuxt/components`** (or **`@flyva/nuxt`**) when you need an explicit import path.
 
 ## Module Options
 
@@ -236,7 +236,7 @@ if (hero?.value) { /* ... */ }
 In transition files (which run as virtual modules), use an explicit import path instead of relying on auto-imports:
 
 ```ts
-import { globalGetRefStackItem } from '@flyva/nuxt/runtime/composables/useRefStack';
+import { globalGetRefStackItem } from '@flyva/nuxt/composables';
 ```
 :::
 
@@ -258,8 +258,8 @@ Same idea as the Next adapter: mounts a one-off Vue app on a detached `div` appe
 
 | Name | Kind | Source |
 |------|------|-------|
-| `FlyvaPage` | Component | `@flyva/nuxt/runtime/components` |
-| `FlyvaLink` | Component | `@flyva/nuxt/runtime/components` |
+| `FlyvaPage` | Component | `@flyva/nuxt/components` (or `@flyva/nuxt`) |
+| `FlyvaLink` | Component | `@flyva/nuxt/components` (or `@flyva/nuxt`) |
 | `useFlyvaTransition` | Composable | `@flyva/nuxt/composables` |
 | `useFlyvaLifecycle` | Composable | `@flyva/nuxt/composables` |
 | `useFlyvaStickyRef` | Composable | `@flyva/nuxt/composables` |

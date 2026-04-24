@@ -101,6 +101,14 @@ import { FlyvaLink } from '@flyva/next';
 <FlyvaLink href="/work" flyvaOptions={{ direction: 'left' }}>Back</FlyvaLink>
 ```
 
+## Explicit imports
+
+- **`@flyva/next`** — components, hooks, and shared transition types in one barrel
+- **`@flyva/next/hooks`** — `useFlyvaTransition`, `useFlyvaLifecycle`, `useRefStack`, `globalGetRefStackItem`, `useDetachedRoot`, …
+- **`@flyva/next/components`** — `FlyvaRoot`, `FlyvaLink`, `FlyvaTransitionWrapper`
+
+Avoid deep paths under `runtime/`; these subpaths are defined in `package.json` `exports`.
+
 ## API
 
 | Export | Description |

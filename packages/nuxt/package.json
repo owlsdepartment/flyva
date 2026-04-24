@@ -8,6 +8,7 @@
   "exports": {
     ".": "./index.ts",
     "./composables": "./composables.ts",
+    "./components": "./runtime/components/index.ts",
     "./*": "./*"
   },
   "repository": {

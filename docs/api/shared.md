@@ -2,6 +2,18 @@
 
 Framework-agnostic core. This package is an internal dependency - it's re-exported by both `@flyva/next` and `@flyva/nuxt`.
 
+## Import paths
+
+| Subpath | Contents |
+|---------|----------|
+| **`@flyva/shared`** | Full barrel: transition types, `defineTransition`, `PageTransitionManager`, view-transition helpers, lifecycle helpers |
+| **`@flyva/shared/page-transition-manager`** | `PageTransitionManager`, `defineTransition`, and transition-related types |
+| **`@flyva/shared/view-transition`** | View Transitions helpers (`supportsViewTransitions`, `applyViewTransitionNames`, CSS stage helpers, …) |
+| **`@flyva/shared/lifecycle-classes`** | `applyLifecycleClasses`, `FLYVA_TRANSITION_DATA_ATTR` |
+| **`@flyva/shared/types`** | `Reactive`, `ReactiveFactory` (used when wiring a custom `ReactiveFactory` into `PageTransitionManager`) |
+
+Prefer the package root when you need several areas; use a subpath when you want a narrower import surface (e.g. only view-transition utilities).
+
 ## PageTransitionManager
 
 Orchestrates the transition lifecycle. Each framework adapter creates an instance internally - you typically don't instantiate this yourself.

@@ -5,7 +5,7 @@ import {
 	useDetachedRoot,
 	type DetachedRoot,
 	type RefMap,
-} from '@flyva/nuxt/runtime/composables/useDetachedRoot';
+} from '@flyva/nuxt/composables';
 
 import linkOverlay from '~/page-transitions/LifecycleLinkOverlay.module.scss';
 

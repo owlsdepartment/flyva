@@ -2,7 +2,7 @@ import { animate } from 'animejs';
 
 import { defineTransition } from '@flyva/shared';
 
-import { globalGetRefStackItem } from '@flyva/nuxt/runtime/composables/useRefStack';
+import { globalGetRefStackItem } from '@flyva/nuxt/composables';
 
 export const defaultTransition = defineTransition({
 	beforeLeave(ctx) {

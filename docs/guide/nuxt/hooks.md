@@ -1,6 +1,6 @@
 # Hooks (Nuxt)
 
-The module registers composables as auto-imports. For explicit imports (e.g. transition virtual modules, tests, or when your IDE does not resolve auto-imports), import from **`@flyva/nuxt/composables`** or **`@flyva/nuxt`**.
+The module registers composables as auto-imports. For explicit imports (e.g. transition virtual modules, tests, or when your IDE does not resolve auto-imports), use **`@flyva/nuxt/composables`**, **`@flyva/nuxt/components`**, or the package root **`@flyva/nuxt`**.
 
 ## Transition state: `useFlyvaTransition`
 

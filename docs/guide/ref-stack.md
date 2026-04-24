@@ -63,7 +63,7 @@ class FadeWithHero implements PageTransition {
 ```
 
 ```ts [Nuxt]
-import { globalGetRefStackItem } from '@flyva/nuxt/runtime/composables/useRefStack';
+import { globalGetRefStackItem } from '@flyva/nuxt/composables';
 
 class FadeWithHero implements PageTransition {
   async leave() {

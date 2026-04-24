@@ -5,6 +5,10 @@
   "type": "module",
   "exports": {
     ".": "./index.ts",
+    "./page-transition-manager": "./page-transition-manager/index.ts",
+    "./view-transition": "./view-transition.ts",
+    "./lifecycle-classes": "./lifecycle-classes.ts",
+    "./types": "./types.ts",
     "./*": "./*"
   },
   "scripts": {

@@ -30,7 +30,7 @@ In Nuxt, both `useRefStack` and `ref` are auto-imported.
 Use `globalGetRefStackItem` inside your transition code:
 
 ```ts
-import { globalGetRefStackItem } from '@flyva/nuxt/runtime/composables/useRefStack';
+import { globalGetRefStackItem } from '@flyva/nuxt/composables';
 
 class FadeWithHero implements PageTransition {
   async leave() {

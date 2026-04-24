@@ -146,7 +146,7 @@ The module registers these composables as auto-imports - use them anywhere in Vu
 | `globalGetRefStackItem(key)` | Gets a ref by key |
 | `globalGetRefStack()` | Gets the entire stack |
 
-For explicit imports (e.g. transition virtual modules, tests, or when your IDE does not resolve auto-imports), import from **`@flyva/nuxt/composables`** or **`@flyva/nuxt`** (both re-export the same surface).
+For explicit imports (e.g. transition virtual modules, tests, or when your IDE does not resolve auto-imports), use **`@flyva/nuxt/composables`** for composables, **`@flyva/nuxt/components`** for `FlyvaPage` / `FlyvaLink`, or the package root **`@flyva/nuxt`** (everything is re-exported there too).
 
 ### `useFlyvaLifecycle` and template refs
 

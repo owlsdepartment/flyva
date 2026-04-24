@@ -4,6 +4,10 @@ Framework-agnostic core for flyva page transitions. Provides the `PageTransition
 
 > This package is an internal dependency — you don't install it directly. It's pulled in by the framework adapters.
 
+## Import paths
+
+Use **`@flyva/shared`** for the full barrel, or **`@flyva/shared/page-transition-manager`**, **`@flyva/shared/view-transition`**, **`@flyva/shared/lifecycle-classes`**, **`@flyva/shared/types`** for narrower surfaces (see `package.json` `exports`).
+
 ## PageTransition lifecycle
 
 Every transition is a class (or plain object) implementing the `PageTransition` interface:

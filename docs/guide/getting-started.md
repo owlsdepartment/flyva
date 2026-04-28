@@ -4,7 +4,13 @@
 
 Flyva is a small library for creating smooth, animated page transitions in **Next.js** and **Nuxt** applications. Instead of letting the browser hard-reload between pages, Flyva intercepts navigation, runs your leave animation, swaps the content, then runs your enter animation.
 
+Inspired by Barba and Swup, it brings you elastic tools to orchestrate content-aware transitions that you always wished to do but framework's APIs were not prepared for.
+
 It doesn't ship any animations itself - you bring your own using any JS animation library (anime.js, GSAP, Motion, etc.) or plain CSS. Flyva handles the orchestration and framework plumbing.
+
+## Ultimate use case
+
+The idea for Flyva came from our daily work in a creative web development team. If you build apps and complex systems, you're probably already happy with Vue's `<Transition>` goodness or with using Motion to smoothly show or hide components. But if you use Next or Nuxt for creative dev work on highly animated websites, you're here for a reason - and you already know the pain points we're trying to solve. Fasten your seatbelts, and let's take you on a journey!
 
 ## How it works
 

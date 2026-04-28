@@ -179,7 +179,7 @@ While a transition is in progress (any stage except `none`), `<html>` also gets:
 
 The value is the **string key** of the running transition in your map (`run(name, …)` / `flyva-transition` prop). It is removed when the swap finishes. Import **`FLYVA_TRANSITION_DATA_ATTR`** from `@flyva/shared` if you want the attribute name as a constant.
 
-**Why it’s useful:** you can target one transition in CSS without touching transition code, e.g. hide a global nav progress indicator when `data-flyva-transition="overlayTransition"` because that transition draws its own overlay.
+**Why it's useful:** you can target a specific transition in CSS without touching transition code, e.g. hide global navigation during only one of the sequences.
 
 The default class prefix is `flyva`. Configure it via `lifecycleClassPrefix` in config:
 
@@ -220,7 +220,6 @@ Phase classes (`flyva-leave-active`, `flyva-enter-active`, etc.) still reflect t
 
 **Note:** The bundled playgrounds style a wait cursor via **`html.flyva-running::after`** in global CSS so it tracks the same **`flyva-running`** span as the library - no extra classes from transition hooks are required for that pattern.
 
----
 
 ## CSS mode
 
@@ -293,5 +292,4 @@ Target the **content root** the adapter animates — the element Flyva passes th
 
 - `@flyva/shared`: `applyCssStageClasses`, `waitForAnimation`
 - [Writing transitions](/guide/nuxt/writing-transitions) for shared hooks like `prepare` and `cleanup`
-- [Transition modes overview](#transition-modes-nuxt) (this page) for how CSS mode fits next to JS and View Transitions
 - [View Transition API](/guide/nuxt/view-transition-api) — browser VT wiring, `viewTransitionNames`, helpers

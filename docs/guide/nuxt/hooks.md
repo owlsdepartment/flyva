@@ -8,11 +8,11 @@ The module registers composables as auto-imports. For explicit imports (e.g. tra
 
 ## `useFlyvaLifecycle`
 
-`useFlyvaLifecycle` mirrors the Next adapter: it **always** registers with `PageTransitionManager`. **`blocking: false`** (default) still runs every hook on the manager timeline but does not await `prepare` / `leave` / `enter`. **`blocking: true`** awaits those three in parallel with the transition implementation.
+`useFlyvaLifecycle` lets any component react to transition lifecycle stages. It **always** registers with `PageTransitionManager` as an active hook. With **`blocking: false`** (default), `prepare` / `leave` / `enter` do not hold up the manager (returned promises are not awaited); with **`blocking: true`**, those three steps await your work like the transition’s own hooks.
 
-On Nuxt, the outgoing page component often **unmounts before** Flyva’s `leave` phase finishes. Vue then sets bound template refs to `null` while your async `leave` callback may still be running. A plain `ref()` on markup inside that page is therefore unreliable for DOM work in **blocking** `leave` / `afterLeave`.
-
-Use **`useFlyvaStickyRef()`** for those elements: it ignores Vue’s unmount `null` write, keeps the last non-null element until active-hook unregister cleanup runs (after `leave`, when the manager flushes hook GC), then clears. See the [Nuxt API reference](/api/nuxt#useflyvalifecycle-callbacks-options) for signatures and options.
+::: warning Nuxt template ref caveat
+On Nuxt, the outgoing page component can unmount before async `leave` finishes, so bound template refs may become `null` while your callback is still running. Use **`useFlyvaStickyRef()`** when a blocking callback needs a stable DOM element from the outgoing page. It ignores Vue’s unmount `null` write, keeps the last non-null element until active-hook unregister cleanup runs, then clears. See the [Nuxt API reference](/api/nuxt#useflyvalifecycle-callbacks-options) for signatures and options.
+:::
 
 ## Other auto-imports (reference)
 

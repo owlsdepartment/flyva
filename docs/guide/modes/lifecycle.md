@@ -260,7 +260,7 @@ While a transition is in progress (any stage except `none`), `<html>` also gets:
 
 The value is the **string key** of the running transition in your map (`run(name, …)` / `flyva-transition` prop). It is removed when the swap finishes. Import **`FLYVA_TRANSITION_DATA_ATTR`** from `@flyva/shared` if you want the attribute name as a constant.
 
-**Why it’s useful:** you can target one transition in CSS without touching transition code, e.g. hide a global nav progress indicator when `data-flyva-transition="overlayTransition"` because that transition draws its own overlay.
+**Why it's useful:** you can target a specific transition in CSS without touching transition code, e.g. hide global navigation during only one of the sequences.
 
 The default class prefix is `flyva`. Configure it via `lifecycleClassPrefix` in config:
 

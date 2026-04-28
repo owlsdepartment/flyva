@@ -37,12 +37,10 @@ Pass `viewTransition: true` on `FlyvaRoot`’s `config`. `FlyvaLink` then perfor
 
 ## Where to read next
 
-- [Lifecycle vs App Router](#lifecycle-vs-framework) — Mermaid sequences: hooks vs mechanics per mode
+- [Lifecycle vs App Router](#lifecycle-vs-framework) — Sequence diagrams comparing Flyva hooks with App Router behavior in each mode
 - [Writing transitions](/guide/next/writing-transitions) — interface, class pattern, options, recipes (overlay, FLIP)
 - [CSS mode](#css-mode) — class phases and CSS examples
 - [View Transition API](/guide/next/view-transition-api) — config, naming map, flow, shared helpers
-
----
 
 ## Lifecycle vs framework
 
@@ -156,8 +154,6 @@ sequenceDiagram
   M->>M: finishTransition + cleanup
 ```
 
----
-
 ## Lifecycle CSS classes on `<html>`
 
 At each stage change, `PageTransitionManager` calls `applyLifecycleClasses` on `document.documentElement` (`<html>`): **prefixed phase classes** (Barba / Vue style), plus continuity helpers and a **data attribute** for the active transition key.
@@ -187,7 +183,7 @@ While a transition is in progress (any stage except `none`), `<html>` also gets:
 
 The value is the **string key** of the running transition in your map (`run(name, …)` / `flyvaTransition` prop). It is removed when the swap finishes. Import **`FLYVA_TRANSITION_DATA_ATTR`** from `@flyva/shared` if you want the attribute name as a constant.
 
-**Why it’s useful:** you can target one transition in CSS without touching transition code, e.g. hide a global nav progress indicator when `data-flyva-transition="overlayTransition"` because that transition draws its own overlay.
+**Why it's useful:** you can target a specific transition in CSS without touching transition code, e.g. hide global navigation during only one of the sequences.
 
 The default class prefix is `flyva`. Configure it via `lifecycleClassPrefix` in config:
 
@@ -225,8 +221,6 @@ html.flyva-running {
 Phase classes (`flyva-leave-active`, `flyva-enter-active`, etc.) still reflect the manager stage. **`flyva-running`** and **`data-flyva-transition`** apply across JS hooks, CSS mode, and View Transitions for anything driven by the shared manager.
 
 **Note:** The bundled playgrounds style a wait cursor via **`html.flyva-running::after`** in global CSS so it tracks the same **`flyva-running`** span as the library - no extra classes from transition hooks are required for that pattern.
-
----
 
 ## CSS mode
 
@@ -293,5 +287,4 @@ Target the **content root** inside `FlyvaTransitionWrapper`.
 
 - `@flyva/shared`: `applyCssStageClasses`, `waitForAnimation`
 - [Writing transitions](/guide/next/writing-transitions) for shared hooks like `prepare` and `cleanup`
-- [Transition modes overview](#transition-modes-next-js) (this page) for how CSS mode fits next to JS and View Transitions
 - [View Transition API](/guide/next/view-transition-api) — browser VT wiring, `viewTransitionNames`, helpers

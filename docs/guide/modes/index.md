@@ -33,7 +33,7 @@ Turn on `viewTransition: true` in **Next.js** (`FlyvaRoot` `config`) or **Nuxt**
 
 ## Where to read next
 
-- [Lifecycle diagrams](./lifecycle) — Mermaid sequences: hooks vs Next.js / Nuxt per mode
+- [Lifecycle diagrams](./lifecycle) — Sequence diagrams comparing Flyva hooks with App Router behavior in each mode
 - [Writing transitions](../transitions) — interface, class pattern, options, recipes (overlay, FLIP)
 - [CSS mode](./css-mode) — class phases and CSS examples
 - [View Transitions](./view-transitions) — config, naming map, hooks, shared helpers

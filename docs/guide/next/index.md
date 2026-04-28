@@ -21,7 +21,7 @@ export default {
 
 ### 1. Write a transition
 
-A transition is a `PageTransition` object. Use `defineTransition` from `@flyva/shared` so hooks receive [`PageTransitionContext`](/api/shared#pagetransitioncontext): the Next adapter sets **`context.container`** (and `current` / `next`) to the segment wrapped by `FlyvaTransitionWrapper`, so you normally animate that node directly instead of querying the document. A class instance implementing the same interface is still supported.
+A transition is a `PageTransition` object. Use `defineTransition` from `@flyva/shared` so hooks receive [`PageTransitionContext`](/api/shared#pagetransitioncontext): the Next adapter sets **`context.container`** (and `current` / `next`) to the segment wrapped by `FlyvaTransitionWrapper`, so you normally animate that node directly instead of querying the document. A class instance implementing the same interface is also supported, if you prefer.
 
 ```ts
 // src/page-transitions/fadeTransition.ts
@@ -141,6 +141,8 @@ When `viewTransition` is `true`, `FlyvaLink` uses `document.startViewTransition`
 - **`viewTransition: true` in config** — navigation runs inside `startViewTransition`; DOM swap is coordinated via `leaveWithViewTransition` internally.
 
 ### Concurrent mode and content cloning
+
+Concurrent page transition operation (equivalent to Vue's `in-out` Transition) is a holy grail for page transitions in Next App Router websites. While this is natively impossible with Next's current architecture, we were motivated to do some alchemy and make this cursed solution possible. It lets you temporarily keep the previous page content while animating in the new one - a highly desired effect that opens interesting creative frontiers.
 
 ::: warning Fragile on the App Router
 Overlapping leave and navigation on **Next.js** is only possible because Flyva **injects a DOM clone** of the swap subtree before `router.push`. The App Router does not keep two full React trees mounted the way Nuxt’s page `<Transition>` can - cloning is the workaround.

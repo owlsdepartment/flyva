@@ -62,7 +62,7 @@ sequenceDiagram
 
 `leave()` is **not** awaited; navigation runs immediately. `prepare` inserts a **clone** of the content root; `leave` animates the clone as `current`. After swap, `enter` runs on the real new content.
 
-This clone exists because the App Router does not keep two React trees alive for overlap - see [Next.js - concurrent mode and content cloning](../next#concurrent-mode-and-content-cloning) for layout shift, replayed CSS, and ref caveats, or use [View Transitions](./view-transitions) instead.
+This clone exists because the App Router does not keep two React trees alive for overlap - see [Next.js - concurrent mode and content cloning](/guide/next/#concurrent-mode-and-content-cloning) for layout shift, replayed CSS, and ref caveats, or use [View Transitions](./view-transitions) instead.
 
 ```mermaid
 sequenceDiagram

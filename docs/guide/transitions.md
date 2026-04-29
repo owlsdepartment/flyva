@@ -40,7 +40,7 @@ All hooks are optional. A transition that only defines `leave` and `enter` is pe
 | `priority` | Optional **number** for [`matchTransitionKey`](/api/shared#pagetransitionmanager) only. Higher values are tried before lower ones. Entries **without** `priority` but **with** `condition` come next (stable map key order). Entries **without** `condition` are last. Use this when the transition map is a plain object (e.g. Next.js) or auto-imported (Nuxt) and key order is not enough. |
 
 ::: warning Next.js `concurrent` and cloning
-On the **App Router**, `concurrent` depends on **content cloning** (App Router constraints). Expect possible **layout shifts**, **CSS animations or transitions replaying** on the clone, and **loss of useful React refs** on the node being animated (the clone is not your mounted tree). Design around `context.current` / `context.next`, test edge cases, or switch to [View Transitions](/guide/modes/view-transitions) for a native handoff. Details: [Next.js - concurrent mode and content cloning](/guide/next#concurrent-mode-and-content-cloning).
+On the **App Router**, `concurrent` depends on **content cloning** (App Router constraints). Expect possible **layout shifts**, **CSS animations or transitions replaying** on the clone, and **loss of useful React refs** on the node being animated (the clone is not your mounted tree). Design around `context.current` / `context.next`, test edge cases, or switch to [View Transitions](/guide/modes/view-transitions) for a native handoff. Details: [Next.js - concurrent mode and content cloning](/guide/next/#concurrent-mode-and-content-cloning).
 :::
 
 ## Transition resolution

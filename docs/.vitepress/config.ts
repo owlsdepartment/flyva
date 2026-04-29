@@ -1,8 +1,11 @@
 import { createRequire } from 'node:module';
 import path from 'node:path';
 
-import { defineConfig } from 'vitepress';
+import { defineConfig, type UserConfig } from 'vitepress';
+import llmstxt from 'vitepress-plugin-llms';
 import { withMermaid } from 'vitepress-plugin-mermaid';
+
+type VitePlugins = NonNullable<NonNullable<UserConfig['vite']>['plugins']>;
 
 const requireFromRoot = createRequire(path.join(process.cwd(), 'package.json'));
 const dayjsEsm = path.join(
@@ -88,6 +91,7 @@ export default withMermaid(
 			flowchart: { useMaxWidth: true },
 		},
 		vite: {
+			plugins: [...llmstxt()] as VitePlugins,
 			resolve: {
 				alias: [
 					// Only the bare `dayjs` entry - subpaths like `dayjs/plugin/isoWeek` must stay intact.

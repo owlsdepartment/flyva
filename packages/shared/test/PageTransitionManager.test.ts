@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { Reactive, ReactiveFactory } from '../types';
+
 import {
 	PageTransitionManager,
 	sortTransitionKeysForMatching,
 } from '../page-transition-manager/PageTransitionManager';
 import type { PageTransition } from '../page-transition-manager/types';
+import type { Reactive, ReactiveFactory } from '../types';
 
 function refReactiveFactory<V>(initial?: V): Reactive<V> {
 	return { value: initial as V };
@@ -30,7 +31,10 @@ describe('PageTransitionManager', () => {
 	it('run awaits active prepare hooks together with transition prepare', async () => {
 		const transitionPrepare = vi.fn().mockResolvedValue(undefined);
 		const hookPrepare = vi.fn().mockResolvedValue(undefined);
-		const manager = new PageTransitionManager({ t: { prepare: transitionPrepare } as PageTransition }, factory);
+		const manager = new PageTransitionManager(
+			{ t: { prepare: transitionPrepare } as PageTransition },
+			factory,
+		);
 		manager.registerActiveHook({ prepare: hookPrepare });
 		await manager.run('t', {});
 		expect(transitionPrepare).toHaveBeenCalledTimes(1);

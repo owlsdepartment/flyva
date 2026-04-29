@@ -27,6 +27,8 @@ export function useFlyvaTransition() {
 		prepare,
 		isRunning,
 		stage,
-		get hasTransitioned() { return hasTransitioned; },
+		get hasTransitioned() {
+			return hasTransitioned;
+		},
 	};
 }

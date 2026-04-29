@@ -1,8 +1,11 @@
 'use client';
 
+import type {
+	ActiveHookRegistration,
+	PageTransitionContext,
+	PageTransitionHookResult,
+} from '@flyva/shared';
 import { useEffect, useRef } from 'react';
-
-import type { ActiveHookRegistration, PageTransitionContext, PageTransitionHookResult } from '@flyva/shared';
 
 import { useFlyvaManager } from './useFlyvaManager';
 
@@ -26,9 +29,12 @@ export interface UseFlyvaLifecycleOptions {
 	blocking?: boolean;
 }
 
-function createCancellablePromise(promise: Promise<void>): { promise: Promise<void>; cancel: () => void } {
+function createCancellablePromise(promise: Promise<void>): {
+	promise: Promise<void>;
+	cancel: () => void;
+} {
 	let cancel: () => void;
-	const wrapped = new Promise<void>((resolve) => {
+	const wrapped = new Promise<void>(resolve => {
 		cancel = resolve;
 		promise.then(resolve, resolve);
 	});

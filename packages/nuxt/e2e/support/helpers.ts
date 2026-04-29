@@ -1,10 +1,9 @@
 import type { Page } from '@playwright/test';
 
 export async function waitForTransitionIdle(page: Page, timeout = 20_000) {
-	await page.waitForFunction(
-		() => !/\bflyva-running\b/.test(document.documentElement.className),
-		{ timeout },
-	);
+	await page.waitForFunction(() => !/\bflyva-running\b/.test(document.documentElement.className), {
+		timeout,
+	});
 }
 
 export function navLinkByHref(page: Page, href: string) {

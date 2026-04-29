@@ -22,7 +22,9 @@ export interface PageTransitionMatchContext<O = PageTransitionOptions> {
 	next?: HTMLElement;
 }
 
-export interface PageTransitionContext<O = PageTransitionOptions> extends PageTransitionMatchContext<O> {
+export interface PageTransitionContext<
+	O = PageTransitionOptions,
+> extends PageTransitionMatchContext<O> {
 	name: string;
 	viewTransition?: ViewTransition;
 	/**
@@ -53,7 +55,7 @@ export interface PageTransition<O = PageTransitionOptions> {
 
 	animateViewTransition?(
 		viewTransition: ViewTransition,
-		context: PageTransitionContext<O>
+		context: PageTransitionContext<O>,
 	): PageTransitionHookResult;
 
 	condition?(context: PageTransitionMatchContext<O>): Promise<boolean> | boolean;

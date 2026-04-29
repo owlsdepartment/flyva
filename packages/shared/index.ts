@@ -1,4 +1,4 @@
-export * from './types';
-export * from './page-transition-manager';
-export * from './view-transition';
 export * from './lifecycle-classes';
+export * from './page-transition-manager';
+export * from './types';
+export * from './view-transition';

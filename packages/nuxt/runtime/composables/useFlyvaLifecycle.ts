@@ -1,12 +1,12 @@
-import { computed, onMounted, onScopeDispose, shallowRef, watchEffect } from 'vue';
-import { useNuxtApp } from '#app';
-
 import type {
 	ActiveHookRegistration,
 	PageTransitionContext,
 	PageTransitionHookResult,
 	RegisterActiveHookReturn,
 } from '@flyva/shared';
+import { computed, onMounted, onScopeDispose, shallowRef, watchEffect } from 'vue';
+
+import { useNuxtApp } from '#app';
 
 export interface FlyvaLifecycleCallbacks {
 	prepare?(context: PageTransitionContext): PageTransitionHookResult;
@@ -28,7 +28,10 @@ export interface UseFlyvaLifecycleOptions {
 	blocking?: boolean;
 }
 
-function createCancellablePromise(promise: Promise<void>): { promise: Promise<void>; cancel: () => void } {
+function createCancellablePromise(promise: Promise<void>): {
+	promise: Promise<void>;
+	cancel: () => void;
+} {
 	let cancel: () => void;
 	const wrapped = new Promise<void>(resolve => {
 		cancel = resolve;
@@ -106,5 +109,4 @@ export function useFlyvaLifecycle(
 			cancellables.length = 0;
 		});
 	});
-
 }

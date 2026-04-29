@@ -8,8 +8,12 @@ const ALL_CLASSES = [
 	'cleanup',
 	'running',
 	'pending',
-	'leave', 'leave-active', 'leave-to',
-	'enter', 'enter-active', 'enter-to',
+	'leave',
+	'leave-active',
+	'leave-to',
+	'enter',
+	'enter-active',
+	'enter-to',
 ] as const;
 
 function prefixed(prefix: string, cls: string): string {

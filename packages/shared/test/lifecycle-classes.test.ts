@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { applyLifecycleClasses, FLYVA_TRANSITION_DATA_ATTR } from '../lifecycle-classes';
 
 const stages = [
@@ -10,7 +11,11 @@ const stages = [
 	'afterEnter',
 ] as const;
 
-function expectClassesForStage(prefix: string, stage: (typeof stages)[number], transitionKey?: string) {
+function expectClassesForStage(
+	prefix: string,
+	stage: (typeof stages)[number],
+	transitionKey?: string,
+) {
 	const el = document.documentElement;
 	if (transitionKey) {
 		expect(el.getAttribute(FLYVA_TRANSITION_DATA_ATTR)).toBe(transitionKey);

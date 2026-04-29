@@ -1,6 +1,6 @@
 'use client';
 
-import type { RefObject, ReactNode } from 'react';
+import type { ReactNode, RefObject } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 
 export type RefMap<T extends Record<string, unknown>> = {
@@ -14,7 +14,7 @@ export type DetachedRoot<T extends Record<string, unknown>> = {
 };
 
 export function useDetachedRoot<T extends Record<string, unknown>>(
-	jsxFactory: (refs: RefMap<T>) => ReactNode
+	jsxFactory: (refs: RefMap<T>) => ReactNode,
 ): DetachedRoot<T> {
 	const container = document.createElement('div');
 	document.body.appendChild(container);

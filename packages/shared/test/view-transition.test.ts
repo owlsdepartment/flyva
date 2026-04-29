@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import * as vt from '../view-transition';
+
 import type { PageTransitionContext } from '../page-transition-manager/types';
+import * as vt from '../view-transition';
 
 const {
 	applyCssStageClasses,
@@ -123,7 +124,6 @@ describe('applyCssStageClasses', () => {
 			spy.mockRestore();
 		}
 	});
-
 });
 
 describe('applyCssStageClasses (no transition / animation-only CSS)', () => {

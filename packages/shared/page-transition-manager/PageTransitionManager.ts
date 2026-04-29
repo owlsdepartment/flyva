@@ -1,5 +1,5 @@
-import type { Reactive, ReactiveFactory } from '../types';
 import { applyLifecycleClasses } from '../lifecycle-classes';
+import type { Reactive, ReactiveFactory } from '../types';
 import type {
 	ActiveHookRegistration,
 	PageTransition,
@@ -51,7 +51,7 @@ export interface PageTransitionManagerConfig {
 
 export class PageTransitionManager<
 	T extends Record<string, PageTransition> = Record<string, PageTransition>,
-	R extends Reactive<unknown> = Reactive<unknown>
+	R extends Reactive<unknown> = Reactive<unknown>,
 > {
 	protected _isRunning: Reactive<boolean>;
 	protected _runningInstance: Reactive<PageTransition | undefined>;
@@ -160,7 +160,7 @@ export class PageTransitionManager<
 	run<K extends keyof T>(
 		name: K,
 		options: T[K] extends PageTransition<infer O> ? O : PageTransitionOptions,
-		trigger?: PageTransitionTrigger
+		trigger?: PageTransitionTrigger,
 	) {
 		if (this.runningInstance) {
 			const prev = this.runningInstance;
@@ -205,11 +205,15 @@ export class PageTransitionManager<
 		const vtEnabled = this._config.viewTransition;
 
 		if (t.cssMode && (t.leave || t.enter)) {
-			console.warn(`[flyva] "${name}": leave/enter hooks are ignored when cssMode is enabled — CSS handles the animation`);
+			console.warn(
+				`[flyva] "${name}": leave/enter hooks are ignored when cssMode is enabled — CSS handles the animation`,
+			);
 		}
 
 		if (t.animateViewTransition && !vtEnabled) {
-			console.warn(`[flyva] "${name}": animateViewTransition is defined but viewTransition is not enabled — this hook will never run`);
+			console.warn(
+				`[flyva] "${name}": animateViewTransition is defined but viewTransition is not enabled — this hook will never run`,
+			);
 		}
 
 		if (t.cssMode && t.animateViewTransition) {
@@ -221,7 +225,9 @@ export class PageTransitionManager<
 		}
 
 		if (t.viewTransitionNames && !vtEnabled && !t.cssMode) {
-			console.warn(`[flyva] "${name}": viewTransitionNames requires viewTransition or cssMode to be enabled`);
+			console.warn(
+				`[flyva] "${name}": viewTransitionNames requires viewTransition or cssMode to be enabled`,
+			);
 		}
 	}
 
@@ -358,7 +364,7 @@ export class PageTransitionManager<
 
 	registerActiveHook(registration: ActiveHookRegistration): RegisterActiveHookReturn {
 		this._activeHooks.add(registration);
-		return (cleanup) => {
+		return cleanup => {
 			this._gcHooks.add(() => {
 				this._activeHooks.delete(registration);
 				cleanup?.();
@@ -380,7 +386,6 @@ export class PageTransitionManager<
 				? (nxt ?? cur)
 				: (cur ?? nxt);
 		return {
-			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 			name: this._runningName.value! as string,
 			fromHref: String(opts?.fromHref ?? ''),
 			toHref: String(opts?.toHref ?? ''),

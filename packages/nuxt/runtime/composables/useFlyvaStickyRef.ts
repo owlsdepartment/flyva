@@ -1,7 +1,7 @@
-import { customRef, onMounted, onScopeDispose, type Ref } from 'vue';
-import { useNuxtApp } from '#app';
-
 import type { RegisterActiveHookReturn } from '@flyva/shared';
+import { customRef, onMounted, onScopeDispose, type Ref } from 'vue';
+
+import { useNuxtApp } from '#app';
 
 export function useFlyvaStickyRef<T extends HTMLElement = HTMLElement>(): Ref<T | null> {
 	const { $flyvaManager: manager } = useNuxtApp();

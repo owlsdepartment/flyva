@@ -1,5 +1,5 @@
-import type { AnchorHTMLAttributes, Ref } from 'react';
 import type { LinkProps } from 'next/link';
+import type { AnchorHTMLAttributes, Ref } from 'react';
 
 import type { PageTransitionContext, PageTransitionOptions } from '../../../common';
 

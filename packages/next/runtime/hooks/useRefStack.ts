@@ -29,7 +29,7 @@ export function useRefStack(key: string, refObject: RefObject<MaybeElement> | nu
 		globalStack.set(key, refObject);
 
 		return () => remove();
-	// eslint-disable-next-line react-hooks/exhaustive-deps
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
 	return () => remove();

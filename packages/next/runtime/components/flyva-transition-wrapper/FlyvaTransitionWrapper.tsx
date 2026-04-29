@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { PropsWithChildren, useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 
-import { useFlyvaTransition, getCapturedClone, resolveDomSwap, isVtActive } from '../../hooks';
+import { getCapturedClone, isVtActive, resolveDomSwap, useFlyvaTransition } from '../../hooks';
 import { useFlyvaConfig } from '../../hooks/useFlyvaConfig';
 import { useFlyvaManager } from '../../hooks/useFlyvaManager';
 
@@ -51,8 +51,7 @@ export function FlyvaTransitionWrapper({ children }: PropsWithChildren) {
 			return;
 		}
 
-		const isCssMode =
-			manager.runningInstance?.cssMode === true && !config.viewTransition;
+		const isCssMode = manager.runningInstance?.cssMode === true && !config.viewTransition;
 
 		if (contentRef.current && !isCssMode) {
 			contentRef.current.style.cssText = '';
@@ -91,12 +90,8 @@ export function FlyvaTransitionWrapper({ children }: PropsWithChildren) {
 				manager.setContentElements(contentRef.current);
 			}
 		});
-	// eslint-disable-next-line react-hooks/exhaustive-deps
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [pathname]);
 
-	return (
-		<div ref={setContentRef}>
-			{children}
-		</div>
-	);
+	return <div ref={setContentRef}>{children}</div>;
 }

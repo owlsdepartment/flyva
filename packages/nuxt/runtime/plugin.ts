@@ -11,7 +11,9 @@ export default defineNuxtPlugin(() => {
 	const vtEnabled = config.flyva?.viewTransition;
 
 	if (import.meta.dev && vtEnabled && import.meta.client && !supportsViewTransitions()) {
-		console.warn('[flyva] viewTransition is enabled but this browser does not support the View Transitions API');
+		console.warn(
+			'[flyva] viewTransition is enabled but this browser does not support the View Transitions API',
+		);
 	}
 
 	const manager = new PageTransitionManager(flyvaTransitions ?? {}, refReactiveFactory, {

@@ -3,5 +3,5 @@ export type Reactive<T> = {
 };
 
 export type ReactiveFactory<T = unknown, R extends Reactive<T> = Reactive<T>> = <V = T>(
-	initialValue?: V
+	initialValue?: V,
 ) => R extends Reactive<T> ? Reactive<V> : never;

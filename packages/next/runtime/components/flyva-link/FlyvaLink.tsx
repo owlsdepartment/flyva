@@ -1,13 +1,20 @@
 'use client';
 
+import type { PageTransitionContext } from '@flyva/shared';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { forwardRef, PropsWithChildren, useImperativeHandle, useMemo, useRef } from 'react';
-
-import type { PageTransitionContext } from '@flyva/shared';
+import {
+	forwardRef,
+	type MouseEvent,
+	PropsWithChildren,
+	useImperativeHandle,
+	useMemo,
+	useRef,
+} from 'react';
 
 import { useFlyvaTransition } from '../../hooks';
 import { useFlyvaLifecycle } from '../../hooks/useFlyvaLifecycle';
+import { omitKeys } from '../../utils/omitKeys';
 import type { FlyvaLinkAugment, FlyvaLinkProps } from './types';
 
 function normalizeUrl(url: string): string {
@@ -27,6 +34,21 @@ function extractPath(input: string): string {
 		return input?.split('?')[0]?.split('#')[0] ?? '';
 	}
 }
+
+const FLYVA_LINK_PROP_KEYS = [
+	'flyva',
+	'flyvaTransition',
+	'flyvaOptions',
+	'onTransitionStart',
+	'onPrepare',
+	'onBeforeLeave',
+	'onLeave',
+	'onAfterLeave',
+	'onBeforeEnter',
+	'onEnter',
+	'onAfterEnter',
+	'onCleanup',
+] as const;
 
 const FlyvaLink = forwardRef<HTMLAnchorElement, PropsWithChildren<FlyvaLinkProps>>((props, ref) => {
 	const rootEl = useRef<HTMLAnchorElement>(null);
@@ -50,23 +72,43 @@ const FlyvaLink = forwardRef<HTMLAnchorElement, PropsWithChildren<FlyvaLinkProps
 			}
 		: {};
 
-	const lifecycleCallbacks = useMemo(() => ({
-		prepare: (ctx: PageTransitionContext) => { callbacksRef.current.onPrepare?.(ctx); },
-		beforeLeave: (ctx: PageTransitionContext) => { callbacksRef.current.onBeforeLeave?.(ctx); },
-		leave: (ctx: PageTransitionContext) => { callbacksRef.current.onLeave?.(ctx); },
-		afterLeave: (ctx: PageTransitionContext) => { callbacksRef.current.onAfterLeave?.(ctx); },
-		beforeEnter: (ctx: PageTransitionContext) => { callbacksRef.current.onBeforeEnter?.(ctx); },
-		enter: (ctx: PageTransitionContext) => { callbacksRef.current.onEnter?.(ctx); },
-		afterEnter: (ctx: PageTransitionContext) => { callbacksRef.current.onAfterEnter?.(ctx); },
-		cleanup: () => { callbacksRef.current.onCleanup?.(); },
-	}), []);
+	const lifecycleCallbacks = useMemo(
+		() => ({
+			prepare: (ctx: PageTransitionContext) => {
+				callbacksRef.current.onPrepare?.(ctx);
+			},
+			beforeLeave: (ctx: PageTransitionContext) => {
+				callbacksRef.current.onBeforeLeave?.(ctx);
+			},
+			leave: (ctx: PageTransitionContext) => {
+				callbacksRef.current.onLeave?.(ctx);
+			},
+			afterLeave: (ctx: PageTransitionContext) => {
+				callbacksRef.current.onAfterLeave?.(ctx);
+			},
+			beforeEnter: (ctx: PageTransitionContext) => {
+				callbacksRef.current.onBeforeEnter?.(ctx);
+			},
+			enter: (ctx: PageTransitionContext) => {
+				callbacksRef.current.onEnter?.(ctx);
+			},
+			afterEnter: (ctx: PageTransitionContext) => {
+				callbacksRef.current.onAfterEnter?.(ctx);
+			},
+			cleanup: () => {
+				callbacksRef.current.onCleanup?.();
+			},
+		}),
+		[],
+	);
 
 	useFlyvaLifecycle(lifecycleCallbacks);
 
 	useImperativeHandle(ref, () => rootEl.current!, []);
 
 	if (props.flyva === false) {
-		const { flyva: _flyva, children, ...linkProps } = props;
+		const { children, ...rest } = props;
+		const linkProps = omitKeys(rest, ['flyva']);
 		return (
 			<Link ref={rootEl} {...linkProps}>
 				{children}
@@ -74,24 +116,11 @@ const FlyvaLink = forwardRef<HTMLAnchorElement, PropsWithChildren<FlyvaLinkProps
 		);
 	}
 
-	const {
-		flyva: _flyvaEnabled = true,
-		flyvaTransition,
-		flyvaOptions,
-		onTransitionStart,
-		onPrepare: _onPrepare,
-		onBeforeLeave: _onBeforeLeave,
-		onLeave: _onLeave,
-		onAfterLeave: _onAfterLeave,
-		onBeforeEnter: _onBeforeEnter,
-		onEnter: _onEnter,
-		onAfterEnter: _onAfterEnter,
-		onCleanup: _onCleanup,
-		children,
-		...linkProps
-	} = props;
+	const { children, ...rest } = props;
+	const { flyvaTransition, flyvaOptions, onTransitionStart } = rest;
+	const linkProps = omitKeys(rest, FLYVA_LINK_PROP_KEYS);
 
-	async function handleClick(e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) {
+	async function handleClick(e: MouseEvent<HTMLAnchorElement>) {
 		const href = rootEl.current?.href ?? props.href?.toString();
 
 		if (!href) return;
@@ -109,11 +138,15 @@ const FlyvaLink = forwardRef<HTMLAnchorElement, PropsWithChildren<FlyvaLinkProps
 
 		const resolvedOptions = typeof flyvaOptions === 'function' ? flyvaOptions() : flyvaOptions;
 
-		await transition.prepare(flyvaTransition, {
-			fromHref: extractPath(currentUrl),
-			toHref: extractPath(href),
-			...(resolvedOptions ?? {}),
-		}, rootEl.current ?? e.target as HTMLElement);
+		await transition.prepare(
+			flyvaTransition,
+			{
+				fromHref: extractPath(currentUrl),
+				toHref: extractPath(href),
+				...(resolvedOptions ?? {}),
+			},
+			rootEl.current ?? (e.target as HTMLElement),
+		);
 
 		if (transition.isViewTransition) {
 			await transition.leaveWithViewTransition(() => router.push(href));

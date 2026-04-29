@@ -38,7 +38,7 @@ export default defineNuxtModule<ModuleOptions>({
 		if (config.viewTransition && nuxt.options.app?.viewTransition) {
 			console.warn(
 				'[flyva] Both Nuxt app.viewTransition and Flyva viewTransition are enabled. ' +
-				'Disable Nuxt\'s to avoid conflicts: app: { viewTransition: false }'
+					"Disable Nuxt's to avoid conflicts: app: { viewTransition: false }",
 			);
 		}
 
@@ -53,16 +53,14 @@ export default defineNuxtModule<ModuleOptions>({
 		const readFileList = () => {
 			return fs
 				.readdirSync(objectDirectory)
-				.filter(
-					file =>
-						file.endsWith('.js') ||
-						file.endsWith('.ts') ||
-						file.endsWith('.tsx')
-				)
-				.reduce((acc, file) => {
-					acc[file] = path.join(objectDirectory, file);
-					return acc;
-				}, {} as Record<string, string>);
+				.filter(file => file.endsWith('.js') || file.endsWith('.ts') || file.endsWith('.tsx'))
+				.reduce(
+					(acc, file) => {
+						acc[file] = path.join(objectDirectory, file);
+						return acc;
+					},
+					{} as Record<string, string>,
+				);
 		};
 
 		const loadedTemplates: string[] = [];
@@ -104,7 +102,7 @@ export default defineNuxtModule<ModuleOptions>({
 						imports.push(`import { ${objectName} } from '#build/${transitionsDir}/${name}';`);
 					} else {
 						imports.push(
-							`import default as ${objectName} from '#build/${transitionsDir}/${name}';`
+							`import default as ${objectName} from '#build/${transitionsDir}/${name}';`,
 						);
 					}
 				}
@@ -142,7 +140,7 @@ export default defineNuxtModule<ModuleOptions>({
 				name: key,
 				as: key,
 				from: resolve('runtime/composables'),
-			}))
+			})),
 		);
 
 		await addComponentsDir({

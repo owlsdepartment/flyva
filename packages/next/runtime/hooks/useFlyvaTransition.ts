@@ -2,9 +2,9 @@
 
 import type { PageTransitionOptions } from '@flyva/shared';
 import {
+	applyCssStageClasses,
 	applyViewTransitionNames,
 	clearViewTransitionNames,
-	applyCssStageClasses,
 	supportsViewTransitions,
 } from '@flyva/shared';
 
@@ -33,7 +33,8 @@ function createDomSwapPromise(): Promise<void> {
 	});
 }
 
-const CLONE_CSS = '.flyva-clone,.flyva-clone *{animation-play-state:paused!important;transition:none!important}';
+const CLONE_CSS =
+	'.flyva-clone,.flyva-clone *{animation-play-state:paused!important;transition:none!important}';
 let _styleInjected = false;
 
 function injectCloneStyles() {
@@ -66,7 +67,11 @@ export function useFlyvaTransition() {
 		const resolved = explicit ?? (await flyvaManager.matchTransitionKey(options, el));
 		await flyvaManager.run(resolved, options, el);
 
-		if (!config.viewTransition && flyvaManager.runningInstance?.concurrent && flyvaManager.currentContent) {
+		if (
+			!config.viewTransition &&
+			flyvaManager.runningInstance?.concurrent &&
+			flyvaManager.currentContent
+		) {
 			injectCloneStyles();
 
 			_capturedClone = flyvaManager.currentContent.cloneNode(true) as HTMLElement;
@@ -205,8 +210,14 @@ export function useFlyvaTransition() {
 		completeConcurrentLeaveAfterNavigation,
 		enter,
 		leaveWithViewTransition,
-		get hasTransitioned() { return hasTransitioned; },
-		get isConcurrent() { return flyvaManager.runningInstance?.concurrent === true; },
-		get isViewTransition() { return !!config.viewTransition; },
+		get hasTransitioned() {
+			return hasTransitioned;
+		},
+		get isConcurrent() {
+			return flyvaManager.runningInstance?.concurrent === true;
+		},
+		get isViewTransition() {
+			return !!config.viewTransition;
+		},
 	};
 }

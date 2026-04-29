@@ -1,4 +1,4 @@
-import { createApp, ref, type Ref, type VNode } from 'vue';
+import { createApp, type Ref, ref, type VNode } from 'vue';
 
 export type RefMap<T extends Record<string, unknown>> = {
 	[K in keyof T]: Ref<T[K]>;
@@ -33,7 +33,7 @@ function createRefMap<T extends Record<string, unknown>>(): RefMap<T> {
 }
 
 export function useDetachedRoot<T extends Record<string, unknown>>(
-	render: (refs: RefMap<T>) => VNode
+	render: (refs: RefMap<T>) => VNode,
 ): DetachedRoot<T> {
 	const container = document.createElement('div');
 	document.body.appendChild(container);

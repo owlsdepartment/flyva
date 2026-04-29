@@ -38,11 +38,14 @@ export function clearViewTransitionNames(names: Record<string, string>): void {
 
 function parseCssDurations(raw: string): number {
 	// "0.6s, 0.3s" → [0.6, 0.3]; "300ms" → [0.3]
-	return Math.max(0, ...raw.split(',').map(v => {
-		const n = parseFloat(v);
-		if (isNaN(n)) return 0;
-		return v.trim().endsWith('ms') ? n / 1000 : n;
-	}));
+	return Math.max(
+		0,
+		...raw.split(',').map(v => {
+			const n = parseFloat(v);
+			if (isNaN(n)) return 0;
+			return v.trim().endsWith('ms') ? n / 1000 : n;
+		}),
+	);
 }
 
 export function waitForAnimation(el: Element): Promise<void> {

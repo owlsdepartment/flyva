@@ -17,6 +17,9 @@
     "type": "git",
     "url": "git+https://github.com/owlsdepartment/flyva"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest"

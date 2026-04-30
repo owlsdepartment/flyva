@@ -15,6 +15,9 @@
     "type": "git",
     "url": "git+https://github.com/owlsdepartment/flyva"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "devDependencies": {
     "@flyva/shared": "workspace:*",
     "@playwright/test": "^1.51.0",

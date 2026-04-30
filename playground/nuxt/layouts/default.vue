@@ -4,6 +4,23 @@ const navCss = useCssModule();
 const { demoDocsHref, demoGithubHref } = useRuntimeConfig().public;
 
 const navLogoRef = ref<HTMLSpanElement | null>(null);
+const menuOpen = ref(false);
+
+watch(
+	() => route.path,
+	() => {
+		menuOpen.value = false;
+	},
+);
+
+watchEffect((onCleanup) => {
+	if (!menuOpen.value || !import.meta.client) return;
+	const onKey = (e: KeyboardEvent) => {
+		if (e.key === 'Escape') menuOpen.value = false;
+	};
+	window.addEventListener('keydown', onKey);
+	onCleanup(() => window.removeEventListener('keydown', onKey));
+});
 
 useFlyvaLifecycle(
 	{
@@ -21,68 +38,98 @@ useFlyvaLifecycle(
 <template>
 	<div>
 		<nav :class="navCss.root" data-demo-nav>
-			<span ref="navLogoRef" :class="navCss.logo">
-				<span :class="navCss.flyva">flyva</span>
-				<span :class="navCss.tail">
-					<span :class="navCss.bars" aria-hidden="true">
-						<span :class="navCss.barsInner">
-							<span :class="[navCss.bracket, navCss.bracketOpen]">[</span>
-							<span :class="navCss.barsMid">
-								<span :class="[navCss.pipe, navCss.pipe1]">|</span>
-								<span :class="[navCss.pipe, navCss.pipe2]">|</span>
-								<span :class="[navCss.pipe, navCss.pipe3]">|</span>
+			<FlyvaLink to="/" :class="navCss.logoLink">
+				<span ref="navLogoRef" :class="navCss.logo">
+					<span :class="navCss.flyva">flyva</span>
+					<span :class="navCss.tail">
+						<span :class="navCss.bars" aria-hidden="true">
+							<span :class="navCss.barsInner">
+								<span :class="[navCss.bracket, navCss.bracketOpen]">[</span>
+								<span :class="navCss.barsMid">
+									<span :class="[navCss.pipe, navCss.pipe1]">|</span>
+									<span :class="[navCss.pipe, navCss.pipe2]">|</span>
+									<span :class="[navCss.pipe, navCss.pipe3]">|</span>
+								</span>
+								<span :class="[navCss.bracket, navCss.bracketClose]">]</span>
 							</span>
-							<span :class="[navCss.bracket, navCss.bracketClose]">]</span>
 						</span>
+						<span :class="navCss.tag">:nuxt</span>
 					</span>
-					<span :class="navCss.tag">:nuxt</span>
 				</span>
-			</span>
-			<div :class="navCss.links">
-				<FlyvaLink to="/" :class="[navCss.link, route.path === '/' ? navCss.linkActive : '']">Home</FlyvaLink>
+			</FlyvaLink>
 
-				<FlyvaLink to="/about" :class="[navCss.link, route.path === '/about' ? navCss.linkActive : '']">
-					About <span :class="navCss.badge">default</span>
-				</FlyvaLink>
+			<button
+				type="button"
+				:class="navCss.burger"
+				:aria-expanded="menuOpen"
+				aria-controls="demo-nav-links-panel"
+				:aria-label="menuOpen ? 'Close menu' : 'Open menu'"
+				@click="menuOpen = !menuOpen"
+			>
+				<span :class="navCss.burgerBar" />
+				<span :class="navCss.burgerBar" />
+				<span :class="navCss.burgerBar" />
+			</button>
 
-				<FlyvaLink
-					to="/work"
-					:flyva-options="{ direction: 'right' }"
-					:class="[navCss.link, route.path.startsWith('/work') ? navCss.linkActive : '']"
-				>
-					Work <span :class="navCss.badge">slide</span>
-				</FlyvaLink>
+			<button
+				v-if="menuOpen"
+				type="button"
+				:class="navCss.backdrop"
+				aria-label="Close menu"
+				tabindex="-1"
+				@click="menuOpen = false"
+			/>
 
-				<FlyvaLink
-					to="/css-demo"
-					flyva-transition="cssFadeTransition"
-					:class="[navCss.link, route.path === '/css-demo' ? navCss.linkActive : '']"
-				>
-					CSS Mode <span :class="navCss.badge">css</span>
-				</FlyvaLink>
+			<div
+				id="demo-nav-links-panel"
+				:class="[navCss.linksPanel, menuOpen ? navCss.linksPanelOpen : '']"
+			>
+				<div :class="navCss.links">
+					<FlyvaLink to="/" :class="[navCss.link, route.path === '/' ? navCss.linkActive : '']">Home</FlyvaLink>
 
-				<FlyvaLink
-					to="/overlay"
-					flyva-transition="overlayTransition"
-					:class="[navCss.link, route.path === '/overlay' ? navCss.linkActive : '']"
-				>
-					Overlay <span :class="navCss.badge">detached</span>
-				</FlyvaLink>
+					<FlyvaLink to="/about" :class="[navCss.link, route.path === '/about' ? navCss.linkActive : '']">
+						About <span :class="navCss.badge">default</span>
+					</FlyvaLink>
 
-				<FlyvaLink
-					to="/lifecycle-demo"
-					:class="[navCss.link, route.path === '/lifecycle-demo' ? navCss.linkActive : '']"
-				>
-					Lifecycle <span :class="navCss.badge">hooks</span>
-				</FlyvaLink>
+					<FlyvaLink
+						to="/work"
+						:flyva-options="{ direction: 'right' }"
+						:class="[navCss.link, route.path.startsWith('/work') ? navCss.linkActive : '']"
+					>
+						Work <span :class="navCss.badge">slide</span>
+					</FlyvaLink>
 
-				<FlyvaLink to="/bypass" :flyva="false" :class="[navCss.link, route.path === '/bypass' ? navCss.linkActive : '']">
-					Bypass <span :class="navCss.badge">bypass</span>
-				</FlyvaLink>
+					<FlyvaLink
+						to="/css-demo"
+						flyva-transition="cssFadeTransition"
+						:class="[navCss.link, route.path === '/css-demo' ? navCss.linkActive : '']"
+					>
+						CSS Mode <span :class="navCss.badge">css</span>
+					</FlyvaLink>
 
-				<div :class="navCss.linkTail">
-					<a :class="navCss.external" :href="demoDocsHref" rel="noopener noreferrer" target="_blank">Docs</a>
-					<a :class="navCss.external" :href="demoGithubHref" rel="noopener noreferrer" target="_blank">GitHub</a>
+					<FlyvaLink
+						to="/overlay"
+						flyva-transition="overlayTransition"
+						:class="[navCss.link, route.path === '/overlay' ? navCss.linkActive : '']"
+					>
+						Overlay <span :class="navCss.badge">detached</span>
+					</FlyvaLink>
+
+					<FlyvaLink
+						to="/lifecycle-demo"
+						:class="[navCss.link, route.path === '/lifecycle-demo' ? navCss.linkActive : '']"
+					>
+						Lifecycle <span :class="navCss.badge">hooks</span>
+					</FlyvaLink>
+
+					<FlyvaLink to="/bypass" :flyva="false" :class="[navCss.link, route.path === '/bypass' ? navCss.linkActive : '']">
+						Bypass <span :class="navCss.badge">bypass</span>
+					</FlyvaLink>
+
+					<div :class="navCss.linkTail">
+						<a :class="navCss.outlineBtn" :href="demoDocsHref" rel="noopener noreferrer" target="_blank">Docs</a>
+						<a :class="navCss.outlineBtn" :href="demoGithubHref" rel="noopener noreferrer" target="_blank">GitHub</a>
+					</div>
 				</div>
 			</div>
 		</nav>
@@ -117,10 +164,126 @@ useFlyvaLifecycle(
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
+	gap: 12px;
 	padding: 16px 32px;
 	border-bottom: 1px solid var(--border);
 	background: rgba(10, 10, 10, 0.85);
 	backdrop-filter: blur(12px);
+}
+
+.logoLink {
+	text-decoration: none;
+	color: inherit;
+	align-self: center;
+
+	&:hover {
+		opacity: 0.92;
+	}
+}
+
+.burger {
+	display: none;
+	flex-shrink: 0;
+	width: 40px;
+	height: 40px;
+	margin: 0;
+	padding: 0;
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	background: transparent;
+	cursor: pointer;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+	gap: 5px;
+
+	&:hover {
+		border-color: var(--accent);
+	}
+}
+
+.burgerBar {
+	display: block;
+	width: 18px;
+	height: 2px;
+	background: var(--fg);
+	border-radius: 1px;
+}
+
+.backdrop {
+	display: none;
+}
+
+.linksPanel {
+	display: flex;
+	flex: 1;
+	align-items: center;
+	justify-content: flex-end;
+	min-width: 0;
+}
+
+@media (max-width: 960px) {
+	.burger {
+		display: inline-flex;
+	}
+
+	.backdrop {
+		display: block;
+		position: fixed;
+		inset: 62px 0 0;
+		z-index: 98;
+		border: 0;
+		padding: 0;
+		margin: 0;
+		background: rgba(0, 0, 0, 0.45);
+		cursor: pointer;
+	}
+
+	.linksPanel {
+		position: fixed;
+		top: 62px;
+		right: 0;
+		bottom: 0;
+		width: min(100%, 320px);
+		z-index: 99;
+		flex: none;
+		justify-content: stretch;
+		background: rgba(10, 10, 10, 0.98);
+		border-left: 1px solid var(--border);
+		padding: 16px 20px 24px;
+		overflow-y: auto;
+		transform: translateX(100%);
+		transition: transform 0.25s ease;
+		pointer-events: none;
+	}
+
+	.linksPanelOpen {
+		transform: translateX(0);
+		pointer-events: auto;
+	}
+
+	.links {
+		flex-direction: column;
+		align-items: stretch;
+		flex-wrap: nowrap;
+		gap: 0;
+		width: 100%;
+	}
+
+	.link {
+		padding: 12px 0;
+		border-bottom: 1px solid var(--border);
+	}
+
+	.linkTail {
+		margin-left: 0;
+		flex-direction: column;
+		align-items: stretch;
+		gap: 12px;
+		margin-top: 8px;
+		padding-top: 16px;
+		border-top: 1px solid var(--border);
+	}
 }
 
 .logo {
@@ -241,14 +404,27 @@ useFlyvaLifecycle(
 	gap: 16px;
 }
 
-.external {
+.outlineBtn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 6px 14px;
+	font-size: 13px;
+	font-weight: 500;
 	color: var(--muted);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	background: transparent;
 	text-decoration: none;
-	font-size: 14px;
-	transition: color 0.15s;
+	transition:
+		color 0.15s ease,
+		border-color 0.15s ease,
+		background 0.15s ease;
 
 	&:hover {
 		color: var(--fg);
+		border-color: var(--accent);
+		background: rgba(69, 132, 239, 0.06);
 	}
 }
 

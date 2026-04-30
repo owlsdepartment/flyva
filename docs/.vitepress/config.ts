@@ -28,7 +28,7 @@ export default withMermaid(
 		themeConfig: {
 			nav: [
 				{ text: 'Guide', link: '/guide/getting-started' },
-				{ text: 'Demos', link: '/demos' },
+				{ text: 'Demos', link: '/demos', target: '_blank', rel: 'noopener noreferrer' },
 				{ text: 'API', link: '/api/shared' },
 				{
 					text: 'About',
@@ -44,7 +44,6 @@ export default withMermaid(
 				{
 					text: 'Guide',
 					items: [
-						{ text: 'Demos', link: '/demos' },
 						{ text: 'Getting Started', link: '/guide/getting-started' },
 						{
 							text: 'Next.js',
@@ -72,6 +71,7 @@ export default withMermaid(
 								{ text: 'Ref Stack', link: '/guide/nuxt/ref-stack' },
 							],
 						},
+						{ text: 'Demos', link: '/demos', target: '_blank', rel: 'noopener noreferrer' },
 					],
 				},
 				{

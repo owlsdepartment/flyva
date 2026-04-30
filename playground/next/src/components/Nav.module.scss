@@ -133,7 +133,27 @@
 
 .links {
 	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
 	gap: 24px;
+}
+
+.linkTail {
+	margin-left: auto;
+	display: flex;
+	align-items: center;
+	gap: 16px;
+}
+
+.external {
+	color: var(--muted);
+	text-decoration: none;
+	font-size: 14px;
+	transition: color 0.15s;
+
+	&:hover {
+		color: var(--fg);
+	}
 }
 
 .link {

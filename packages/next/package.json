@@ -2,7 +2,7 @@
   "name": "@flyva/next",
   "author": "Owls Department",
   "license": "MIT",
-  "version": "1.0.0-alpha.0",
+  "version": "0.8.0",
   "description": "Seamless page transitions for Next.js",
   "type": "module",
   "exports": {
@@ -15,10 +15,8 @@
     "type": "git",
     "url": "git+https://github.com/owlsdepartment/flyva"
   },
-  "dependencies": {
-    "@flyva/shared": "workspace:*"
-  },
   "devDependencies": {
+    "@flyva/shared": "workspace:*",
     "@playwright/test": "^1.51.0",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
@@ -29,6 +27,7 @@
     "typescript": "^5.8.0"
   },
   "peerDependencies": {
+    "@flyva/shared": "^0.8.0",
     "next": ">=14.0.0",
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0"

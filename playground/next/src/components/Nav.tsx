@@ -7,6 +7,9 @@ import { usePathname } from 'next/navigation';
 
 import styles from './Nav.module.scss';
 
+const docsHref = process.env.NEXT_PUBLIC_DEMO_DOCS_HREF ?? 'https://flyva.js.org/docs/guide/getting-started';
+const githubHref = process.env.NEXT_PUBLIC_DEMO_GITHUB_HREF ?? 'https://github.com/owlsdepartment/flyva';
+
 export function Nav() {
 	const pathname = usePathname();
 	const navLogoRef = useRef<HTMLSpanElement>(null);
@@ -94,6 +97,15 @@ export function Nav() {
 				>
 					Bypass <span className={styles.badge}>bypass</span>
 				</FlyvaLink>
+
+				<div className={styles.linkTail}>
+					<a className={styles.external} href={docsHref} rel="noopener noreferrer" target="_blank">
+						Docs
+					</a>
+					<a className={styles.external} href={githubHref} rel="noopener noreferrer" target="_blank">
+						GitHub
+					</a>
+				</div>
 			</div>
 		</nav>
 	);

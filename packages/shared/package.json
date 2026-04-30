@@ -1,7 +1,9 @@
 {
   "name": "@flyva/shared",
-  "version": "1.0.0-alpha.0",
-  "private": true,
+  "author": "Owls Department",
+  "license": "MIT",
+  "version": "0.8.0",
+  "description": "Framework-agnostic page transition core for Flyva adapters",
   "type": "module",
   "exports": {
     ".": "./index.ts",
@@ -10,6 +12,10 @@
     "./lifecycle-classes": "./lifecycle-classes.ts",
     "./types": "./types.ts",
     "./*": "./*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/owlsdepartment/flyva"
   },
   "scripts": {
     "test": "vitest run",

@@ -1,0 +1,2 @@
+:HL["/playground/next-vt/_next/static/chunks/039ax~ss7f351.css","style"]
+0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"about","param":null,"prefetchHints":0,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}}}},"staleTime":300,"buildId":"PiheUzRB0NjAIvebOOXfW"}

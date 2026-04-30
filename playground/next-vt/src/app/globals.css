@@ -62,7 +62,27 @@ body {
 
 .nav-links {
 	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
 	gap: 24px;
+}
+
+.nav-links-tail {
+	margin-left: auto;
+	display: flex;
+	align-items: center;
+	gap: 16px;
+}
+
+.nav-external {
+	color: var(--muted);
+	text-decoration: none;
+	font-size: 14px;
+	transition: color 0.15s;
+}
+
+.nav-external:hover {
+	color: var(--fg);
 }
 
 .nav-links a {

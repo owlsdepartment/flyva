@@ -5,7 +5,13 @@ import { defineConfig, type UserConfig } from 'vitepress';
 import llmstxt from 'vitepress-plugin-llms';
 import { withMermaid } from 'vitepress-plugin-mermaid';
 
+import { getSitePrefix, getVitePressBase } from './site-base';
+
 type VitePlugins = NonNullable<NonNullable<UserConfig['vite']>['plugins']>;
+
+const docsPublicOrigin = process.env.DOCS_PUBLIC_ORIGIN?.replace(/\/+$/, '');
+const llmsDomain = docsPublicOrigin && docsPublicOrigin.length > 0 ? docsPublicOrigin : undefined;
+const sitePrefix = getSitePrefix();
 
 const requireFromRoot = createRequire(path.join(process.cwd(), 'package.json'));
 const dayjsEsm = path.join(
@@ -15,11 +21,14 @@ const dayjsEsm = path.join(
 
 export default withMermaid(
 	defineConfig({
+		base: getVitePressBase(),
+		ignoreDeadLinks: [/^\/playground\//],
 		title: 'Flyva',
 		description: 'Seamless page transitions for Next.js and Nuxt',
 		themeConfig: {
 			nav: [
 				{ text: 'Guide', link: '/guide/getting-started' },
+				{ text: 'Demos', link: '/demos' },
 				{ text: 'API', link: '/api/shared' },
 				{
 					text: 'About',
@@ -35,6 +44,7 @@ export default withMermaid(
 				{
 					text: 'Guide',
 					items: [
+						{ text: 'Demos', link: '/demos' },
 						{ text: 'Getting Started', link: '/guide/getting-started' },
 						{
 							text: 'Next.js',
@@ -91,7 +101,16 @@ export default withMermaid(
 			flowchart: { useMaxWidth: true },
 		},
 		vite: {
-			plugins: [...llmstxt()] as VitePlugins,
+			plugins: [
+				...llmstxt({
+					...(llmsDomain ? { domain: llmsDomain } : {}),
+					title: 'Flyva',
+					description: 'Seamless page transitions for Next.js and Nuxt',
+					details: sitePrefix
+						? `Site prefix: ${sitePrefix}. Documentation and LLM bundles live under ${getVitePressBase()}.`
+						: 'Documentation and LLM bundles are served from /docs/.',
+				}),
+			] as VitePlugins,
 			resolve: {
 				alias: [
 					// Only the bare `dayjs` entry - subpaths like `dayjs/plugin/isoWeek` must stay intact.

@@ -2,7 +2,7 @@
   "name": "@flyva/nuxt",
   "author": "Owls Department",
   "license": "MIT",
-  "version": "1.0.0-alpha.0",
+  "version": "0.8.0",
   "description": "Seamless page transitions for Nuxt",
   "type": "module",
   "exports": {
@@ -16,11 +16,11 @@
     "url": "git+https://github.com/owlsdepartment/flyva"
   },
   "dependencies": {
-    "@flyva/shared": "workspace:*",
     "@nuxt/kit": "^4.0.0",
     "defu": "^6.1.4"
   },
   "devDependencies": {
+    "@flyva/shared": "workspace:*",
     "@nuxt/devtools": "^2.0.0",
     "@nuxt/module-builder": "^1.0.0",
     "@nuxt/schema": "^4.0.0",
@@ -29,6 +29,7 @@
     "typescript": "^5.8.0"
   },
   "peerDependencies": {
+    "@flyva/shared": "^0.8.0",
     "nuxt": ">=3.14.0",
     "vue": ">=3.4.0"
   },

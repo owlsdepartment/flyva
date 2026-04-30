@@ -1,0 +1,35 @@
+name: Publish npm
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Publish packages
+        run: |
+          pnpm --filter @flyva/shared publish --access public --provenance --no-git-checks
+          pnpm --filter @flyva/next publish --access public --provenance --no-git-checks
+          pnpm --filter @flyva/nuxt publish --access public --provenance --no-git-checks

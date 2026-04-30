@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const route = useRoute();
 const navCss = useCssModule();
+const { demoDocsHref, demoGithubHref } = useRuntimeConfig().public;
 
 const navLogoRef = ref<HTMLSpanElement | null>(null);
 
@@ -78,6 +79,11 @@ useFlyvaLifecycle(
 				<FlyvaLink to="/bypass" :flyva="false" :class="[navCss.link, route.path === '/bypass' ? navCss.linkActive : '']">
 					Bypass <span :class="navCss.badge">bypass</span>
 				</FlyvaLink>
+
+				<div :class="navCss.linkTail">
+					<a :class="navCss.external" :href="demoDocsHref" rel="noopener noreferrer" target="_blank">Docs</a>
+					<a :class="navCss.external" :href="demoGithubHref" rel="noopener noreferrer" target="_blank">GitHub</a>
+				</div>
 			</div>
 		</nav>
 
@@ -223,7 +229,27 @@ useFlyvaLifecycle(
 
 .links {
 	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
 	gap: 24px;
+}
+
+.linkTail {
+	margin-left: auto;
+	display: flex;
+	align-items: center;
+	gap: 16px;
+}
+
+.external {
+	color: var(--muted);
+	text-decoration: none;
+	font-size: 14px;
+	transition: color 0.15s;
+
+	&:hover {
+		color: var(--fg);
+	}
 }
 
 .link {

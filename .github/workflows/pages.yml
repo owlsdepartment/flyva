@@ -1,0 +1,92 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build docs
+        env:
+          SITE_BASE: /
+          DOCS_PUBLIC_ORIGIN: https://flyva.js.org
+        run: pnpm docs:build
+
+      - name: Build landing
+        env:
+          SITE_BASE: /
+        run: pnpm build:landing
+
+      - name: Build playground Next
+        env:
+          PLAYGROUND_BASE_PATH: /playground/next
+          NEXT_PUBLIC_DEMO_DOCS_HREF: https://flyva.js.org/docs/guide/getting-started
+          NEXT_PUBLIC_DEMO_GITHUB_HREF: https://github.com/owlsdepartment/flyva
+        run: pnpm --filter playground-next build
+
+      - name: Build playground Next (View Transitions)
+        env:
+          PLAYGROUND_BASE_PATH: /playground/next-vt
+          NEXT_PUBLIC_DEMO_DOCS_HREF: https://flyva.js.org/docs/guide/getting-started
+          NEXT_PUBLIC_DEMO_GITHUB_HREF: https://github.com/owlsdepartment/flyva
+        run: pnpm --filter playground-next-vt build
+
+      - name: Generate playground Nuxt
+        env:
+          PLAYGROUND_BASE_PATH: /playground/nuxt/
+          NUXT_PUBLIC_DEMO_DOCS_HREF: https://flyva.js.org/docs/guide/getting-started
+          NUXT_PUBLIC_DEMO_GITHUB_HREF: https://github.com/owlsdepartment/flyva
+        run: pnpm --filter playground-nuxt generate
+
+      - name: Generate playground Nuxt (View Transitions)
+        env:
+          PLAYGROUND_BASE_PATH: /playground/nuxt-vt/
+          NUXT_PUBLIC_DEMO_DOCS_HREF: https://flyva.js.org/docs/guide/getting-started
+          NUXT_PUBLIC_DEMO_GITHUB_HREF: https://github.com/owlsdepartment/flyva
+        run: pnpm --filter playground-nuxt-vt generate
+
+      - name: Assemble site
+        run: pnpm site:assemble
+
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: site-public
+
+  deploy:
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

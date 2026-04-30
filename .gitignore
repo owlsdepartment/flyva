@@ -58,6 +58,9 @@ docs/.vitepress/cache
 dist/
 packages/**/dist/
 
+# Assembled GitHub Pages bundle (scripts/assemble-pages.mjs)
+site-public/
+
 # Platform Specific
 .DS_Store
 

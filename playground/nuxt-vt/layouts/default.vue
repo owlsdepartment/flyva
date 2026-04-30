@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { demoDocsHref, demoGithubHref } = useRuntimeConfig().public;
 </script>
 
 <template>
@@ -21,6 +22,11 @@
 				>
 					Work <span class="nav-badge">js slide</span>
 				</FlyvaLink>
+
+				<div class="nav-links-tail">
+					<a class="nav-external" :href="demoDocsHref" rel="noopener noreferrer" target="_blank">Docs</a>
+					<a class="nav-external" :href="demoGithubHref" rel="noopener noreferrer" target="_blank">GitHub</a>
+				</div>
 			</div>
 		</nav>
 

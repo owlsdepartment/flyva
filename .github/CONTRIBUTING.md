@@ -75,3 +75,14 @@ Before pushing, the `pre-push` hook will run linters automatically. You can also
 ```bash
 pnpm lint
 ```
+
+## npm releases (OIDC)
+
+Maintainers publish `@flyva/next` and `@flyva/nuxt` with **npm Trusted Publishers** and the [`publish-npm.yml`](./workflows/publish-npm.yml) workflow (triggered when a **GitHub Release** is published, or via **workflow_dispatch** for testing).
+
+One-time setup on [npmjs.com](https://www.npmjs.com/):
+
+1. For each scope package (`@flyva/next`, `@flyva/nuxt`), add a **Trusted Publisher** pointing at this repository and the `publish-npm.yml` workflow file (optionally restrict to a GitHub Environment).
+2. In the GitHub repository **Settings → Actions → General**, under **Workflow permissions**, allow **Read and write** where required, and ensure **OIDC** is enabled for GitHub Actions so the registry can accept the publish token from `actions/setup-node` (no long-lived `NPM_TOKEN` secret is needed when Trusted Publishing is configured).
+
+The workflow runs `pnpm publish` with **`--provenance`**. `@flyva/shared` is currently **`private: true`** and is not published on its own; publishing the adapters may require that dependency to be resolvable from the registry (for example by publishing `@flyva/shared` or adjusting the release layout) before the automated job succeeds end-to-end.

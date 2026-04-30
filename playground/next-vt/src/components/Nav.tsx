@@ -3,6 +3,9 @@
 import { FlyvaLink } from '@flyva/next';
 import { usePathname } from 'next/navigation';
 
+const docsHref = process.env.NEXT_PUBLIC_DEMO_DOCS_HREF ?? 'https://flyva.js.org/docs/guide/getting-started';
+const githubHref = process.env.NEXT_PUBLIC_DEMO_GITHUB_HREF ?? 'https://github.com/owlsdepartment/flyva';
+
 export function Nav() {
 	const pathname = usePathname();
 
@@ -25,6 +28,15 @@ export function Nav() {
 				>
 					Work <span className="nav-badge">js slide</span>
 				</FlyvaLink>
+
+				<div className="nav-links-tail">
+					<a className="nav-external" href={docsHref} rel="noopener noreferrer" target="_blank">
+						Docs
+					</a>
+					<a className="nav-external" href={githubHref} rel="noopener noreferrer" target="_blank">
+						GitHub
+					</a>
+				</div>
 			</div>
 		</nav>
 	);

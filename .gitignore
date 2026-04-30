@@ -70,6 +70,7 @@ site-public/
 
 # Next.js
 .next/
+sites/landing/out/
 
 # pnpm store
 .pnpm-store/

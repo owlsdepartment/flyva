@@ -1,5 +1,0 @@
-1:"$Sreact.fragment"
-2:I[69377,["/_next/static/chunks/0solz5tikvbxx.js"],"OutletBoundary"]
-3:"$Sreact.suspense"
-0:{"rsc":["$","$1","c",{"children":[["$","main",null,{"className":"lp","children":[["$","h1",null,{"className":"lp-title","children":"Flyva"}],["$","p",null,{"className":"lp-tagline","children":"The ultimate context-aware page transitions system for Next.js and Nuxt."}],["$","div",null,{"className":"lp-actions","children":[["$","a",null,{"className":"lp-btn lp-btn--primary","href":"/docs/guide/getting-started","children":"Getting started"}],["$","a",null,{"className":"lp-btn lp-btn--ghost","href":"https://github.com/owlsdepartment/flyva","rel":"noopener noreferrer","target":"_blank","children":"Github"}]]}]]}],null,["$","$L2",null,{"children":["$","$3",null,{"name":"Next.MetadataOutlet","children":"$@4"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"UZas63MFhqdKYFpe_OcDD"}
-4:null

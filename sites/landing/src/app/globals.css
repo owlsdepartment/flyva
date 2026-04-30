@@ -7,21 +7,21 @@
 }
 
 :root {
-	--lp-bg: #ffffff;
-	--lp-fg: #0a0a0a;
-	--lp-muted: #525252;
-	--lp-accent: #0a0a0a;
-	--lp-radius: 2px;
+	--bg: #0a0a0a;
+	--fg: #e5e5e5;
+	--muted: #888;
+	--border: #262626;
+	--radius: 8px;
 }
 
 html {
-	color-scheme: light;
+	color-scheme: dark;
 }
 
 body {
-	font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-	background: var(--lp-bg);
-	color: var(--lp-fg);
+	font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
+	background: var(--bg);
+	color: var(--fg);
 	line-height: 1.45;
 	-webkit-font-smoothing: antialiased;
 	min-height: 100vh;
@@ -29,60 +29,4 @@ body {
 	align-items: center;
 	justify-content: center;
 	padding: 2rem;
-}
-
-.lp {
-	text-align: center;
-	max-width: 40rem;
-}
-
-.lp-title {
-	font-size: clamp(2.5rem, 8vw, 4rem);
-	font-weight: 700;
-	letter-spacing: -0.03em;
-	margin-bottom: 1rem;
-}
-
-.lp-tagline {
-	font-size: clamp(1rem, 2.5vw, 1.25rem);
-	font-weight: 600;
-	color: var(--lp-fg);
-	margin-bottom: 2rem;
-	line-height: 1.35;
-}
-
-.lp-actions {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 0.75rem;
-	justify-content: center;
-}
-
-.lp-btn {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	padding: 0.65rem 1.35rem;
-	font-size: 0.95rem;
-	font-weight: 600;
-	text-decoration: none;
-	border-radius: var(--lp-radius);
-	border: 1px solid transparent;
-	transition: opacity 0.15s ease;
-}
-
-.lp-btn:hover {
-	opacity: 0.88;
-}
-
-.lp-btn--primary {
-	background: var(--lp-accent);
-	color: #fff;
-	border-color: var(--lp-accent);
-}
-
-.lp-btn--ghost {
-	background: #fff;
-	color: var(--lp-fg);
-	border-color: var(--lp-fg);
 }

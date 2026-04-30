@@ -23,7 +23,7 @@ export function applyViewTransitionNames(
 				: (names as (ctx: PageTransitionContext) => Record<string, string>)(context)
 			: names;
 	for (const [vtName, selector] of Object.entries(resolved)) {
-		const el = document.querySelector(selector);
+		const el = document.querySelector(selector as string);
 		if (el instanceof HTMLElement) el.style.viewTransitionName = vtName;
 	}
 	return resolved;
@@ -31,7 +31,7 @@ export function applyViewTransitionNames(
 
 export function clearViewTransitionNames(names: Record<string, string>): void {
 	for (const [, selector] of Object.entries(names)) {
-		const el = document.querySelector(selector);
+		const el = document.querySelector(selector as string);
 		if (el instanceof HTMLElement) el.style.viewTransitionName = '';
 	}
 }

@@ -222,7 +222,31 @@ useFlyvaLifecycle(
 	min-width: 0;
 }
 
+.links {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 24px;
+}
+
+.linkTail {
+	margin-left: auto;
+	display: flex;
+	align-items: center;
+	gap: 16px;
+}
+
 @media (max-width: 960px) {
+	.root {
+		flex-wrap: nowrap;
+		overflow: hidden;
+	}
+
+	.logoLink {
+		min-width: 0;
+		flex-shrink: 1;
+	}
+
 	.burger {
 		display: inline-flex;
 	}
@@ -388,20 +412,6 @@ useFlyvaLifecycle(
 	font-weight: 400;
 	font-size: 13px;
 	white-space: nowrap;
-}
-
-.links {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 24px;
-}
-
-.linkTail {
-	margin-left: auto;
-	display: flex;
-	align-items: center;
-	gap: 16px;
 }
 
 .outlineBtn {

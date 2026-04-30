@@ -151,6 +151,16 @@ body {
 }
 
 @media (max-width: 960px) {
+	.nav {
+		flex-wrap: nowrap;
+		overflow: hidden;
+	}
+
+	.nav-logo-link {
+		min-width: 0;
+		flex-shrink: 1;
+	}
+
 	.nav-burger {
 		display: inline-flex;
 	}

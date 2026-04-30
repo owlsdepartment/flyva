@@ -1,11 +1,14 @@
+import './globals.css';
+
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
-import './globals.css';
+const tagline = 'The ultimate context-aware page transitions system for Next.js and Nuxt.';
+const short = 'Page transitions for Next.js and Nuxt websites';
 
 export const metadata: Metadata = {
-	title: 'Flyva',
-	description: 'The ultimate context-aware page transitions system for Next.js and Nuxt.',
+	title: `Flyva | ${short}`,
+	description: tagline,
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

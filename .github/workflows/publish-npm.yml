@@ -25,15 +25,18 @@ jobs:
 
       - uses: actions/setup-node@v5
         with:
-          node-version: 22
+          node-version: 22.14
           registry-url: https://registry.npmjs.org
           cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Upgrade npm for OIDC trusted publishing
+        run: npm install -g npm@^11.5.1
+
       - name: Publish packages
         run: |
-          pnpm --filter @flyva/shared publish --access public --provenance --no-git-checks
-          pnpm --filter @flyva/next publish --access public --provenance --no-git-checks
-          pnpm --filter @flyva/nuxt publish --access public --provenance --no-git-checks
+          (cd packages/shared && npm publish --access public --provenance --no-git-checks)
+          (cd packages/next && npm publish --access public --provenance --no-git-checks)
+          (cd packages/nuxt && npm publish --access public --provenance --no-git-checks)

@@ -2,10 +2,18 @@
 	"$schema": "https://unpkg.com/@changesets/config@3.1.4/schema.json",
 	"changelog": "@changesets/cli/changelog",
 	"commit": false,
-	"fixed": [],
+	"fixed": [
+		["@flyva/shared", "@flyva/next", "@flyva/nuxt"]
+	],
 	"linked": [],
 	"access": "public",
 	"baseBranch": "main",
 	"updateInternalDependencies": "patch",
-	"ignore": []
+	"ignore": [
+		"playground-next",
+		"playground-next-vt",
+		"playground-nuxt",
+		"playground-nuxt-vt",
+		"flyva-landing"
+	]
 }

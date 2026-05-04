@@ -78,11 +78,11 @@ pnpm lint
 
 ## npm releases (OIDC)
 
-Maintainers publish `@flyva/next` and `@flyva/nuxt` with **npm Trusted Publishers** and the [`publish-npm.yml`](./workflows/publish-npm.yml) workflow (triggered when a **GitHub Release** is published, or via **workflow_dispatch** for testing).
+Maintainers publish **`@flyva/shared`**, **`@flyva/next`**, and **`@flyva/nuxt`** with **npm Trusted Publishers** and the [`publish-npm.yml`](./workflows/publish-npm.yml) workflow (triggered on **`v*` tags**, when a **GitHub Release** is published, or via **workflow_dispatch**).
 
 One-time setup on [npmjs.com](https://www.npmjs.com/):
 
-1. For each scope package (`@flyva/next`, `@flyva/nuxt`), add a **Trusted Publisher** pointing at this repository and the `publish-npm.yml` workflow file (optionally restrict to a GitHub Environment).
-2. In the GitHub repository **Settings → Actions → General**, under **Workflow permissions**, allow **Read and write** where required, and ensure **OIDC** is enabled for GitHub Actions so the registry can accept the publish token from `actions/setup-node` (no long-lived `NPM_TOKEN` secret is needed when Trusted Publishing is configured).
+1. For **each** published package (`@flyva/shared`, `@flyva/next`, `@flyva/nuxt`), add a **Trusted Publisher** pointing at this repository and the **`publish-npm.yml`** workflow file (optionally restrict to a GitHub Environment). The workflow filename must match exactly, including the `.yml` extension.
+2. In the GitHub repository **Settings → Actions → General**, under **Workflow permissions**, allow **Read and write** where required, and ensure **OIDC** is enabled for GitHub Actions (no long-lived `NPM_TOKEN` secret is needed when Trusted Publishing is configured).
 
-The workflow runs `pnpm publish` with **`--provenance`**. `@flyva/shared` is currently **`private: true`** and is not published on its own; publishing the adapters may require that dependency to be resolvable from the registry (for example by publishing `@flyva/shared` or adjusting the release layout) before the automated job succeeds end-to-end.
+The workflow installs dependencies with **pnpm**, then runs **`npm publish`** (not `pnpm publish`) with **`--provenance`**. Trusted publishing is implemented in the **npm CLI** (11.5.1+); using `npm publish` from each `packages/*` directory avoids OIDC failures that can show up as **404** when going through `pnpm publish`.

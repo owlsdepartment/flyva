@@ -15,7 +15,7 @@
     "@flyva/nuxt": "workspace:*",
     "@flyva/shared": "workspace:*",
     "animejs": "^4.0.0",
-    "nuxt": "^4.4.0",
+    "nuxt": "^4.4.4",
     "vue": "^3.4.0"
   }
 }

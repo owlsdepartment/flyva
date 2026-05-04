@@ -75,6 +75,19 @@
   },
   "packageManager": "pnpm@10.33.0+sha512.10568bb4a6afb58c9eb3630da90cc9516417abebd3fabbe6739f0ae795728da1491e9db5a544c76ad8eb7570f5c4bb3d6c637b2cb41bfdcdb47fa823c8649319",
   "pnpm": {
+    "overrides": {
+      "c12>defu": "^6.1.5",
+      "nuxt>defu": "^6.1.5",
+      "archiver-utils>lodash": "^4.18.0",
+      "next>postcss": "^8.5.10",
+      "stylelint>postcss": "^8.5.10",
+      "stylelint-order>postcss": "^8.5.10",
+      "@nuxt/vite-builder>vite": "^7.3.2",
+      "@nuxt/devtools>vite": "^7.3.2",
+      "vitest>vite": "^7.3.2",
+      "unhead": "^2.1.13",
+      "esbuild": "^0.25.0"
+    },
     "onlyBuiltDependencies": [
       "@parcel/watcher",
       "esbuild",

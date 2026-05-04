@@ -7,9 +7,8 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  # GitHub Pages project URL (https://owlsdepartment.github.io/flyva/). Revert SITE_BASE to / and DOCS_PUBLIC_ORIGIN to https://flyva.js.org after js.org is live.
-  SITE_BASE: /flyva
-  DOCS_PUBLIC_ORIGIN: https://owlsdepartment.github.io/flyva
+  SITE_BASE: '/'
+  DOCS_PUBLIC_ORIGIN: https://flyva.js.org
 
 permissions:
   contents: read
@@ -37,35 +36,40 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build docs
+        env:
+          SITE_BASE: ${{ env.SITE_BASE }}
+          DOCS_PUBLIC_ORIGIN: ${{ env.DOCS_PUBLIC_ORIGIN }}
         run: pnpm docs:build
 
       - name: Build landing
+        env:
+          SITE_BASE: ${{ env.SITE_BASE }}
         run: pnpm build:landing
 
       - name: Build playground Next
         env:
-          PLAYGROUND_BASE_PATH: ${{ env.SITE_BASE }}/playground/next
+          PLAYGROUND_BASE_PATH: /playground/next
           NEXT_PUBLIC_DEMO_DOCS_HREF: ${{ env.DOCS_PUBLIC_ORIGIN }}/docs/guide/getting-started
           NEXT_PUBLIC_DEMO_GITHUB_HREF: https://github.com/owlsdepartment/flyva
         run: pnpm --filter playground-next build
 
       - name: Build playground Next (View Transitions)
         env:
-          PLAYGROUND_BASE_PATH: ${{ env.SITE_BASE }}/playground/next-vt
+          PLAYGROUND_BASE_PATH: /playground/next-vt
           NEXT_PUBLIC_DEMO_DOCS_HREF: ${{ env.DOCS_PUBLIC_ORIGIN }}/docs/guide/getting-started
           NEXT_PUBLIC_DEMO_GITHUB_HREF: https://github.com/owlsdepartment/flyva
         run: pnpm --filter playground-next-vt build
 
       - name: Generate playground Nuxt
         env:
-          PLAYGROUND_BASE_PATH: ${{ env.SITE_BASE }}/playground/nuxt/
+          PLAYGROUND_BASE_PATH: /playground/nuxt/
           NUXT_PUBLIC_DEMO_DOCS_HREF: ${{ env.DOCS_PUBLIC_ORIGIN }}/docs/guide/getting-started
           NUXT_PUBLIC_DEMO_GITHUB_HREF: https://github.com/owlsdepartment/flyva
         run: pnpm --filter playground-nuxt generate
 
       - name: Generate playground Nuxt (View Transitions)
         env:
-          PLAYGROUND_BASE_PATH: ${{ env.SITE_BASE }}/playground/nuxt-vt/
+          PLAYGROUND_BASE_PATH: /playground/nuxt-vt/
           NUXT_PUBLIC_DEMO_DOCS_HREF: ${{ env.DOCS_PUBLIC_ORIGIN }}/docs/guide/getting-started
           NUXT_PUBLIC_DEMO_GITHUB_HREF: https://github.com/owlsdepartment/flyva
         run: pnpm --filter playground-nuxt-vt generate

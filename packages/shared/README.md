@@ -1,8 +1,17 @@
 # @flyva/shared
 
-Framework-agnostic core for flyva page transitions. Provides the `PageTransitionManager` and the `PageTransition` lifecycle interface used by both `@flyva/next` and `@flyva/nuxt`.
+**Core** of Flyva: framework-agnostic page transition logic. It defines the `PageTransition` lifecycle, `PageTransitionManager`, and shared helpers. The Next.js and Nuxt packages are thin adapters that wire this core into each framework’s router and reactivity.
 
-> This package is an internal dependency — you don't install it directly. It's pulled in by the framework adapters.
+Install **`@flyva/shared`** alongside the adapter you use; the adapters list it as a **peer dependency**, so your app resolves one shared version for both.
+
+## Framework implementations
+
+| Framework | Package | Docs |
+| --- | --- | --- |
+| **Next.js** (App Router) | [`@flyva/next` on npm](https://www.npmjs.com/package/@flyva/next) | [Next.js guide](https://flyva.js.org/docs/guide/next/) |
+| **Nuxt** (module) | [`@flyva/nuxt` on npm](https://www.npmjs.com/package/@flyva/nuxt) | [Nuxt guide](https://flyva.js.org/docs/guide/nuxt/) |
+
+Docs for the whole project (guides, API): [flyva.js.org](https://flyva.js.org). 
 
 ## Import paths
 

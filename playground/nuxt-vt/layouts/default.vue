@@ -4,13 +4,6 @@ const { demoDocsHref, demoGithubHref } = useRuntimeConfig().public;
 
 const menuOpen = ref(false);
 
-watch(
-	() => route.path,
-	() => {
-		menuOpen.value = false;
-	},
-);
-
 watchEffect((onCleanup) => {
 	if (!menuOpen.value || !import.meta.client) return;
 	const onKey = (e: KeyboardEvent) => {
@@ -19,6 +12,15 @@ watchEffect((onCleanup) => {
 	window.addEventListener('keydown', onKey);
 	onCleanup(() => window.removeEventListener('keydown', onKey));
 });
+
+useFlyvaLifecycle(
+	{
+		prepare() {
+			menuOpen.value = false;
+		},
+	},
+	{ blocking: false },
+);
 </script>
 
 <template>

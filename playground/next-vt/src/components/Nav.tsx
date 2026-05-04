@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-import { FlyvaLink } from '@flyva/next';
+import { FlyvaLink, useFlyvaLifecycle } from '@flyva/next';
 import { usePathname } from 'next/navigation';
 
 const docsHref = process.env.NEXT_PUBLIC_DEMO_DOCS_HREF ?? 'https://flyva.js.org/docs/guide/getting-started';
@@ -12,9 +12,16 @@ export function Nav() {
 	const pathname = usePathname();
 	const [menuOpen, setMenuOpen] = useState(false);
 
-	useEffect(() => {
-		setMenuOpen(false);
-	}, [pathname]);
+	useFlyvaLifecycle(
+		{
+			prepare() {
+				setMenuOpen(false);
+			},
+		},
+		{
+			blocking: false,
+		},
+	);
 
 	useEffect(() => {
 		if (!menuOpen) return;

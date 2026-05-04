@@ -153,7 +153,7 @@ body {
 @media (max-width: 960px) {
 	.nav {
 		flex-wrap: nowrap;
-		overflow: hidden;
+		overflow: visible;
 	}
 
 	.nav-logo-link {
@@ -168,7 +168,10 @@ body {
 	.nav-backdrop {
 		display: block;
 		position: fixed;
-		inset: 62px 0 0;
+		top: 62px;
+		left: 0;
+		width: 100vw;
+		height: calc(100dvh - 62px);
 		z-index: 98;
 		border: 0;
 		padding: 0;
@@ -181,8 +184,8 @@ body {
 		position: fixed;
 		top: 62px;
 		right: 0;
-		bottom: 0;
 		width: min(100%, 320px);
+		height: calc(100dvh - 62px);
 		z-index: 99;
 		flex: none;
 		justify-content: stretch;

@@ -15,7 +15,7 @@
     "type": "git",
     "url": "git+https://github.com/owlsdepartment/flyva"
   },
-  "homepage": "https://flyva.js.org/",
+  "homepage": "https://flyva.js.org",
   "bugs": {
     "url": "https://github.com/owlsdepartment/flyva/issues"
   },

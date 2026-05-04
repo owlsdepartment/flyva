@@ -6,13 +6,6 @@ const { demoDocsHref, demoGithubHref } = useRuntimeConfig().public;
 const navLogoRef = ref<HTMLSpanElement | null>(null);
 const menuOpen = ref(false);
 
-watch(
-	() => route.path,
-	() => {
-		menuOpen.value = false;
-	},
-);
-
 watchEffect((onCleanup) => {
 	if (!menuOpen.value || !import.meta.client) return;
 	const onKey = (e: KeyboardEvent) => {
@@ -25,6 +18,7 @@ watchEffect((onCleanup) => {
 useFlyvaLifecycle(
 	{
 		prepare() {
+			menuOpen.value = false;
 			navLogoRef.value?.classList.add(navCss.expanded);
 		},
 		cleanup() {
@@ -239,7 +233,7 @@ useFlyvaLifecycle(
 @media (max-width: 960px) {
 	.root {
 		flex-wrap: nowrap;
-		overflow: hidden;
+		overflow: visible;
 	}
 
 	.logoLink {
@@ -254,7 +248,10 @@ useFlyvaLifecycle(
 	.backdrop {
 		display: block;
 		position: fixed;
-		inset: 62px 0 0;
+		top: 62px;
+		left: 0;
+		width: 100vw;
+		height: calc(100dvh - 62px);
 		z-index: 98;
 		border: 0;
 		padding: 0;
@@ -267,8 +264,8 @@ useFlyvaLifecycle(
 		position: fixed;
 		top: 62px;
 		right: 0;
-		bottom: 0;
 		width: min(100%, 320px);
+		height: calc(100dvh - 62px);
 		z-index: 99;
 		flex: none;
 		justify-content: stretch;

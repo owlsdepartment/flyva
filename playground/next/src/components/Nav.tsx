@@ -18,6 +18,7 @@ export function Nav() {
 	useFlyvaLifecycle(
 		{
 			prepare() {
+				setMenuOpen(false);
 				navLogoRef.current?.classList.add(styles.expanded);
 			},
 			cleanup() {
@@ -28,10 +29,6 @@ export function Nav() {
 			blocking: false,
 		},
 	);
-
-	useEffect(() => {
-		setMenuOpen(false);
-	}, [pathname]);
 
 	useEffect(() => {
 		if (!menuOpen) return;

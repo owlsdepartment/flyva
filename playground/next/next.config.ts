@@ -11,6 +11,7 @@ const basePath = playgroundBasePath();
 const nextConfig: NextConfig = {
 	transpilePackages: ['@flyva/next', '@flyva/shared'],
 	output: 'export',
+	trailingSlash: true,
 	...(basePath ? { basePath, assetPrefix: `${basePath}/` } : {}),
 	env: {
 		NEXT_PUBLIC_DEMO_DOCS_HREF:

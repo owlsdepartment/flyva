@@ -19,7 +19,7 @@ export const defaultTransition = defineTransition({
 		const hero = globalGetRefStackItem<HTMLElement>('hero');
 
 		if (hero?.current) {
-			animate(hero.current, { scale: 0.95, opacity: 0, duration: 300, ease: 'inQuad' });
+			await animate(hero.current, { scale: 0.95, opacity: 0, duration: 300, ease: 'inQuad' });
 		}
 
 		await animate(target, { opacity: 0, duration: 400, ease: 'inQuad' });

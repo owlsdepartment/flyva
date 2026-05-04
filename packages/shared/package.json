@@ -2,7 +2,7 @@
   "name": "@flyva/shared",
   "author": "Owls Department",
   "license": "MIT",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Framework-agnostic page transition core for Flyva adapters",
   "type": "module",
   "exports": {

@@ -72,7 +72,7 @@ export function FlyvaTransitionWrapper({ children }: PropsWithChildren) {
 			manager.setContentElements(undefined, contentRef.current);
 		}
 
-		setTimeout(async () => {
+		void (async () => {
 			await transition.enter();
 
 			if (cloneRef.current) {
@@ -89,7 +89,7 @@ export function FlyvaTransitionWrapper({ children }: PropsWithChildren) {
 			if (contentRef.current) {
 				manager.setContentElements(contentRef.current);
 			}
-		});
+		})();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [pathname]);
 

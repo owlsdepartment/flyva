@@ -18,11 +18,12 @@ export const defaultTransition = defineTransition({
 
 		const hero = globalGetRefStackItem<HTMLElement>('hero');
 
+		
 		if (hero?.current) {
-			await animate(hero.current, { scale: 0.95, opacity: 0, duration: 300, ease: 'inQuad' });
+			await animate(hero.current, { scale: 0.95, opacity: 0, duration: 320, ease: 'inCubic' });
 		}
 
-		await animate(target, { opacity: 0, duration: 400, ease: 'inQuad' });
+		await animate(target, { opacity: 0, duration: 420, ease: 'inQuad' });
 	},
 
 	afterLeave(ctx) {
@@ -42,6 +43,6 @@ export const defaultTransition = defineTransition({
 		const target = ctx.container;
 		if (!target) return;
 
-		await animate(target, { opacity: 1, duration: 400, ease: 'outQuad' });
+		await animate(target, { opacity: 1, duration: 560, ease: 'outQuad' });
 	},
 });

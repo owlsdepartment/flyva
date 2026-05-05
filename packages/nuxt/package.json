@@ -2,7 +2,7 @@
   "name": "@flyva/nuxt",
   "author": "Owls Department",
   "license": "MIT",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "Seamless page transitions for Nuxt",
   "type": "module",
   "exports": {
@@ -36,7 +36,7 @@
     "typescript": "^5.8.0"
   },
   "peerDependencies": {
-    "@flyva/shared": "^0.8.0",
+    "@flyva/shared": "^0.8.2",
     "nuxt": ">=3.14.0",
     "vue": ">=3.4.0"
   },

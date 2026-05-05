@@ -22,7 +22,7 @@ export const defaultTransition = defineTransition({
 			await animate(hero.value, { scale: 0.75, opacity: 0, duration: 320, ease: 'inCubic' });
 		}
 
-		await animate(target, { opacity: 0, duration: 420, ease: 'inCubic' });
+		await animate(target, { opacity: 0, duration: 420, ease: 'inQuad' });
 	},
 
 	afterLeave(ctx) {
@@ -42,6 +42,6 @@ export const defaultTransition = defineTransition({
 		const target = ctx.container;
 		if (!target) return;
 
-		await animate(target, { opacity: 1, duration: 560, ease: 'outCubic' });
+		await animate(target, { opacity: 1, duration: 560, ease: 'outQuad' });
 	},
 });

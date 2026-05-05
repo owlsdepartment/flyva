@@ -128,6 +128,9 @@ export function useFlyvaTransition() {
 		const content = flyvaManager.currentContent;
 		if (!content) return;
 		const name = flyvaManager.runningName as string;
+		const el = content;
+		el.style.removeProperty('opacity');
+		el.style.removeProperty('transform');
 		await applyCssStageClasses(content, name, 'leave', { retainLeaveComputedStyle: true });
 	}
 
@@ -140,14 +143,17 @@ export function useFlyvaTransition() {
 		el.style.removeProperty('transform');
 		el.style.removeProperty('pointer-events');
 		await applyCssStageClasses(content, name, 'enter');
-		flyvaManager.finishTransition();
 	}
 
 	async function leave() {
 		initializedManually = true;
 
 		if (flyvaManager.runningInstance?.cssMode && !config.viewTransition) {
+			await flyvaManager.beforeLeave();
+			await flyvaManager.readyPromise;
+			await flyvaManager.leave();
 			await leaveWithCssMode();
+			await flyvaManager.afterLeave();
 			return;
 		}
 
@@ -191,7 +197,11 @@ export function useFlyvaTransition() {
 		}
 
 		if (flyvaManager.runningInstance?.cssMode && !config.viewTransition) {
+			await flyvaManager.beforeEnter();
+			await flyvaManager.readyPromise;
+			await flyvaManager.enter();
 			await enterWithCssMode();
+			await flyvaManager.afterEnter();
 			initializedManually = false;
 			return;
 		}

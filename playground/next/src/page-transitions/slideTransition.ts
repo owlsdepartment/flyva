@@ -3,13 +3,15 @@ import { animate } from 'animejs';
 import type { PageTransition, PageTransitionContext, PageTransitionMatchContext } from '@flyva/shared';
 
 function isWorkIndexPath(toHref: string): boolean {
+	let pathname = '';
 	try {
-		const pathname = new URL(toHref, 'http://local').pathname.replace(/\/+$/, '') || '/';
-		return pathname === '/work';
+		pathname = new URL(toHref, 'http://local').pathname;
 	} catch {
-		const p = toHref.split('?')[0]?.split('#')[0]?.replace(/\/+$/, '') || '/';
-		return p === '/work';
+		pathname = toHref.split('?')[0]?.split('#')[0] ?? '';
 	}
+
+	const normalizedPath = pathname.replace(/\/+$/, '') || '/';
+	return normalizedPath === '/work' || normalizedPath.endsWith('/work');
 }
 
 class SlideOverTransitionClass implements PageTransition {

@@ -25,6 +25,7 @@ export default withMermaid(
 		ignoreDeadLinks: [/^\/playground\//],
 		title: 'Flyva',
 		description: 'Seamless page transitions for Next.js and Nuxt',
+		head: [['link', { rel: 'icon', type: 'image/svg+xml', href: `${getVitePressBase()}icon.svg` }]],
 		themeConfig: {
 			nav: [
 				{ text: 'Guide', link: '/guide/getting-started' },

@@ -9,6 +9,9 @@ function playgroundBaseURL(): string {
 export default defineNuxtConfig({
 	app: {
 		baseURL: playgroundBaseURL(),
+		head: {
+			link: [{ rel: 'icon', type: 'image/svg+xml', href: '/icon.svg' }],
+		},
 	},
 	runtimeConfig: {
 		public: {

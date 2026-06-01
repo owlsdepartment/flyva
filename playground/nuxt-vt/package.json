@@ -10,7 +10,7 @@
   "dependencies": {
     "@flyva/nuxt": "workspace:*",
     "@flyva/shared": "workspace:*",
-    "nuxt": "^4.4.4",
+    "nuxt": "^4.4.6",
     "vue": "^3.4.0"
   }
 }

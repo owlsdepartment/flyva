@@ -136,15 +136,16 @@ export class PageTransitionManager<
 		const fb = (this._config.defaultTransitionKey ?? 'defaultTransition') as keyof T;
 		if (!(String(fb) in this.transitions)) {
 			const keys = sortTransitionKeysForMatching(this.transitions);
-			if (!keys.length) {
+			const firstKey = keys[0];
+			if (firstKey === undefined) {
 				throw new Error('[flyva] No transitions registered');
 			}
 			if (process.env.NODE_ENV === 'development') {
 				console.warn(
-					`[flyva] defaultTransitionKey "${String(fb)}" not in transitions map; using "${String(keys[0])}"`,
+					`[flyva] defaultTransitionKey "${String(fb)}" not in transitions map; using "${String(firstKey)}"`,
 				);
 			}
-			return keys[0];
+			return firstKey;
 		}
 		return fb;
 	}

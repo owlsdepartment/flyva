@@ -81,6 +81,10 @@ export function useFlyvaTransition() {
 			if (parent) {
 				parent.insertBefore(_capturedClone, flyvaManager.currentContent);
 			}
+
+			// Live source stays in the tree until Next swaps it; hide it so it cannot
+			// flash under the clone while the next page is loading.
+			flyvaManager.currentContent.style.display = 'none';
 		}
 	}
 

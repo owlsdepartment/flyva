@@ -14,6 +14,7 @@ import { useFlyvaManager } from './useFlyvaManager';
 let initializedManually = false;
 let hasTransitioned = false;
 let _capturedClone: HTMLElement | null = null;
+let _cloneSource: HTMLElement | null = null;
 let _vtActive = false;
 
 let _domSwapResolve: (() => void) | null = null;
@@ -48,6 +49,7 @@ function injectCloneStyles() {
 export function getCapturedClone(): HTMLElement | null {
 	const clone = _capturedClone;
 	_capturedClone = null;
+	_cloneSource = null;
 	return clone;
 }
 
@@ -67,25 +69,43 @@ export function useFlyvaTransition() {
 		const resolved = explicit ?? (await flyvaManager.matchTransitionKey(options, el));
 		await flyvaManager.run(resolved, options, el);
 
-		if (
-			!config.viewTransition &&
-			flyvaManager.runningInstance?.concurrent &&
-			flyvaManager.currentContent
-		) {
-			injectCloneStyles();
+		const instance = flyvaManager.runningInstance;
+		const source = flyvaManager.currentContent;
+		if (config.viewTransition || !instance?.concurrent || !source) return;
 
-			_capturedClone = flyvaManager.currentContent.cloneNode(true) as HTMLElement;
-			_capturedClone.classList.add('flyva-clone');
+		const clone = source.cloneNode(true) as HTMLElement;
+		clone.classList.add('flyva-clone');
 
-			const parent = flyvaManager.currentContent.parentNode as HTMLElement | null;
-			if (parent) {
-				parent.insertBefore(_capturedClone, flyvaManager.currentContent);
-			}
+		await flyvaManager.prepareOutgoing(source, clone);
+		if (flyvaManager.runningInstance !== instance) return;
 
-			// Live source stays in the tree until Next swaps it; hide it so it cannot
-			// flash under the clone while the next page is loading.
-			flyvaManager.currentContent.style.display = 'none';
-		}
+		injectCloneStyles();
+		source.parentNode?.insertBefore(clone, source);
+
+		// Live source stays in the tree until Next swaps it; hide it so it cannot
+		// flash under the clone while the next page is loading.
+		source.style.display = 'none';
+
+		_capturedClone = clone;
+		_cloneSource = source;
+	}
+
+	/**
+	 * Undoes a concurrent clone swap that has not been handed to the incoming page yet: removes the
+	 * clone, shows the live source again and points the manager back at it. Returns whether anything
+	 * was restored.
+	 */
+	function abortConcurrent(): boolean {
+		const clone = _capturedClone;
+		const source = _cloneSource;
+		_capturedClone = null;
+		_cloneSource = null;
+		if (!clone || !source) return false;
+
+		source.style.display = '';
+		clone.remove();
+		flyvaManager.setContentElements(source);
+		return true;
 	}
 
 	async function leaveWithViewTransition(navigate: () => void): Promise<void> {
@@ -224,6 +244,7 @@ export function useFlyvaTransition() {
 		completeConcurrentLeaveAfterNavigation,
 		enter,
 		leaveWithViewTransition,
+		abortConcurrent,
 		get hasTransitioned() {
 			return hasTransitioned;
 		},

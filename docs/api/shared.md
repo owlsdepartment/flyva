@@ -6,10 +6,11 @@ Framework-agnostic core. This package is an internal dependency - it's re-export
 
 | Subpath | Contents |
 |---------|----------|
-| **`@flyva/shared`** | Full barrel: transition types, `defineTransition`, `PageTransitionManager`, view-transition helpers, lifecycle helpers |
+| **`@flyva/shared`** | Full barrel: transition types, `defineTransition`, `PageTransitionManager`, view-transition helpers, lifecycle helpers, outgoing helpers |
 | **`@flyva/shared/page-transition-manager`** | `PageTransitionManager`, `defineTransition`, and transition-related types |
 | **`@flyva/shared/view-transition`** | View Transitions helpers (`supportsViewTransitions`, `applyViewTransitionNames`, CSS stage helpers, …) |
 | **`@flyva/shared/lifecycle-classes`** | `applyLifecycleClasses`, `FLYVA_TRANSITION_DATA_ATTR` |
+| **`@flyva/shared/outgoing`** | `createOutgoingContext`, `freezeAnimations`, `freezeMedia`, `OutgoingContext` / `OutgoingHook` types |
 | **`@flyva/shared/types`** | `Reactive`, `ReactiveFactory` (used when wiring a custom `ReactiveFactory` into `PageTransitionManager`) |
 
 Prefer the package root when you need several areas; use a subpath when you want a narrower import surface (e.g. only view-transition utilities).
@@ -37,6 +38,7 @@ new PageTransitionManager(transitions, reactiveFactory, config?)
 | `viewTransition` | `boolean` | `undefined` | When `true`, dev warnings reference VT-specific rules |
 | `lifecycleClassPrefix` | `string` | `'flyva'` | Prefix for lifecycle CSS classes on `document.documentElement`; `data-flyva-transition` is not prefixed and always holds the transition map key |
 | `defaultTransitionKey` | `string` | `'defaultTransition'` | Map key used when no transition’s `condition` matches during `matchTransitionKey` |
+| `prepareOutgoing` | `OutgoingHook \| OutgoingHook[]` | - | Global concurrent outgoing hooks (run before active-hook / transition `prepareOutgoing`) |
 
 ### Properties
 
@@ -66,6 +68,8 @@ new PageTransitionManager(transitions, reactiveFactory, config?)
 | `makeContext(el?)` | `PageTransitionContext` | Build context for the active transition (used by adapters) |
 | `finishTransition()` | `void` | Run active-hook `cleanup`, transition `cleanup()`, clear running state, content refs, and lifecycle classes |
 | `registerActiveHook(registration)` | `(cleanup?: () => void) => void` | Register an `ActiveHookRegistration`; returns an unregister function |
+| `prepareOutgoing(source, target?)` | `Promise<void>` | Concurrent only: run global → active-hook → transition `prepareOutgoing` (skipped when not concurrent / no running instance). `target` defaults to `source` |
+| `onPrepareOutgoing(hook)` | `() => void` | Register a global outgoing hook; returns unregister |
 | `getInstance(name)` | `PageTransition` | Get a transition instance by key |
 
 ### `sortTransitionKeysForMatching(transitions)`
@@ -82,11 +86,13 @@ Interface for transition implementations. All methods are optional.
 interface PageTransition<O = PageTransitionOptions> {
   concurrent?: boolean
   cssMode?: boolean
+  isolateOutgoing?: boolean
   priority?: number
   viewTransitionNames?: Record<string, string> | ((ctx: PageTransitionContext<O>) => Record<string, string>)
   animateViewTransition?(viewTransition: ViewTransition, context: PageTransitionContext<O>): void | Promise<void>
   condition?(context: PageTransitionMatchContext<O>): Promise<boolean> | boolean
   prepare?(context: PageTransitionContext<O>): void | Promise<void>
+  prepareOutgoing?(context: OutgoingContext<O>): void | Promise<void>
   beforeLeave?(context: PageTransitionContext<O>): void
   leave?(context: PageTransitionContext<O>): void | Promise<void>
   afterLeave?(context: PageTransitionContext<O>): void
@@ -97,6 +103,11 @@ interface PageTransition<O = PageTransitionOptions> {
   cleanup?(): void
 }
 ```
+
+| Field | Description |
+|-------|-------------|
+| `prepareOutgoing` | **Next.js** concurrent - reshape the outgoing clone after `prepare`, before leave. Guide: [`prepareOutgoing`](/guide/prepare-outgoing). Present on the shared type for cross-adapter transitions; not a Nuxt user-facing API |
+| `isolateOutgoing` | When `true`, skip global and active-hook outgoing hooks; run only this transition’s `prepareOutgoing` (Next-oriented) |
 
 The generic `O` lets you type your transition's options for better autocomplete:
 
@@ -168,6 +179,30 @@ interface PageTransitionContext<O = PageTransitionOptions> extends PageTransitio
 
 ---
 
+## OutgoingContext
+
+Passed to **Next.js** concurrent `prepareOutgoing` hooks. Extends `PageTransitionContext` with clone-aware fields. Guide: [`prepareOutgoing`](/guide/prepare-outgoing).
+
+```ts
+interface OutgoingContext<O = PageTransitionOptions> extends PageTransitionContext<O> {
+  source: HTMLElement
+  target: HTMLElement
+  isClone: boolean
+  counterpart(live: Element | null | undefined): Element | null
+  pairs<E extends Element = Element>(selector: string): Array<[E, E]>
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `source` | Live outgoing content root |
+| `target` | Element that will play leave (clone on Next; same as `source` on Nuxt). Also assigned to `current` / `container` |
+| `isClone` | Whether `target` is a clone of `source` |
+| `counterpart(live)` | Maps a node in `source` to its counterpart in `target` (identity when not cloned) |
+| `pairs(selector)` | `[live, target][]` for matching nodes |
+
+---
+
 ## PageTransitionStage
 
 ```ts
@@ -227,6 +262,7 @@ At each stage the manager runs the **transition** hook and **every** registered 
 ```ts
 interface ActiveHookRegistration {
   prepare?(context: PageTransitionContext): void | Promise<void>
+  prepareOutgoing?(context: OutgoingContext): void | Promise<void>
   beforeLeave?(context: PageTransitionContext): void
   leave?(context: PageTransitionContext): void | Promise<void>
   afterLeave?(context: PageTransitionContext): void
@@ -237,7 +273,7 @@ interface ActiveHookRegistration {
 }
 ```
 
-`cleanup` runs synchronously inside `finishTransition()` (no context argument).
+`cleanup` runs synchronously inside `finishTransition()` (no context argument). `prepareOutgoing` is used by the **Next.js** adapter for concurrent clones and is **always awaited** there (ignores `blocking`).
 
 Used internally by `useFlyvaLifecycle` in both Next.js and Nuxt (always registered). You can also call `registerActiveHook` directly for framework-agnostic integrations.
 
@@ -276,3 +312,23 @@ Exported from `@flyva/shared` for transitions and adapters.
 | `clearViewTransitionNames(names)` | Clears names using the same selector map |
 | `waitForAnimation(el)` | Resolves after CSS transitions/animations on `el` complete (or timeout) |
 | `applyCssStageClasses(el, name, phase)` | Drives `${name}-${phase}-from/active/to` class sequence for `phase` `'leave'` \| `'enter'` |
+
+---
+
+## Outgoing helpers (`outgoing.ts`)
+
+For **Next.js** concurrent clones. Also available from `@flyva/shared/outgoing`. Guide: [`prepareOutgoing`](/guide/prepare-outgoing).
+
+| Export | Description |
+|--------|-------------|
+| `createOutgoingContext(base, source, target)` | Builds an `OutgoingContext` with an eager `counterpart` map |
+| `freezeAnimations()` | Returns an `OutgoingHook` that freezes CSS animation frames on clones (no-op when `!isClone`) |
+| `freezeMedia(options?)` | Returns an `OutgoingHook` that replaces `video` / `canvas` in the clone with painted canvases (no-op when `!isClone`) |
+
+**`FreezeMediaOptions`:**
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `selector` | `'video, canvas'` | CSS selector passed to `pairs` |
+| `inViewport` | `true` | Skip media whose live counterpart is outside the viewport |
+| `styleProps` | width/height/object-fit/… | Computed style properties copied onto the snapshot canvas |

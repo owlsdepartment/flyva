@@ -12,11 +12,13 @@ A transition is any object that implements (some of) these hooks:
 interface PageTransition {
   concurrent?: boolean;
   cssMode?: boolean;
+  isolateOutgoing?: boolean;
   priority?: number;
   viewTransitionNames?: Record<string, string> | ((ctx) => Record<string, string>);
   animateViewTransition?(vt: ViewTransition, context): void | Promise<void>;
   condition?(context: PageTransitionMatchContext): boolean | Promise<boolean>;
   prepare?(context): void | Promise<void>;
+  prepareOutgoing?(context: OutgoingContext): void | Promise<void>;
   beforeLeave?(context): void;
   leave?(context): void | Promise<void>;
   afterLeave?(context): void;
@@ -34,13 +36,15 @@ All hooks are optional. A transition that only defines `leave` and `enter` is pe
 |--------------|--------|
 | `concurrent` | Outgoing and incoming content can overlap. On **Next.js**, a frozen clone is inserted before navigation so the old view does not flash empty. `context.current` / `context.next` point at the roots being handed off. Ignored when [View Transitions mode](/guide/next/view-transition-api) is on. |
 | `cssMode` | Animation via generated CSS classes instead of `leave`/`enter`. See [CSS mode](/guide/next/transition-modes#css-mode). |
+| `prepareOutgoing` | Concurrent only - reshape the outgoing clone before leave. See [`prepareOutgoing`](/guide/prepare-outgoing). |
+| `isolateOutgoing` | Skip global/component `prepareOutgoing` hooks; run only this transition’s. |
 | `viewTransitionNames` | Used with app-level View Transitions. See [View Transitions mode](/guide/next/view-transition-api). |
 | `animateViewTransition` | Optional hook after `vt.ready` when using View Transitions. See [View Transitions mode](/guide/next/view-transition-api). |
 | `condition` | Optional predicate used **only** when the link did not set an explicit transition key. The manager walks registered transitions in **priority order** (see `priority` below), evaluates each `condition` with a [`PageTransitionMatchContext`](/api/shared#pagetransitionmatchcontext), and runs the **first** transition whose `condition` is truthy. Transitions without `condition` are never auto-selected this way. |
 | `priority` | Optional **number** for [`matchTransitionKey`](/api/shared#pagetransitionmanager) only. Higher values are tried before lower ones. Entries **without** `priority` but **with** `condition` come next (stable map key order). Entries **without** `condition` are last. Use this when the transition map is a plain object passed to `FlyvaRoot` and key order is not enough. |
 
 ::: warning Next.js `concurrent` and cloning
-On the **App Router**, `concurrent` depends on **content cloning** (App Router constraints). Expect possible **layout shifts**, **CSS animations or transitions replaying** on the clone, and **loss of useful React refs** on the node being animated (the clone is not your mounted tree). Design around `context.current` / `context.next`, test edge cases, or switch to [View Transitions](/guide/next/view-transition-api) for a native handoff. Details: [Concurrent mode and content cloning](/guide/next/#concurrent-mode-and-content-cloning).
+On the **App Router**, `concurrent` depends on **content cloning** (App Router constraints). Expect possible **layout shifts**, **CSS animations or transitions replaying** on the clone, blank media, and **loss of useful React refs** on the node being animated (the clone is not your mounted tree). Fix clones with [`prepareOutgoing`](/guide/prepare-outgoing) before insert, design around `context.current` / `context.next`, or switch to [View Transitions](/guide/next/view-transition-api) for a native handoff. Details: [Concurrent mode and content cloning](/guide/next/#concurrent-mode-and-content-cloning).
 :::
 
 ::: tip Nuxt overlap without cloning

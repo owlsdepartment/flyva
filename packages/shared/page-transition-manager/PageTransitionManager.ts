@@ -1,7 +1,9 @@
 import { applyLifecycleClasses } from '../lifecycle-classes';
+import { createOutgoingContext } from '../outgoing';
 import type { Reactive, ReactiveFactory } from '../types';
 import type {
 	ActiveHookRegistration,
+	OutgoingHook,
 	PageTransition,
 	PageTransitionContext,
 	PageTransitionMatchContext,
@@ -47,6 +49,8 @@ export interface PageTransitionManagerConfig {
 	lifecycleClassPrefix?: string;
 	/** Fallback map key when no transition's `condition` matches (default `defaultTransition`). */
 	defaultTransitionKey?: string;
+	/** Global outgoing hooks, run for every concurrent transition before its own `prepareOutgoing`. */
+	prepareOutgoing?: OutgoingHook | OutgoingHook[];
 }
 
 export class PageTransitionManager<
@@ -68,6 +72,7 @@ export class PageTransitionManager<
 	protected _config: PageTransitionManagerConfig;
 	protected _activeHooks = new Set<ActiveHookRegistration>();
 	protected _gcHooks = new Set<() => void>();
+	protected _outgoingHooks = new Set<OutgoingHook>();
 
 	constructor(
 		protected transitions: T,
@@ -79,6 +84,11 @@ export class PageTransitionManager<
 		this._runningName = this.reactiveFactory();
 		this._stage = this.reactiveFactory('none');
 		this._config = config ?? {};
+
+		const outgoing = this._config.prepareOutgoing;
+		for (const hook of Array.isArray(outgoing) ? outgoing : outgoing ? [outgoing] : []) {
+			this._outgoingHooks.add(hook);
+		}
 	}
 
 	get lifecycleClassPrefix() {
@@ -225,11 +235,47 @@ export class PageTransitionManager<
 			console.warn(`[flyva] "${name}": concurrent flag has no effect in viewTransition mode`);
 		}
 
+		if (t.prepareOutgoing && !t.concurrent) {
+			console.warn(
+				`[flyva] "${name}": prepareOutgoing only runs for concurrent transitions — this hook will never run`,
+			);
+		}
+
 		if (t.viewTransitionNames && !vtEnabled && !t.cssMode) {
 			console.warn(
 				`[flyva] "${name}": viewTransitionNames requires viewTransition or cssMode to be enabled`,
 			);
 		}
+	}
+
+	/**
+	 * Runs outgoing hooks in order — global ({@link PageTransitionManagerConfig.prepareOutgoing} /
+	 * {@link onPrepareOutgoing}), active hooks, then the running transition's `prepareOutgoing` —
+	 * sequentially, since they reshape the same DOM. Pass `target` when the adapter leaves with a
+	 * clone of `source`; it must still be an untouched clone at this point.
+	 */
+	async prepareOutgoing(source: HTMLElement, target: HTMLElement = source) {
+		const inst = this._runningInstance.value;
+		if (!inst) return;
+
+		const ctx = createOutgoingContext(this.makeContext(), source, target);
+
+		if (!inst.isolateOutgoing) {
+			for (const hook of this._outgoingHooks) await hook(ctx);
+			for (const hook of this._activeHooks) {
+				if (hook.prepareOutgoing) await hook.prepareOutgoing(ctx);
+			}
+		}
+
+		if (inst.prepareOutgoing) await inst.prepareOutgoing.call(inst, ctx);
+	}
+
+	/** Registers a global outgoing hook; returns an unregister function. */
+	onPrepareOutgoing(hook: OutgoingHook): () => void {
+		this._outgoingHooks.add(hook);
+		return () => {
+			this._outgoingHooks.delete(hook);
+		};
 	}
 
 	async beforeLeave(el?: Element) {

@@ -84,6 +84,7 @@ const transition = computed<TransitionProps>(() => ({
 		}
 
 		if (isConcurrent.value) {
+			if (el instanceof HTMLElement) await $flyvaManager.prepareOutgoing(el);
 			$flyvaManager.beforeLeave();
 			await $flyvaManager.leave();
 			$flyvaManager.afterLeave();

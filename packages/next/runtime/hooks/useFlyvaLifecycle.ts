@@ -2,6 +2,7 @@
 
 import type {
 	ActiveHookRegistration,
+	OutgoingContext,
 	PageTransitionContext,
 	PageTransitionHookResult,
 } from '@flyva/shared';
@@ -11,6 +12,8 @@ import { useFlyvaManager } from './useFlyvaManager';
 
 export interface FlyvaLifecycleCallbacks {
 	prepare?(context: PageTransitionContext): PageTransitionHookResult;
+	/** Concurrent transitions only; always awaited, regardless of `blocking`. */
+	prepareOutgoing?(context: OutgoingContext): PageTransitionHookResult;
 	beforeLeave?(context: PageTransitionContext): void;
 	leave?(context: PageTransitionContext): PageTransitionHookResult;
 	afterLeave?(context: PageTransitionContext): void;
@@ -77,6 +80,7 @@ export function useFlyvaLifecycle(
 
 		const registration: ActiveHookRegistration = {
 			prepare: wrapAsync('prepare'),
+			prepareOutgoing: ctx => callbacksRef.current.prepareOutgoing?.(ctx),
 			beforeLeave: ctx => {
 				callbacksRef.current.beforeLeave?.(ctx);
 			},

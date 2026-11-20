@@ -19,7 +19,7 @@ Only one animation path runs per navigation. Enabling **View Transitions** in ap
 With neither `cssMode` nor app-level View Transitions, Flyva runs your hooks in order: `prepare` → `beforeLeave` → `leave` → … → `enter` → `afterEnter` → `cleanup`. You animate with anime.js, GSAP, Motion, Web Animations API, or manual `requestAnimationFrame`.
 
 - **Sequential (default)** — `leave` finishes before the route updates, then `enter` runs on the new page.
-- **`concurrent: true`** — leave can overlap navigation; the adapter keeps the old pixels on screen with a **DOM clone** before `router.push` while the new tree mounts. Prefer `context.current` and `context.next` for the exact swap roots. On the **App Router**, concurrent mode is **fragile** because of cloning - layout shift, replayed CSS motion, and broken ref assumptions are common; see [Concurrent mode and content cloning](/guide/next/#concurrent-mode-and-content-cloning) or use the [View Transition API](/guide/next/view-transition-api) for a native swap.
+- **`concurrent: true`** — leave can overlap navigation; the adapter keeps the old pixels on screen with a **DOM clone** before `router.push` while the new tree mounts. Prefer `context.current` and `context.next` for the exact swap roots. Use [`prepareOutgoing`](/guide/prepare-outgoing) to fix the clone before insert. On the **App Router**, concurrent mode is **fragile** because of cloning - layout shift, replayed CSS motion, blank media, and broken ref assumptions are common; see [Concurrent mode and content cloning](/guide/next/#concurrent-mode-and-content-cloning) or use the [View Transition API](/guide/next/view-transition-api) for a native swap.
 
 Patterns, `context.el`, options, and recipes live in [Writing transitions](/guide/next/writing-transitions).
 
@@ -104,9 +104,9 @@ sequenceDiagram
 
 ### Next.js - `concurrent: true`
 
-`leave()` is **not** awaited; navigation runs immediately. `prepare` inserts a **clone** of the content root; `leave` animates the clone as `current`. After swap, `enter` runs on the real new content.
+`leave()` is **not** awaited; navigation runs immediately. During `prepare`, Flyva builds a **clone**, runs **`prepareOutgoing`**, then inserts the clone and hides the live source. `leave` animates the clone as `current`. After swap, `enter` runs on the real new content.
 
-This clone exists because the App Router does not keep two React trees alive for overlap - see [Concurrent mode and content cloning](/guide/next/#concurrent-mode-and-content-cloning) for layout shift, replayed CSS, and ref caveats, or use the [View Transition API](/guide/next/view-transition-api) instead.
+This clone exists because the App Router does not keep two React trees alive for overlap - see [Concurrent mode and content cloning](/guide/next/#concurrent-mode-and-content-cloning) and [`prepareOutgoing`](/guide/prepare-outgoing), or use the [View Transition API](/guide/next/view-transition-api) instead.
 
 ```mermaid
 sequenceDiagram
@@ -116,8 +116,11 @@ sequenceDiagram
   participant R as App Router
   participant W as FlyvaTransitionWrapper
 
-  L->>T: prepare (+ clone DOM)
+  L->>T: prepare
   T->>M: run → prepare hook
+  T->>T: clone DOM
+  T->>M: prepareOutgoing(source, clone)
+  T->>T: insert clone, hide source
   L->>T: leave (no await)
   T->>M: beforeLeave / leave / afterLeave
   L->>R: router.push

@@ -12,11 +12,13 @@ A transition is any object that implements (some of) these hooks:
 interface PageTransition {
   concurrent?: boolean;
   cssMode?: boolean;
+  isolateOutgoing?: boolean;
   priority?: number;
   viewTransitionNames?: Record<string, string> | ((ctx) => Record<string, string>);
   animateViewTransition?(vt: ViewTransition, context): void | Promise<void>;
   condition?(context: PageTransitionMatchContext): boolean | Promise<boolean>;
   prepare?(context): void | Promise<void>;
+  prepareOutgoing?(context: OutgoingContext): void | Promise<void>;
   beforeLeave?(context): void;
   leave?(context): void | Promise<void>;
   afterLeave?(context): void;
@@ -28,19 +30,21 @@ interface PageTransition {
 }
 ```
 
-All hooks are optional. A transition that only defines `leave` and `enter` is perfectly valid. Hooks that may perform async work (`prepare`, `leave`, `enter`, `cooldown`, `animateViewTransition`) may be **sync** (`void`) or **async** (`Promise<void>`); you do not need `async` when the body is synchronous.
+All hooks are optional. A transition that only defines `leave` and `enter` is perfectly valid. Hooks that may perform async work (`prepare`, `prepareOutgoing`, `leave`, `enter`, `cooldown`, `animateViewTransition`) may be **sync** (`void`) or **async** (`Promise<void>`); you do not need `async` when the body is synchronous.
 
 | Flag / field | Effect |
 |--------------|--------|
 | `concurrent` | Outgoing and incoming content can overlap. On **Next.js**, a frozen clone is inserted before navigation so the old view does not flash empty; **Nuxt** overlaps via `FlyvaPage` / Vue `<Transition>`. `context.current` / `context.next` point at the roots being handed off. Ignored when [View Transitions mode](/guide/modes/view-transitions) is on. |
 | `cssMode` | Animation via generated CSS classes instead of `leave`/`enter`. See [CSS mode](/guide/modes/css-mode). |
+| `prepareOutgoing` | **Next.js** concurrent only - reshape the outgoing clone before leave. See [`prepareOutgoing`](/guide/prepare-outgoing). Not part of the Nuxt surface. |
+| `isolateOutgoing` | **Next.js** - skip global/component `prepareOutgoing` hooks; run only this transition’s. |
 | `viewTransitionNames` | Used with app-level View Transitions. See [View Transitions mode](/guide/modes/view-transitions). |
 | `animateViewTransition` | Optional hook after `vt.ready` when using View Transitions. See [View Transitions mode](/guide/modes/view-transitions). |
 | `condition` | Optional predicate used **only** when the link did not set an explicit transition key. The manager walks registered transitions in **priority order** (see `priority` below), evaluates each `condition` with a [`PageTransitionMatchContext`](/api/shared#pagetransitionmatchcontext), and runs the **first** transition whose `condition` is truthy. Transitions without `condition` are never auto-selected this way. |
 | `priority` | Optional **number** for [`matchTransitionKey`](/api/shared#pagetransitionmanager) only. Higher values are tried before lower ones. Entries **without** `priority` but **with** `condition` come next (stable map key order). Entries **without** `condition` are last. Use this when the transition map is a plain object (e.g. Next.js) or auto-imported (Nuxt) and key order is not enough. |
 
 ::: warning Next.js `concurrent` and cloning
-On the **App Router**, `concurrent` depends on **content cloning** (App Router constraints). Expect possible **layout shifts**, **CSS animations or transitions replaying** on the clone, and **loss of useful React refs** on the node being animated (the clone is not your mounted tree). Design around `context.current` / `context.next`, test edge cases, or switch to [View Transitions](/guide/modes/view-transitions) for a native handoff. Details: [Next.js - concurrent mode and content cloning](/guide/next/#concurrent-mode-and-content-cloning).
+On the **App Router**, `concurrent` depends on **content cloning** (App Router constraints). Expect possible **layout shifts**, **CSS animations or transitions replaying** on the clone, blank media, and **loss of useful React refs** on the node being animated (the clone is not your mounted tree). Fix clones with [`prepareOutgoing`](/guide/prepare-outgoing), design around `context.current` / `context.next`, or switch to [View Transitions](/guide/modes/view-transitions) for a native handoff. Details: [Next.js - concurrent mode and content cloning](/guide/next/#concurrent-mode-and-content-cloning).
 :::
 
 ## Transition resolution

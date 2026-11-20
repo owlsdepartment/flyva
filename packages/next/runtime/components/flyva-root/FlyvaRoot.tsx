@@ -25,6 +25,7 @@ export function FlyvaRoot<
 			viewTransition: config?.viewTransition,
 			lifecycleClassPrefix: config?.lifecycleClassPrefix,
 			defaultTransitionKey: config?.defaultKey ?? 'defaultTransition',
+			prepareOutgoing: config?.prepareOutgoing,
 		}) as any);
 	singleton = manager;
 

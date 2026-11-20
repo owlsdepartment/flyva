@@ -10,6 +10,7 @@ The manager always runs hooks in this order for a single navigation (names match
 flowchart TD
   subgraph preparePhase[Prepare]
     P[prepare]
+    PO[prepareOutgoing Next concurrent]
   end
   subgraph leavePhase[Leave]
     direction TB
@@ -23,13 +24,14 @@ flowchart TD
     BE[beforeEnter] --> E[enter] --> AE[afterEnter]
   end
   CU[cleanup]
-  P --> BL
+  P --> PO
+  PO --> BL
   AL --> N
   N --> BE
   AE --> CU
 ```
 
-`cleanup` is invoked from `finishTransition()` after `afterEnter` (or earlier on VT / some CSS paths). **CSS mode** and **View Transitions** skip or replace the `leave` / `enter` **animation** work but still use the same overall navigation ordering.
+`prepareOutgoing` is a **Next.js** concurrent hook (after `prepare`, before leave / clone insert) - see [`prepareOutgoing`](/guide/prepare-outgoing). Nuxt concurrent keeps the live page and does not expose that API. `cleanup` is invoked from `finishTransition()` after `afterEnter` (or earlier on VT / some CSS paths). **CSS mode** and **View Transitions** skip or replace the `leave` / `enter` **animation** work but still use the same overall navigation ordering.
 
 ---
 
@@ -60,9 +62,9 @@ sequenceDiagram
 
 ## Next.js - `concurrent: true`
 
-`leave()` is **not** awaited; navigation runs immediately. `prepare` inserts a **clone** of the content root; `leave` animates the clone as `current`. After swap, `enter` runs on the real new content.
+`leave()` is **not** awaited; navigation runs immediately. During `prepare`, Flyva builds a **clone**, runs **`prepareOutgoing`** (global → component → transition), then inserts the clone and hides the live source. `leave` animates the clone as `current`. After swap, `enter` runs on the real new content.
 
-This clone exists because the App Router does not keep two React trees alive for overlap - see [Next.js - concurrent mode and content cloning](/guide/next/#concurrent-mode-and-content-cloning) for layout shift, replayed CSS, and ref caveats, or use [View Transitions](./view-transitions) instead.
+This clone exists because the App Router does not keep two React trees alive for overlap - see [Next.js - concurrent mode and content cloning](/guide/next/#concurrent-mode-and-content-cloning) and [`prepareOutgoing`](/guide/prepare-outgoing), or use [View Transitions](./view-transitions) instead.
 
 ```mermaid
 sequenceDiagram
@@ -72,8 +74,11 @@ sequenceDiagram
   participant R as App Router
   participant W as FlyvaTransitionWrapper
 
-  L->>T: prepare (+ clone DOM)
+  L->>T: prepare
   T->>M: run → prepare hook
+  T->>T: clone DOM
+  T->>M: prepareOutgoing(source, clone)
+  T->>T: insert clone, hide source
   L->>T: leave (no await)
   T->>M: beforeLeave / leave / afterLeave
   L->>R: router.push

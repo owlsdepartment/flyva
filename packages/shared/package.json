@@ -9,7 +9,8 @@
     ".": "./index.ts",
     "./page-transition-manager": "./page-transition-manager/index.ts",
     "./view-transition": "./view-transition.ts",
-    "./lifecycle-classes": "./lifecycle-classes.ts",
+		"./lifecycle-classes": "./lifecycle-classes.ts",
+		"./outgoing": "./outgoing.ts",
     "./types": "./types.ts",
     "./*": "./*"
   },

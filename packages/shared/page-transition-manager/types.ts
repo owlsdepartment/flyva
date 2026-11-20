@@ -35,6 +35,30 @@ export interface PageTransitionContext<
 }
 
 /**
+ * Context passed to `prepareOutgoing` hooks of **concurrent** transitions, right before the outgoing
+ * content takes over the leave phase.
+ *
+ * - Next: `target` is a detached deep clone of `source`; it is inserted (and `source` hidden) only
+ *   after every hook resolved, so reshaping it never produces a visible intermediate frame.
+ * - Nuxt: Vue keeps the real outgoing page mounted, so `target === source` and `isClone` is `false`.
+ */
+export interface OutgoingContext<O = PageTransitionOptions> extends PageTransitionContext<O> {
+	/** Live outgoing content. */
+	source: HTMLElement;
+	/** Element that will play the leave phase (the clone in Next, `source` itself in Nuxt). */
+	target: HTMLElement;
+	isClone: boolean;
+	/** Maps an element inside `source` to its counterpart inside `target` (identity when not cloned). */
+	counterpart<T extends Element>(live: T): T | null;
+	/** Pairs of matching elements in `source` and their counterparts in `target`. */
+	pairs<T extends Element = HTMLElement>(selector: string): Array<[live: T, target: T]>;
+}
+
+export type OutgoingHook<O = PageTransitionOptions> = (
+	context: OutgoingContext<O>,
+) => PageTransitionHookResult;
+
+/**
  * A transition implementation: a plain object (recommended via {@link defineTransition}) **or** a
  * class instance (alternative pattern) whose methods may keep private state on `this`. The manager
  * always invokes hooks with `this` set to that instance / object and passes {@link PageTransitionContext}.
@@ -61,6 +85,14 @@ export interface PageTransition<O = PageTransitionOptions> {
 	condition?(context: PageTransitionMatchContext<O>): Promise<boolean> | boolean;
 
 	prepare?(context: PageTransitionContext<O>): PageTransitionHookResult;
+
+	/**
+	 * Concurrent transitions only. Reshape the outgoing content before it plays the leave phase.
+	 * Runs after global (`prepareOutgoing` config / `onPrepareOutgoing`) and active-hook outgoing hooks.
+	 */
+	prepareOutgoing?(context: OutgoingContext<O>): PageTransitionHookResult;
+	/** Skip global and active-hook `prepareOutgoing` hooks for this transition. */
+	isolateOutgoing?: boolean;
 
 	beforeLeave?(context: PageTransitionContext<O>): void;
 	leave?(context: PageTransitionContext<O>): PageTransitionHookResult;
@@ -107,6 +139,7 @@ export type PageTransitionStage =
 
 export interface ActiveHookRegistration {
 	prepare?(context: PageTransitionContext): PageTransitionHookResult;
+	prepareOutgoing?(context: OutgoingContext): PageTransitionHookResult;
 	beforeLeave?(context: PageTransitionContext): void;
 	leave?(context: PageTransitionContext): PageTransitionHookResult;
 	afterLeave?(context: PageTransitionContext): void;

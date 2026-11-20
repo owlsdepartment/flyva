@@ -31,11 +31,12 @@ Provider component. Creates a `PageTransitionManager` singleton and makes it ava
 
 **FlyvaConfig:**
 
-| Field | Type | Default |
-|-------|------|---------|
-| `defaultKey` | `string` | `'defaultTransition'` |
-| `viewTransition` | `boolean` | `undefined` |
-| `lifecycleClassPrefix` | `string` | `'flyva'` |
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `defaultKey` | `string` | `'defaultTransition'` | Fallback map key after `matchTransitionKey` |
+| `viewTransition` | `boolean` | `undefined` | Enables `document.startViewTransition` in `FlyvaLink` when supported |
+| `lifecycleClassPrefix` | `string` | `'flyva'` | Prefix for lifecycle CSS classes on `<html>` |
+| `prepareOutgoing` | `OutgoingHook \| OutgoingHook[]` | - | Global concurrent outgoing hooks (see [`prepareOutgoing`](/guide/prepare-outgoing)) |
 
 ::: warning
 Transitions depend on client-side APIs (DOM, `document`, and so on) and must be registered under `FlyvaRoot` in a Client Component. Always wrap `FlyvaRoot` in a `'use client'` component.
@@ -104,7 +105,7 @@ The `on*` callback props mirror `useFlyvaLifecycle` delivery: they run for each 
 
 Client component that wraps the part of the tree that swaps on navigation. It registers that subtree with `PageTransitionManager` (so transition hooks get `context.container` / `current` / `next`), runs `enter()` after `usePathname` changes, and supports **concurrent** clones, **CSS mode**, and **View Transitions** coordination. Wrap `{children}` (or the segment you want to treat as page content) in your App Router layout.
 
-For **`concurrent: true`**, Flyva inserts a **DOM clone** during `prepare` so leave can run against pixels while navigation proceeds; that pattern is inherently fragile on the App Router (layout shift, replayed CSS, refs). See the [Next.js guide - concurrent mode and content cloning](/guide/next/#concurrent-mode-and-content-cloning) or prefer **View Transitions** in config.
+For **`concurrent: true`**, Flyva clones the swap subtree during `prepare`, runs [`prepareOutgoing`](/guide/prepare-outgoing), then inserts the clone. That pattern is inherently fragile on the App Router (layout shift, replayed CSS, blank media, refs). See the [Next.js guide - concurrent mode and content cloning](/guide/next/#concurrent-mode-and-content-cloning) or prefer **View Transitions** in config.
 
 ---
 
@@ -120,6 +121,7 @@ const {
   leave,
   enter,
   leaveWithViewTransition,
+  abortConcurrent,
   hasTransitioned,
   isConcurrent,
   isViewTransition,
@@ -128,10 +130,11 @@ const {
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `prepare(name, options, el?)` | `(string, PageTransitionOptions, Element?) => Promise<void>` | Start a transition by key; may insert a concurrent clone when applicable |
+| `prepare(name, options, el?)` | `(string, PageTransitionOptions, Element?) => Promise<void>` | Start a transition by key; for concurrent, clones → `prepareOutgoing` → insert clone |
 | `leave()` | `() => Promise<void>` | Run beforeLeave → leave → afterLeave (or CSS-mode / clone prep only as implemented) |
 | `enter()` | `() => Promise<void>` | Run beforeEnter → enter → afterEnter (typically after navigation + wrapper layout effect) |
 | `leaveWithViewTransition(navigate)` | `(navigate: () => void) => Promise<void>` | Wraps `navigate` in `startViewTransition`; used by `FlyvaLink` when `config.viewTransition` is on |
+| `abortConcurrent()` | `() => boolean` | Removes an unused concurrent clone and restores the live source; `true` if anything was restored |
 | `hasTransitioned` | `boolean` (getter) | `true` after the first transition has run |
 | `isConcurrent` | `boolean` (getter) | `true` when the active transition has `concurrent: true` |
 | `isViewTransition` | `boolean` (getter) | `true` when `config.viewTransition` is enabled |
@@ -177,6 +180,7 @@ useFlyvaLifecycle({
 | Callback | Type | Notes |
 |----------|------|--------|
 | `prepare` | `(context: PageTransitionContext) => void \| Promise<void>` | With `blocking: false`, the manager does not wait for returned promises |
+| `prepareOutgoing` | `(context: OutgoingContext) => void \| Promise<void>` | Concurrent only; **always awaited** (ignores `blocking`). See [`prepareOutgoing`](/guide/prepare-outgoing) |
 | `beforeLeave` | `(context: PageTransitionContext) => void` | Sync only (matches `PageTransition`) |
 | `leave` | `(context: PageTransitionContext) => void \| Promise<void>` | With `blocking: true`, awaited in parallel with the transition’s `leave` |
 | `afterLeave` | `(context: PageTransitionContext) => void` | Sync only |
@@ -189,7 +193,7 @@ useFlyvaLifecycle({
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `blocking` | `boolean` | `false` | When `false`, `prepare` / `leave` / `enter` are still invoked on the manager timeline but returned promises are **not** awaited - work is scheduled so the transition is not held up. When `true`, those three steps await your callback (including async work); cancellable in-flight work is cleared on unmount. |
+| `blocking` | `boolean` | `false` | When `false`, `prepare` / `leave` / `enter` are still invoked on the manager timeline but returned promises are **not** awaited - work is scheduled so the transition is not held up. When `true`, those three steps await your callback (including async work); cancellable in-flight work is cleared on unmount. Does **not** apply to `prepareOutgoing`. |
 
 #### Non-blocking mode (default, `blocking: false`)
 

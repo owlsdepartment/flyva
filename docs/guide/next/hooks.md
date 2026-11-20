@@ -4,7 +4,7 @@ For explicit imports, use **`@flyva/next/hooks`** or the package root **`@flyva/
 
 ## `useFlyvaLifecycle`
 
-`useFlyvaLifecycle` lets any component inside `FlyvaRoot` react to transition lifecycle stages. It **always** registers with `PageTransitionManager` as an active hook. With **`blocking: false`** (default), `prepare` / `leave` / `enter` do not hold up the manager (returned promises are not awaited); with **`blocking: true`**, those three steps await your work like the transition’s own hooks.
+`useFlyvaLifecycle` lets any component inside `FlyvaRoot` react to transition lifecycle stages. It **always** registers with `PageTransitionManager` as an active hook. With **`blocking: false`** (default), `prepare` / `leave` / `enter` do not hold up the manager (returned promises are not awaited); with **`blocking: true`**, those three steps await your work like the transition’s own hooks. Concurrent **`prepareOutgoing`** is always awaited regardless of `blocking` - see [`prepareOutgoing`](/guide/prepare-outgoing).
 
 **Non-blocking mode** (default, `blocking: false`) - boundary hooks are synchronous; `prepare` / `leave` / `enter` run without delaying the transition:
 
@@ -48,9 +48,10 @@ For per-link callbacks without a separate component, see [FlyvaLink](/guide/next
 
 ## `useFlyvaTransition`
 
-`useFlyvaTransition` exposes the current transition run for UI (e.g. loading states): `prepare`, `isRunning`, `stage`, `hasTransitioned`. It does not replace transition implementations on `PageTransition`. See [`useFlyvaTransition` in the API](/api/next#useflyvatransition).
+`useFlyvaTransition` exposes the current transition run for UI (e.g. loading states): `prepare`, `isRunning`, `stage`, `hasTransitioned`. It also exposes **`abortConcurrent()`** to drop an unused concurrent clone and restore the live source. It does not replace transition implementations on `PageTransition`. See [`useFlyvaTransition` in the API](/api/next#useflyvatransition).
 
 ## Related
 
 - [FlyvaLink](/guide/next/flyva-link)
 - [Writing transitions](/guide/next/writing-transitions)
+- [prepareOutgoing](/guide/prepare-outgoing)

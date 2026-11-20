@@ -150,10 +150,13 @@ Overlapping leave and navigation on **Next.js** is only possible because Flyva *
 That has real downsides you should plan for:
 
 - **Layout shift** — the clone and the live layout can disagree (scroll position, responsive breakpoints, fonts still loading, etc.).
-- **Animations replaying** — CSS animations or transitions may **run again** on the clone (`cloneNode` does not preserve every runtime animation state the way a live subtree does).
+- **Animations replaying** — CSS animations or transitions may **run again** on the clone (`cloneNode` does not preserve every runtime animation state the way a live subtree does). Next also pauses animations on `.flyva-clone`, which can freeze finished entrance animations at their start frame.
+- **Blank media** — `<video>` frames and `<canvas>` pixels are not copied.
 - **Refs and identity** — React **refs and component state** still point at the **original** nodes; the element you animate during leave is often the **clone**, not the tree your components mounted. Anything that assumed “this ref is the page” can be wrong until `enter` runs on the new route.
 
-You need to **validate** hover/focus, media, third-party widgets, and imperative APIs yourself, or accept occasional visual glitches. For a **native** old→new handoff without this cloning model, use **[View Transition API](/guide/next/view-transition-api)** (`config.viewTransition: true`) instead - `concurrent` is not used on that path.
+Use [`prepareOutgoing`](/guide/prepare-outgoing) (and helpers like `freezeAnimations` / `freezeMedia`) to reshape the clone **before** it is inserted. Cancel an unused swap with `abortConcurrent()` from `useFlyvaTransition()`.
+
+You still need to **validate** hover/focus, media, third-party widgets, and imperative APIs yourself, or accept occasional visual glitches. For a **native** old→new handoff without this cloning model, use **[View Transition API](/guide/next/view-transition-api)** (`config.viewTransition: true`) instead - `concurrent` is not used on that path.
 :::
 
 ## Complete example

@@ -40,7 +40,7 @@ All hooks are optional. A transition that only defines `leave` and `enter` is pe
 | `priority` | Optional **number** for [`matchTransitionKey`](/api/shared#pagetransitionmanager) only. Higher values are tried before lower ones. Entries **without** `priority` but **with** `condition` come next (stable map key order). Entries **without** `condition` are last. Use this when the transition map is auto-imported from files and key order is not enough. |
 
 ::: tip Next.js uses a clone for concurrent overlap
-On **Next.js (App Router)**, `concurrent: true` relies on a **DOM clone** before `router.push`, with different ref and CSS replay caveats. If you maintain both stacks, read [Writing transitions (Next.js)](/guide/next/writing-transitions) and [Concurrent mode and content cloning](/guide/next/#concurrent-mode-and-content-cloning).
+On **Next.js (App Router)**, `concurrent: true` relies on a **DOM clone** before `router.push`, with different ref and CSS replay caveats (including a Next-only [`prepareOutgoing`](/guide/prepare-outgoing) hook). If you maintain both stacks, read [Writing transitions (Next.js)](/guide/next/writing-transitions) and [Concurrent mode and content cloning](/guide/next/#concurrent-mode-and-content-cloning).
 :::
 
 ::: warning Template refs during async leave

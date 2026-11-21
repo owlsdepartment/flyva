@@ -140,6 +140,10 @@ When `viewTransition` is `true`, `FlyvaLink` uses `document.startViewTransition`
 - **`concurrent: true` on the transition** — `leave()` is started without awaiting, navigation runs immediately; a short-lived clone covers the outgoing DOM until the swap. Use `context.current` / `context.next` in hooks.
 - **`viewTransition: true` in config** — navigation runs inside `startViewTransition`; DOM swap is coordinated via `leaveWithViewTransition` internally.
 
+### History navigation (back / forward)
+
+Opt-in via `config.history` (`noop` / `snapshot` / `intercept`). See [History navigation](/guide/next/history). Without that config, Flyva does not listen to `popstate`.
+
 ### Concurrent mode and content cloning
 
 Concurrent page transition operation (equivalent to Vue's `in-out` Transition) is a holy grail for page transitions in Next App Router websites. While this is natively impossible with Next's current architecture, we were motivated to do some alchemy and make this cursed solution possible. It lets you temporarily keep the previous page content while animating in the new one - a highly desired effect that opens interesting creative frontiers.

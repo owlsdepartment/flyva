@@ -37,6 +37,16 @@ Provider component. Creates a `PageTransitionManager` singleton and makes it ava
 | `viewTransition` | `boolean` | `undefined` | Enables `document.startViewTransition` in `FlyvaLink` when supported |
 | `lifecycleClassPrefix` | `string` | `'flyva'` | Prefix for lifecycle CSS classes on `<html>` |
 | `prepareOutgoing` | `OutgoingHook \| OutgoingHook[]` | - | Global concurrent outgoing hooks (see [`prepareOutgoing`](/guide/prepare-outgoing)) |
+| `history` | `FlyvaHistoryConfig` | - | Opt-in browser back / forward handling (see [History navigation](/guide/next/history)) |
+
+**`FlyvaHistoryConfig`:**
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `strategy` | `FlyvaHistoryStrategy \| ((nav) => FlyvaHistoryStrategy \| false)` | `'noop'` | How the outgoing page is handled on history moves (`noop` \| `snapshot` \| `intercept`) |
+| `defaultKey` | `string` | - | Fallback map key for history moves before `defaultKey` |
+| `transition` | `(ctx: FlyvaHistoryMatchContext) => string \| undefined` | - | Explicit picker; `undefined` falls through to matching |
+| `interceptTimeout` | `number` | `8000` | `intercept` only: max wait (ms) for Next to commit after replay |
 
 ::: warning
 Transitions depend on client-side APIs (DOM, `document`, and so on) and must be registered under `FlyvaRoot` in a Client Component. Always wrap `FlyvaRoot` in a `'use client'` component.

@@ -4,6 +4,7 @@ import { supportsViewTransitions } from '@flyva/shared';
 import { PropsWithChildren } from 'react';
 
 import { refReactiveFactory } from '../../../utils/refReactiveFactory';
+import { FlyvaHistory } from '../../history/FlyvaHistory';
 import { FlyvaConfig, FlyvaConfigContext } from '../../hooks';
 import { FlyvaManagerContext } from '../../hooks/useFlyvaManager';
 import type { RefState } from '../../hooks/useRefState';
@@ -11,6 +12,7 @@ import { PageTransition, PageTransitionManager } from '../../page-transition-man
 
 let singleton: PageTransitionManager | null = null;
 let _vtWarned = false;
+let _historyKeyWarned = false;
 
 export function FlyvaRoot<
 	T extends Record<string, PageTransition> = Record<string, PageTransition>,
@@ -18,7 +20,7 @@ export function FlyvaRoot<
 	children,
 	transitions,
 	config,
-}: PropsWithChildren<{ transitions: T; config?: Partial<FlyvaConfig> }>) {
+}: PropsWithChildren<{ transitions: T; config?: Partial<FlyvaConfig<Extract<keyof T, string>>> }>) {
 	const manager =
 		singleton ??
 		(new PageTransitionManager<T, RefState<unknown>>(transitions ?? {}, refReactiveFactory, {
@@ -43,10 +45,24 @@ export function FlyvaRoot<
 		}
 	}
 
+	const historyDefaultKey = config?.history?.defaultKey;
+	if (
+		process.env.NODE_ENV === 'development' &&
+		historyDefaultKey !== undefined &&
+		!(historyDefaultKey in (transitions ?? {})) &&
+		!_historyKeyWarned
+	) {
+		_historyKeyWarned = true;
+		console.warn(`[flyva] history.defaultKey "${historyDefaultKey}" not in transitions map`);
+	}
+
 	return (
 		<div className="flyva-root">
 			<FlyvaConfigContext.Provider value={configWithDefaults}>
-				<FlyvaManagerContext.Provider value={manager}>{children}</FlyvaManagerContext.Provider>
+				<FlyvaManagerContext.Provider value={manager}>
+					{config?.history && <FlyvaHistory />}
+					{children}
+				</FlyvaManagerContext.Provider>
 			</FlyvaConfigContext.Provider>
 		</div>
 	);

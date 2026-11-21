@@ -1,6 +1,6 @@
 # prepareOutgoing (Next.js concurrent)
 
-`prepareOutgoing` is a **Next.js** hook for concurrent transitions. It runs after `prepare` and **before** the outgoing clone is inserted, so you can reshape that clone while it is still off-screen.
+`prepareOutgoing` is a **Next.js** hook for reshaping an outgoing **clone** before leave. It runs after `prepare` and **before** the clone is inserted (concurrent link swaps, and history [`snapshot`](/guide/next/history)).
 
 Nuxt concurrent overlap keeps the live outgoing page mounted - there is no clone to fix, so this API is not part of the Nuxt surface. Prefer `prepare` / `beforeLeave` / `leave` there.
 

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { navLinkByHref, waitForTransitionIdle } from './support/helpers';
+import { navLinkByHref, pathUrl, waitForTransitionIdle } from './support/helpers';
 
 test.describe('lifecycle html classes', () => {
 	test('documentElement receives flyva leave/enter active classes during navigation', async ({
@@ -15,7 +15,7 @@ test.describe('lifecycle html classes', () => {
 
 		await navLinkByHref(page, '/about').filter({ hasText: 'default' }).click();
 		await sawLifecycleClass;
-		await page.waitForURL('**/about');
+		await page.waitForURL(pathUrl('/about'));
 		await waitForTransitionIdle(page);
 
 		await expect(page.getByRole('heading', { name: 'About' })).toBeVisible();

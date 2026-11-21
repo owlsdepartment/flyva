@@ -3,6 +3,7 @@ import { createOutgoingContext } from '../outgoing';
 import type { Reactive, ReactiveFactory } from '../types';
 import type {
 	ActiveHookRegistration,
+	FlyvaNavigation,
 	OutgoingHook,
 	PageTransition,
 	PageTransitionContext,
@@ -15,6 +16,18 @@ import type {
 
 function contentRootFromElement(node?: Element | null): HTMLElement | undefined {
 	return node instanceof HTMLElement ? node : undefined;
+}
+
+function participatesInMatching(t: PageTransition, isHistory: boolean): boolean {
+	const flag = t.history ?? true;
+	return isHistory ? flag !== false : flag !== 'only';
+}
+
+export interface MatchTransitionKeyOptions<K = string> {
+	/** History move being matched; enables `history` flag filtering and is exposed to `condition`. */
+	navigation?: FlyvaNavigation;
+	/** Used when no condition matches, before `defaultTransitionKey`. */
+	fallbackKey?: K;
 }
 
 /**
@@ -65,6 +78,7 @@ export class PageTransitionManager<
 		? O
 		: PageTransitionOptions;
 	protected _trigger: PageTransitionTrigger = 'internal';
+	protected _navigation?: FlyvaNavigation;
 	protected _stage: Reactive<PageTransitionStage>;
 	protected _currentContent?: HTMLElement;
 	protected _nextContent?: HTMLElement;
@@ -115,32 +129,53 @@ export class PageTransitionManager<
 		return this._readyPromise ?? Promise.resolve();
 	}
 
+	/** History move driving the running transition, if any. */
+	get navigation() {
+		return this._navigation;
+	}
+
 	/**
 	 * Picks a transition by evaluating each registered `condition` in **priority order** (see
 	 * {@link sortTransitionKeysForMatching}); the first match wins. Transitions without `condition`
-	 * are skipped here. If none match, returns `defaultTransitionKey` from config (default `defaultTransition`).
+	 * are skipped here, as are transitions excluded by their `history` flag for this kind of navigation.
+	 * If none match, returns `match.fallbackKey` (when registered), then `defaultTransitionKey` from
+	 * config (default `defaultTransition`).
 	 */
 	async matchTransitionKey(
 		options: T[keyof T] extends PageTransition<infer O> ? O : PageTransitionOptions,
 		el?: Element,
+		match?: MatchTransitionKeyOptions<keyof T>,
 	): Promise<keyof T> {
 		const rec = options as Record<string, unknown>;
+		const navigation = match?.navigation;
 		const ctx: PageTransitionMatchContext = {
 			fromHref: String(rec.fromHref ?? ''),
 			toHref: String(rec.toHref ?? ''),
 			options: options as PageTransitionOptions,
-			trigger: el ?? 'internal',
+			trigger: el ?? (navigation ? 'history' : 'internal'),
 			el,
 			current: this._currentContent,
 			next: this._nextContent,
+			navigation,
 		};
 
 		const ordered = sortTransitionKeysForMatching(this.transitions);
 		for (const key of ordered) {
 			const t = this.transitions[key];
 			if (!t?.condition) continue;
+			if (!participatesInMatching(t, !!navigation)) continue;
 			const ok = await Promise.resolve(t.condition.call(t, ctx));
 			if (ok) return key;
+		}
+
+		const preferred = match?.fallbackKey;
+		if (preferred !== undefined) {
+			if (String(preferred) in this.transitions) return preferred;
+			if (process.env.NODE_ENV === 'development') {
+				console.warn(
+					`[flyva] fallback transition key "${String(preferred)}" not in transitions map`,
+				);
+			}
 		}
 
 		const fb = (this._config.defaultTransitionKey ?? 'defaultTransition') as keyof T;
@@ -172,6 +207,7 @@ export class PageTransitionManager<
 		name: K,
 		options: T[K] extends PageTransition<infer O> ? O : PageTransitionOptions,
 		trigger?: PageTransitionTrigger,
+		navigation?: FlyvaNavigation,
 	) {
 		if (this.runningInstance) {
 			const prev = this.runningInstance;
@@ -183,7 +219,8 @@ export class PageTransitionManager<
 		this._runningName.value = name;
 		this._currentOptions = options;
 		this._isRunning.value = true;
-		this._trigger = trigger ?? 'internal';
+		this._trigger = trigger ?? (navigation ? 'history' : 'internal');
+		this._navigation = navigation;
 
 		if (current) this._validateTransition(name as string, current);
 
@@ -237,7 +274,8 @@ export class PageTransitionManager<
 
 		if (t.prepareOutgoing && !t.concurrent) {
 			console.warn(
-				`[flyva] "${name}": prepareOutgoing only runs for concurrent transitions — this hook will never run`,
+				`[flyva] "${name}": prepareOutgoing without concurrent only runs for Next history snapshot — ` +
+					`it will not run on normal link navigations`,
 			);
 		}
 
@@ -400,6 +438,7 @@ export class PageTransitionManager<
 		this._stage.value = 'none';
 		this._currentContent = undefined;
 		this._nextContent = undefined;
+		this._navigation = undefined;
 		applyLifecycleClasses('none', this.lifecycleClassPrefix);
 		this.flushPendingActiveHookGc();
 	}
@@ -442,6 +481,7 @@ export class PageTransitionManager<
 			current: cur,
 			next: nxt,
 			container,
+			navigation: this._navigation,
 		};
 	}
 }

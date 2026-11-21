@@ -49,6 +49,7 @@ new PageTransitionManager(transitions, reactiveFactory, config?)
 | `runningName` | `string \| undefined` | Key of the currently active transition |
 | `stage` | `PageTransitionStage` | Current lifecycle stage |
 | `readyPromise` | `Promise<void>` | Resolves when `prepare()` completes |
+| `navigation` | `FlyvaNavigation \| undefined` | Active history move when the adapter passed one to `run` |
 | `currentContent` | `Element \| undefined` | Outgoing content root set via `setContentElements` |
 | `nextContent` | `Element \| undefined` | Incoming content root set via `setContentElements` |
 
@@ -56,8 +57,8 @@ new PageTransitionManager(transitions, reactiveFactory, config?)
 
 | Method | Returns | Description |
 |--------|---------|-------------|
-| `run(name, options, trigger?)` | `Promise<void>` | Start a transition: sets running state, then awaits the active transition’s `prepare` and every registered active-hook `prepare` in parallel (`Promise.all`) |
-| `matchTransitionKey(options, el?)` | `Promise<keyof T>` | When the link omits an explicit transition key, pick one: iterate in **priority order** (see `PageTransition.priority` and `sortTransitionKeysForMatching`), await each `condition` until the first truthy result; otherwise return `defaultTransitionKey` |
+| `run(name, options, trigger?, navigation?)` | `Promise<void>` | Start a transition: sets running state (and optional history `navigation`), then awaits the active transition’s `prepare` and every registered active-hook `prepare` in parallel (`Promise.all`) |
+| `matchTransitionKey(options, el?, match?)` | `Promise<keyof T>` | Pick a map key: iterate in **priority order**, filter by `PageTransition.history` when `match.navigation` is set, await each `condition` until the first truthy result; otherwise return `match.fallbackKey` then `defaultTransitionKey` |
 | `beforeLeave(el?)` | `Promise<void>` | Run `beforeLeave` on the active transition + registered active hooks |
 | `leave(el?)` | `Promise<void>` | Run `leave` on the active transition + registered active hooks |
 | `afterLeave(el?)` | `Promise<void>` | Run `afterLeave` on the active transition + registered active hooks |
@@ -87,6 +88,7 @@ interface PageTransition<O = PageTransitionOptions> {
   concurrent?: boolean
   cssMode?: boolean
   isolateOutgoing?: boolean
+  history?: boolean | 'only'
   priority?: number
   viewTransitionNames?: Record<string, string> | ((ctx: PageTransitionContext<O>) => Record<string, string>)
   animateViewTransition?(viewTransition: ViewTransition, context: PageTransitionContext<O>): void | Promise<void>
@@ -100,13 +102,14 @@ interface PageTransition<O = PageTransitionOptions> {
   enter?(context: PageTransitionContext<O>): void | Promise<void>
   afterEnter?(context: PageTransitionContext<O>): void
   cooldown?(context: PageTransitionContext<O>): void | Promise<void>
-  cleanup?(): void
+  cleanup?(context?: PageTransitionContext<O>): void
 }
 ```
 
 | Field | Description |
 |-------|-------------|
-| `prepareOutgoing` | **Next.js** concurrent - reshape the outgoing clone after `prepare`, before leave. Guide: [`prepareOutgoing`](/guide/prepare-outgoing). Present on the shared type for cross-adapter transitions; not a Nuxt user-facing API |
+| `history` | Matching participation for history moves (`true` default, `false` exclude, `'only'` history-only). Used by Next `config.history`. See [History navigation](/guide/next/history) |
+| `prepareOutgoing` | **Next.js** - reshape an outgoing clone after `prepare`, before leave (concurrent link swaps and history `snapshot`). Guide: [`prepareOutgoing`](/guide/prepare-outgoing). Not a Nuxt user-facing API |
 | `isolateOutgoing` | When `true`, skip global and active-hook outgoing hooks; run only this transition’s `prepareOutgoing` (Next-oriented) |
 
 The generic `O` lets you type your transition's options for better autocomplete:
@@ -138,6 +141,7 @@ interface PageTransitionMatchContext<O = PageTransitionOptions> {
   el?: Element
   current?: HTMLElement
   next?: HTMLElement
+  navigation?: FlyvaNavigation
 }
 ```
 
@@ -146,9 +150,30 @@ interface PageTransitionMatchContext<O = PageTransitionOptions> {
 | `fromHref` | `string` | Path the navigation leaves from |
 | `toHref` | `string` | Path the navigation targets |
 | `options` | `O` | Same object later passed to `prepare` / hooks: `{ fromHref, toHref, ...flyvaOptions }` |
-| `trigger` | `PageTransitionTrigger` | Clicked element when available, otherwise `'internal'` |
+| `trigger` | `PageTransitionTrigger` | Clicked element, `'internal'`, or `'history'` |
 | `el` | `Element \| undefined` | Anchor (or control) that started the navigation when known |
 | `current` / `next` | `HTMLElement \| undefined` | Content roots if the manager already tracked them (often empty at match time) |
+| `navigation` | `FlyvaNavigation \| undefined` | Set when the adapter is handling a history move |
+
+### `MatchTransitionKeyOptions`
+
+Optional third argument to `matchTransitionKey`:
+
+| Field | Description |
+|-------|-------------|
+| `navigation` | History move being matched; enables `PageTransition.history` filtering and is exposed on the match context |
+| `fallbackKey` | Used when no `condition` matches, before `defaultTransitionKey` |
+
+### `FlyvaNavigation`
+
+```ts
+interface FlyvaNavigation {
+  type: 'traverse'
+  direction: 'back' | 'forward' | 'none'
+  delta: number
+  strategy?: FlyvaHistoryStrategy // augmented by @flyva/next
+}
+```
 
 ---
 
@@ -231,7 +256,7 @@ interface PageTransitionOptions {
 ## PageTransitionTrigger
 
 ```ts
-type PageTransitionTrigger = string | 'internal' | Element
+type PageTransitionTrigger = string | 'internal' | 'history' | Element
 ```
 
 ---

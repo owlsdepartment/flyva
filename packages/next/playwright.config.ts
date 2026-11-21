@@ -20,6 +20,7 @@ export default defineConfig({
 	webServer: {
 		command: 'pnpm --filter playground-next build && pnpm --filter playground-next start',
 		cwd: repoRoot,
+		env: { PLAYGROUND_E2E: '1' },
 		url: 'http://127.0.0.1:3200',
 		reuseExistingServer: !process.env.CI,
 		timeout: 180_000,

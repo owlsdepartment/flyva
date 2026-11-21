@@ -13,6 +13,7 @@ interface PageTransition {
   concurrent?: boolean;
   cssMode?: boolean;
   isolateOutgoing?: boolean;
+  history?: boolean | 'only';
   priority?: number;
   viewTransitionNames?: Record<string, string> | ((ctx) => Record<string, string>);
   animateViewTransition?(vt: ViewTransition, context): void | Promise<void>;
@@ -36,7 +37,8 @@ All hooks are optional. A transition that only defines `leave` and `enter` is pe
 |--------------|--------|
 | `concurrent` | Outgoing and incoming content can overlap. On **Next.js**, a frozen clone is inserted before navigation so the old view does not flash empty. `context.current` / `context.next` point at the roots being handed off. Ignored when [View Transitions mode](/guide/next/view-transition-api) is on. |
 | `cssMode` | Animation via generated CSS classes instead of `leave`/`enter`. See [CSS mode](/guide/next/transition-modes#css-mode). |
-| `prepareOutgoing` | Concurrent only - reshape the outgoing clone before leave. See [`prepareOutgoing`](/guide/prepare-outgoing). |
+| `history` | Matching for browser back / forward when `config.history` is on. See [History navigation](/guide/next/history). |
+| `prepareOutgoing` | Reshape an outgoing clone before leave (concurrent links and history `snapshot`). See [`prepareOutgoing`](/guide/prepare-outgoing). |
 | `isolateOutgoing` | Skip global/component `prepareOutgoing` hooks; run only this transition’s. |
 | `viewTransitionNames` | Used with app-level View Transitions. See [View Transitions mode](/guide/next/view-transition-api). |
 | `animateViewTransition` | Optional hook after `vt.ready` when using View Transitions. See [View Transitions mode](/guide/next/view-transition-api). |

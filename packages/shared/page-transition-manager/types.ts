@@ -2,7 +2,20 @@ export interface PageTransitionOptions {
 	[key: string]: any;
 }
 
-export type PageTransitionTrigger = string | 'internal' | Element;
+export type PageTransitionTrigger = string | 'internal' | 'history' | Element;
+
+/**
+ * Describes a browser history move (back / forward) that triggered a transition. Only set when an
+ * adapter handles history navigation (`@flyva/next` with `history` config); `undefined` for link
+ * clicks and programmatic navigation.
+ */
+export interface FlyvaNavigation {
+	type: 'traverse';
+	/** `'none'` when the entry index is unknown (e.g. entries created before Flyva loaded). */
+	direction: 'back' | 'forward' | 'none';
+	/** Entry index difference (negative for back); `0` when unknown. */
+	delta: number;
+}
 
 /** Return type for hooks the manager may await (`prepare`, `leave`, `enter`, …). */
 export type PageTransitionHookResult = void | Promise<void>;
@@ -20,6 +33,8 @@ export interface PageTransitionMatchContext<O = PageTransitionOptions> {
 	el?: Element;
 	current?: HTMLElement;
 	next?: HTMLElement;
+	/** Set when the transition was triggered by a history move handled by the adapter. */
+	navigation?: FlyvaNavigation;
 }
 
 export interface PageTransitionContext<
@@ -72,6 +87,12 @@ export interface PageTransition<O = PageTransitionOptions> {
 	 * still define `condition` come before those without. Ties preserve the map’s original key order.
 	 */
 	priority?: number;
+	/**
+	 * Participation in matching for history-triggered navigations (default `true`).
+	 * `false` excludes the transition from history matching; `'only'` excludes it from everything else.
+	 * Explicit transition keys (e.g. a link's `flyvaTransition`) bypass this filter.
+	 */
+	history?: boolean | 'only';
 
 	viewTransitionNames?:
 		| Record<string, string>

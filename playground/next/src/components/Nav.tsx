@@ -132,6 +132,13 @@ export function Nav() {
 					</FlyvaLink>
 
 					<FlyvaLink
+						href="/history-demo"
+						className={`${styles.link} ${pathname === '/history-demo' ? styles.linkActive : ''}`}
+					>
+						History <span className={styles.badge}>back</span>
+					</FlyvaLink>
+
+					<FlyvaLink
 						href="/bypass"
 						flyva={false}
 						className={`${styles.link} ${pathname === '/bypass' ? styles.linkActive : ''}`}

@@ -10,7 +10,7 @@ const basePath = playgroundBasePath();
 
 const nextConfig: NextConfig = {
 	transpilePackages: ['@flyva/next', '@flyva/shared'],
-	output: 'export',
+	output: process.env.PLAYGROUND_E2E ? undefined : 'export',
 	trailingSlash: true,
 	...(basePath ? { basePath, assetPrefix: `${basePath}/` } : {}),
 	env: {

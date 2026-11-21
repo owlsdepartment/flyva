@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { navLinkByHref, waitForTransitionIdle } from './support/helpers';
+import { navLinkByHref, pathUrl, waitForTransitionIdle } from './support/helpers';
 
 test.describe('navigation', () => {
 	test('home loads with nav and main content', async ({ page }) => {
@@ -12,7 +12,7 @@ test.describe('navigation', () => {
 	test('FlyvaLink navigates to About with default transition', async ({ page }) => {
 		await page.goto('/');
 		await navLinkByHref(page, '/about').filter({ hasText: 'default' }).click();
-		await page.waitForURL('**/about');
+		await page.waitForURL(pathUrl('/about'));
 		await waitForTransitionIdle(page);
 		await expect(page.getByRole('heading', { name: 'About' })).toBeVisible();
 	});
@@ -20,7 +20,7 @@ test.describe('navigation', () => {
 	test('FlyvaLink navigates to Work (condition-selected slide)', async ({ page }) => {
 		await page.goto('/');
 		await navLinkByHref(page, '/work').click();
-		await page.waitForURL('**/work');
+		await page.waitForURL(pathUrl('/work'));
 		await waitForTransitionIdle(page);
 		await expect(page.getByRole('heading', { name: 'Work' })).toBeVisible();
 	});

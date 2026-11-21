@@ -1,6 +1,6 @@
 'use client';
 
-import type { PageTransitionOptions } from '@flyva/shared';
+import type { FlyvaNavigation, PageTransitionOptions } from '@flyva/shared';
 import {
 	applyCssStageClasses,
 	applyViewTransitionNames,
@@ -8,13 +8,10 @@ import {
 	supportsViewTransitions,
 } from '@flyva/shared';
 
+import { createClone, insertClone, transitionState } from './internalState';
 import { useFlyvaConfig } from './useFlyvaConfig';
 import { useFlyvaManager } from './useFlyvaManager';
 
-let initializedManually = false;
-let hasTransitioned = false;
-let _capturedClone: HTMLElement | null = null;
-let _cloneSource: HTMLElement | null = null;
 let _vtActive = false;
 
 let _domSwapResolve: (() => void) | null = null;
@@ -34,22 +31,10 @@ function createDomSwapPromise(): Promise<void> {
 	});
 }
 
-const CLONE_CSS =
-	'.flyva-clone,.flyva-clone *{animation-play-state:paused!important;transition:none!important}';
-let _styleInjected = false;
-
-function injectCloneStyles() {
-	if (_styleInjected || typeof document === 'undefined') return;
-	const style = document.createElement('style');
-	style.textContent = CLONE_CSS;
-	document.head.appendChild(style);
-	_styleInjected = true;
-}
-
 export function getCapturedClone(): HTMLElement | null {
-	const clone = _capturedClone;
-	_capturedClone = null;
-	_cloneSource = null;
+	const clone = transitionState.capturedClone;
+	transitionState.capturedClone = null;
+	transitionState.cloneSource = null;
 	return clone;
 }
 
@@ -61,33 +46,30 @@ export function useFlyvaTransition() {
 		transitionKey: string | undefined | null,
 		options: PageTransitionOptions,
 		el?: Element,
+		navigation?: FlyvaNavigation,
 	) {
-		initializedManually = true;
-		hasTransitioned = true;
+		transitionState.initializedManually = true;
+		transitionState.hasTransitioned = true;
 		const explicit =
 			typeof transitionKey === 'string' && transitionKey.length > 0 ? transitionKey : undefined;
-		const resolved = explicit ?? (await flyvaManager.matchTransitionKey(options, el));
-		await flyvaManager.run(resolved, options, el);
+		const resolved =
+			explicit ??
+			(await flyvaManager.matchTransitionKey(options, el, {
+				navigation,
+				fallbackKey: navigation ? config.history?.defaultKey : undefined,
+			}));
+		await flyvaManager.run(resolved, options, el, navigation);
 
 		const instance = flyvaManager.runningInstance;
 		const source = flyvaManager.currentContent;
 		if (config.viewTransition || !instance?.concurrent || !source) return;
 
-		const clone = source.cloneNode(true) as HTMLElement;
-		clone.classList.add('flyva-clone');
+		const clone = createClone(source);
 
 		await flyvaManager.prepareOutgoing(source, clone);
 		if (flyvaManager.runningInstance !== instance) return;
 
-		injectCloneStyles();
-		source.parentNode?.insertBefore(clone, source);
-
-		// Live source stays in the tree until Next swaps it; hide it so it cannot
-		// flash under the clone while the next page is loading.
-		source.style.display = 'none';
-
-		_capturedClone = clone;
-		_cloneSource = source;
+		insertClone(source, clone);
 	}
 
 	/**
@@ -96,10 +78,10 @@ export function useFlyvaTransition() {
 	 * was restored.
 	 */
 	function abortConcurrent(): boolean {
-		const clone = _capturedClone;
-		const source = _cloneSource;
-		_capturedClone = null;
-		_cloneSource = null;
+		const clone = transitionState.capturedClone;
+		const source = transitionState.cloneSource;
+		transitionState.capturedClone = null;
+		transitionState.cloneSource = null;
 		if (!clone || !source) return false;
 
 		source.style.display = '';
@@ -170,7 +152,7 @@ export function useFlyvaTransition() {
 	}
 
 	async function leave() {
-		initializedManually = true;
+		transitionState.initializedManually = true;
 
 		if (flyvaManager.runningInstance?.cssMode && !config.viewTransition) {
 			await flyvaManager.beforeLeave();
@@ -181,8 +163,8 @@ export function useFlyvaTransition() {
 			return;
 		}
 
-		if (_capturedClone) {
-			flyvaManager.setContentElements(_capturedClone);
+		if (transitionState.capturedClone) {
+			flyvaManager.setContentElements(transitionState.capturedClone);
 		}
 
 		await flyvaManager.beforeLeave();
@@ -192,19 +174,19 @@ export function useFlyvaTransition() {
 	}
 
 	async function beginConcurrentLeaveForNavigation(): Promise<boolean> {
-		initializedManually = true;
+		transitionState.initializedManually = true;
 
 		if (flyvaManager.runningInstance?.cssMode && !config.viewTransition) {
 			await leaveWithCssMode();
 			return false;
 		}
 
-		if (!_capturedClone || config.viewTransition) {
+		if (!transitionState.capturedClone || config.viewTransition) {
 			await leave();
 			return false;
 		}
 
-		flyvaManager.setContentElements(_capturedClone);
+		flyvaManager.setContentElements(transitionState.capturedClone);
 		await flyvaManager.beforeLeave();
 		await flyvaManager.readyPromise;
 		return true;
@@ -216,7 +198,7 @@ export function useFlyvaTransition() {
 	}
 
 	async function enter() {
-		if (!initializedManually) {
+		if (!transitionState.initializedManually) {
 			return;
 		}
 
@@ -226,7 +208,7 @@ export function useFlyvaTransition() {
 			await flyvaManager.enter();
 			await enterWithCssMode();
 			await flyvaManager.afterEnter();
-			initializedManually = false;
+			transitionState.initializedManually = false;
 			return;
 		}
 
@@ -234,7 +216,7 @@ export function useFlyvaTransition() {
 		await flyvaManager.readyPromise;
 		await flyvaManager.enter();
 		await flyvaManager.afterEnter();
-		initializedManually = false;
+		transitionState.initializedManually = false;
 	}
 
 	return {
@@ -246,7 +228,7 @@ export function useFlyvaTransition() {
 		leaveWithViewTransition,
 		abortConcurrent,
 		get hasTransitioned() {
-			return hasTransitioned;
+			return transitionState.hasTransitioned;
 		},
 		get isConcurrent() {
 			return flyvaManager.runningInstance?.concurrent === true;

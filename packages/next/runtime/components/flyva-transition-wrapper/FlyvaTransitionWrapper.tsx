@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { PropsWithChildren, useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 
 import { getCapturedClone, isVtActive, resolveDomSwap, useFlyvaTransition } from '../../hooks';
+import { takeEnterGate, transitionState } from '../../hooks/internalState';
 import { useFlyvaConfig } from '../../hooks/useFlyvaConfig';
 import { useFlyvaManager } from '../../hooks/useFlyvaManager';
 
@@ -51,28 +52,41 @@ export function FlyvaTransitionWrapper({ children }: PropsWithChildren) {
 			return;
 		}
 
-		const isCssMode = manager.runningInstance?.cssMode === true && !config.viewTransition;
+		transitionState.commitSeq += 1;
+		const enterGate = takeEnterGate();
 
-		if (contentRef.current && !isCssMode) {
-			contentRef.current.style.cssText = '';
-		}
+		const commitContent = () => {
+			const isCssMode = manager.runningInstance?.cssMode === true && !config.viewTransition;
 
-		const runningName = manager.runningName as string | undefined;
+			if (contentRef.current && !isCssMode) {
+				contentRef.current.style.cssText = '';
+			}
 
-		if (isCssMode && runningName && contentRef.current) {
-			contentRef.current.classList.add(`${runningName}-enter-from`);
-		}
+			const runningName = manager.runningName as string | undefined;
 
-		const clone = getCapturedClone() as HTMLDivElement | null;
+			if (isCssMode && runningName && contentRef.current) {
+				contentRef.current.classList.add(`${runningName}-enter-from`);
+			}
 
-		if (clone && contentRef.current) {
-			cloneRef.current = clone;
-			manager.setContentElements(clone, contentRef.current);
-		} else if (contentRef.current) {
-			manager.setContentElements(undefined, contentRef.current);
-		}
+			const clone = getCapturedClone() as HTMLDivElement | null;
+
+			if (clone && contentRef.current) {
+				contentRef.current.style.removeProperty('display');
+				cloneRef.current = clone;
+				manager.setContentElements(clone, contentRef.current);
+			} else if (contentRef.current) {
+				manager.setContentElements(undefined, contentRef.current);
+			}
+		};
+
+		if (!enterGate) commitContent();
 
 		void (async () => {
+			if (enterGate) {
+				await enterGate;
+				commitContent();
+			}
+
 			await transition.enter();
 
 			if (cloneRef.current) {

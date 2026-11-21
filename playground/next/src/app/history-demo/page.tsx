@@ -1,3 +1,5 @@
+import { FlyvaLink } from '@flyva/next';
+
 import demo from '@/styles/demo-pages.module.scss';
 
 import { HistorySwitcher } from './HistorySwitcher';
@@ -35,6 +37,13 @@ export default function HistoryDemo() {
 
 				<section className={demo.section}>
 					<HistorySwitcher />
+				</section>
+
+				<section className={demo.section}>
+					<p>
+						<FlyvaLink href="/scroll-demo#section-5">Scroll demo, section 5</FlyvaLink> — a push with a hash lands on
+						the anchor once the page is in.
+					</p>
 				</section>
 			</div>
 		</div>

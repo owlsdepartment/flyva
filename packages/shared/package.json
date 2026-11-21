@@ -11,6 +11,7 @@
     "./view-transition": "./view-transition.ts",
 		"./lifecycle-classes": "./lifecycle-classes.ts",
 		"./outgoing": "./outgoing.ts",
+		"./scroll": "./scroll.ts",
     "./types": "./types.ts",
     "./*": "./*"
   },

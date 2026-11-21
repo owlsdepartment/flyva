@@ -162,6 +162,6 @@ export default defineNuxtConfig({
 </template>
 ```
 
-## Browser back / forward
+## Browser back / forward and scroll
 
-There is **no** `@flyva/nuxt` history API. Use Vue Router [`scrollBehavior`](https://router.vuejs.org/guide/advanced/scroll-behavior.html) and navigation guards; concurrent transitions already keep the outgoing page mounted. Next.js users who need Flyva-driven back / forward: [History navigation](/guide/next/history).
+There is **no** `@flyva/nuxt` history or scroll API. Use Vue Router [`scrollBehavior`](https://router.vuejs.org/guide/advanced/scroll-behavior.html) (with `savedPosition`) and navigation guards; concurrent transitions already keep the outgoing page mounted. Next.js: [History navigation](/guide/next/history), [Scroll restoration](/guide/next/scroll).

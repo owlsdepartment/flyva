@@ -57,6 +57,8 @@ ctx.navigation // { type: 'traverse', direction: 'back' | 'forward' | 'none', de
 
 Both are cleared on `finishTransition`. Direction comes from an index stamped into `history.state.__flyvaIndex` via wrapped `pushState` / `replaceState`. Entries created before hydration, or by code that replaces `history.state` wholesale, give `direction: 'none'`.
 
+Plain same-document hash links (`<a href="#…">`) push entries with `null` state; Flyva adopts them (next index + a copy of the previous Next router state) so back / forward report a real direction and Next does not reload into them.
+
 ## Strategies
 
 Names describe what happens to the **old page**. They are independent of whether the transition itself is `concurrent`.
@@ -64,7 +66,7 @@ Names describe what happens to the **old page**. They are independent of whether
 | Strategy | Old page | How |
 |----------|----------|-----|
 | `noop` (default) | Gone immediately | Next swaps; Flyva only runs prepare / enter (reveals, etc.). Safest. |
-| `snapshot` | A clone stays and leaves | DOM is cloned synchronously in the capture-phase `popstate`, before React commits, then inserted and run through `prepareOutgoing` → leave while Next renders the new page. |
+| `snapshot` | A clone stays and leaves | DOM is cloned synchronously in the capture-phase `popstate`, before React commits, then inserted and run through `prepareOutgoing` → leave while Next renders the new page. For **non-concurrent** transitions the clone is removed when Next commits (before enter), so the new page is not pushed down; concurrent transitions keep the clone through overlapping enter. |
 | `intercept` | Live page leaves before the swap | `stopImmediatePropagation()` on `popstate`, leave on the live page, then re-dispatch a synthetic `PopStateEvent` so Next navigates. |
 
 Returning `false` from the strategy function means no Flyva transition for that move.
@@ -74,6 +76,7 @@ Returning `false` from the strategy function means no Flyva transition for that 
 - The clone is **static DOM**. React state, canvases / WebGL, iframes, and playing media are not live. Patch with [`prepareOutgoing`](/guide/prepare-outgoing) / `freezeMedia` / `freezeAnimations`.
 - `condition`, `history.transition`, and `prepareOutgoing` hooks must stay **synchronous**. If React commits the new page before the clone is inserted, leave is skipped with a dev warning ("missed the page swap").
 - The URL already shows the new page while the old one animates out.
+- Non-concurrent: clone removed on commit (see table). Concurrent: clone stays until enter finishes.
 
 ### Quirks - `intercept`
 
@@ -86,9 +89,13 @@ Returning `false` from the strategy function means no Flyva transition for that 
 - **Interrupts use a jump policy:** another back / forward during a running history transition cancels it (`abortConcurrent`, release enter gate, `finishTransition`). Only **`cleanup`** runs for the cancelled transition - **not** `afterLeave`. Reset `pointer-events`, `overflow`, and inline styles in `cleanup` as well as (or instead of) `afterLeave`.
 - Same-document pops (hash changes or the same pathname, trailing slash normalized) are ignored.
 
+## Combining with scroll
+
+With [`config.scroll`](/guide/next/scroll), outgoing positions are saved before history starts or cancels a transition. Restore targets for back / forward come from the destination entry (or hash / top).
+
 ## Demo
 
-Playground: [`/history-demo`](/demos) (Next playground nav → History). Strategy and transition overrides are stored in `sessionStorage` under `flyva-demo:history`.
+Playground: [`/history-demo`](/demos) (Next playground nav → History). Strategy and transition overrides are stored in `sessionStorage` under `flyva-demo:history`. Links into `/scroll-demo#section-5` exercise restore with history.
 
 ## Nuxt
 

@@ -38,6 +38,7 @@ Provider component. Creates a `PageTransitionManager` singleton and makes it ava
 | `lifecycleClassPrefix` | `string` | `'flyva'` | Prefix for lifecycle CSS classes on `<html>` |
 | `prepareOutgoing` | `OutgoingHook \| OutgoingHook[]` | - | Global concurrent outgoing hooks (see [`prepareOutgoing`](/guide/prepare-outgoing)) |
 | `history` | `FlyvaHistoryConfig` | - | Opt-in browser back / forward handling (see [History navigation](/guide/next/history)) |
+| `scroll` | `FlyvaScrollConfig` | - | Opt-in scroll restoration (see [Scroll restoration](/guide/next/scroll)) |
 
 **`FlyvaHistoryConfig`:**
 
@@ -47,6 +48,16 @@ Provider component. Creates a `PageTransitionManager` singleton and makes it ava
 | `defaultKey` | `string` | - | Fallback map key for history moves before `defaultKey` |
 | `transition` | `(ctx: FlyvaHistoryMatchContext) => string \| undefined` | - | Explicit picker; `undefined` falls through to matching |
 | `interceptTimeout` | `number` | `8000` | `intercept` only: max wait (ms) for Next to commit after replay |
+
+**`FlyvaScrollConfig`:**
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `adapter` | `FlyvaScrollAdapter \| (() => …)` | window | Scroller bridge; function form is resolved lazily |
+| `restoreAt` | `FlyvaScrollRestoreAt` | see guide | Default restore point (`beforeEnter` \| `enter` \| `afterEnter` \| `manual`) |
+| `restoreTimeout` | `number` | `1000` | Max ms to keep re-applying an unreachable target |
+
+Related types (also via module augmentation on shared `PageTransition` / `PageTransitionContext`): `FlyvaScrollAdapter`, `FlyvaScrollContext`, `FlyvaScrollTarget`, `FlyvaScrollRestoreAt`, plus `scrollRestoreAt` / `scrollTarget` on transitions and `ctx.scroll` during a run. Guide: [Scroll restoration](/guide/next/scroll).
 
 ::: warning
 Transitions depend on client-side APIs (DOM, `document`, and so on) and must be registered under `FlyvaRoot` in a Client Component. Always wrap `FlyvaRoot` in a `'use client'` component.

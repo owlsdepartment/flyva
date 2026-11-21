@@ -6,11 +6,12 @@ Framework-agnostic core. This package is an internal dependency - it's re-export
 
 | Subpath | Contents |
 |---------|----------|
-| **`@flyva/shared`** | Full barrel: transition types, `defineTransition`, `PageTransitionManager`, view-transition helpers, lifecycle helpers, outgoing helpers |
+| **`@flyva/shared`** | Full barrel: transition types, `defineTransition`, `PageTransitionManager`, view-transition helpers, lifecycle helpers, outgoing helpers, scroll helper |
 | **`@flyva/shared/page-transition-manager`** | `PageTransitionManager`, `defineTransition`, and transition-related types |
 | **`@flyva/shared/view-transition`** | View Transitions helpers (`supportsViewTransitions`, `applyViewTransitionNames`, CSS stage helpers, …) |
 | **`@flyva/shared/lifecycle-classes`** | `applyLifecycleClasses`, `FLYVA_TRANSITION_DATA_ATTR` |
 | **`@flyva/shared/outgoing`** | `createOutgoingContext`, `freezeAnimations`, `freezeMedia`, `OutgoingContext` / `OutgoingHook` types |
+| **`@flyva/shared/scroll`** | `scrollToTarget` |
 | **`@flyva/shared/types`** | `Reactive`, `ReactiveFactory` (used when wiring a custom `ReactiveFactory` into `PageTransitionManager`) |
 
 Prefer the package root when you need several areas; use a subpath when you want a narrower import surface (e.g. only view-transition utilities).
@@ -71,6 +72,8 @@ new PageTransitionManager(transitions, reactiveFactory, config?)
 | `registerActiveHook(registration)` | `(cleanup?: () => void) => void` | Register an `ActiveHookRegistration`; returns an unregister function |
 | `prepareOutgoing(source, target?)` | `Promise<void>` | Concurrent only: run global → active-hook → transition `prepareOutgoing` (skipped when not concurrent / no running instance). `target` defaults to `source` |
 | `onPrepareOutgoing(hook)` | `() => void` | Register a global outgoing hook; returns unregister |
+| `onStage(listener)` | `() => void` | Register a `StageListener` called synchronously when each stage starts (including `cleanup`), before that stage’s hooks; returns unregister |
+| `setContextExtension(key, value)` | `void` | Extra fields spread into every context build; core fields win on conflict |
 | `getInstance(name)` | `PageTransition` | Get a transition instance by key |
 
 ### `sortTransitionKeysForMatching(transitions)`
@@ -357,3 +360,22 @@ For **Next.js** concurrent clones. Also available from `@flyva/shared/outgoing`.
 | `selector` | `'video, canvas'` | CSS selector passed to `pairs` |
 | `inViewport` | `true` | Skip media whose live counterpart is outside the viewport |
 | `styleProps` | width/height/object-fit/… | Computed style properties copied onto the snapshot canvas |
+
+---
+
+## `scrollToTarget` (`scroll.ts`)
+
+Framework-agnostic helper used by Next scroll restoration (and usable from Nuxt `scrollBehavior`). Also `@flyva/shared/scroll`.
+
+```ts
+scrollToTarget({
+  resolve: () => number | null, // desired top; null while unresolved
+  get: () => number,
+  set: (top) => void,           // must jump immediately
+  timeout?: number,             // default 1000
+  tolerance?: number,           // default 1
+  signal?: AbortSignal,
+}): Promise<boolean>
+```
+
+Re-applies every animation frame until the position is reached (or timeout / abort). Resolves `true` when reached, `false` otherwise.

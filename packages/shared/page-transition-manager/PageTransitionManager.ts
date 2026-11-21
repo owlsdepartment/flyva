@@ -57,6 +57,9 @@ export function sortTransitionKeysForMatching<T extends Record<string, PageTrans
 	});
 }
 
+/** Called synchronously when a stage starts, before any hook of that stage runs. */
+export type StageListener = (stage: PageTransitionStage) => void;
+
 export interface PageTransitionManagerConfig {
 	viewTransition?: boolean;
 	lifecycleClassPrefix?: string;
@@ -87,6 +90,8 @@ export class PageTransitionManager<
 	protected _activeHooks = new Set<ActiveHookRegistration>();
 	protected _gcHooks = new Set<() => void>();
 	protected _outgoingHooks = new Set<OutgoingHook>();
+	protected _stageListeners = new Set<StageListener>();
+	protected _contextExtensions: Record<string, unknown> = {};
 
 	constructor(
 		protected transitions: T,
@@ -228,6 +233,7 @@ export class PageTransitionManager<
 
 		this._stage.value = 'prepare';
 		applyLifecycleClasses('prepare', this.lifecycleClassPrefix, this._lifecycleTransitionKey());
+		this._emitStage('prepare');
 
 		const ctx = this.makeContext(el);
 		const prepares: Promise<void>[] = [];
@@ -238,6 +244,27 @@ export class PageTransitionManager<
 		this._readyPromise = prepares.length ? Promise.all(prepares).then(() => {}) : Promise.resolve();
 
 		return this._readyPromise;
+	}
+
+	protected _emitStage(stage: PageTransitionStage) {
+		for (const listener of this._stageListeners) listener(stage);
+	}
+
+	/** Registers a stage listener (adapter plumbing); returns an unregister function. */
+	onStage(listener: StageListener): () => void {
+		this._stageListeners.add(listener);
+		return () => {
+			this._stageListeners.delete(listener);
+		};
+	}
+
+	/**
+	 * Adds (or with `undefined`, removes) an adapter-specific field on every lifecycle context,
+	 * e.g. `scroll` in `@flyva/next`.
+	 */
+	setContextExtension(key: string, value: unknown) {
+		if (value === undefined) delete this._contextExtensions[key];
+		else this._contextExtensions[key] = value;
 	}
 
 	protected _lifecycleTransitionKey(): string | undefined {
@@ -319,6 +346,7 @@ export class PageTransitionManager<
 	async beforeLeave(el?: Element) {
 		this._stage.value = 'beforeLeave';
 		applyLifecycleClasses('beforeLeave', this.lifecycleClassPrefix, this._lifecycleTransitionKey());
+		this._emitStage('beforeLeave');
 		const ctx = this.makeContext(el);
 		const promises: Promise<void>[] = [];
 		const instBL = this._runningInstance.value;
@@ -334,6 +362,7 @@ export class PageTransitionManager<
 	async leave(el?: Element) {
 		this._stage.value = 'leave';
 		applyLifecycleClasses('leave', this.lifecycleClassPrefix, this._lifecycleTransitionKey());
+		this._emitStage('leave');
 		const ctx = this.makeContext(el);
 		const promises: Promise<void>[] = [];
 		const instL = this._runningInstance.value;
@@ -356,6 +385,7 @@ export class PageTransitionManager<
 
 		this._stage.value = 'afterLeave';
 		applyLifecycleClasses('afterLeave', this.lifecycleClassPrefix, this._lifecycleTransitionKey());
+		this._emitStage('afterLeave');
 		const ctx = this.makeContext(el);
 		const promises: Promise<void>[] = [];
 		const instALe = this._runningInstance.value;
@@ -371,6 +401,7 @@ export class PageTransitionManager<
 	async beforeEnter(el?: Element) {
 		this._stage.value = 'beforeEnter';
 		applyLifecycleClasses('beforeEnter', this.lifecycleClassPrefix, this._lifecycleTransitionKey());
+		this._emitStage('beforeEnter');
 		const ctx = this.makeContext(el);
 		const promises: Promise<void>[] = [];
 		const instBE = this._runningInstance.value;
@@ -386,6 +417,7 @@ export class PageTransitionManager<
 	async enter(el?: Element) {
 		this._stage.value = 'enter';
 		applyLifecycleClasses('enter', this.lifecycleClassPrefix, this._lifecycleTransitionKey());
+		this._emitStage('enter');
 		const ctx = this.makeContext(el);
 		const promises: Promise<void>[] = [];
 		const instE = this._runningInstance.value;
@@ -399,6 +431,7 @@ export class PageTransitionManager<
 	async afterEnter(el?: Element) {
 		this._stage.value = 'afterEnter';
 		applyLifecycleClasses('afterEnter', this.lifecycleClassPrefix, this._lifecycleTransitionKey());
+		this._emitStage('afterEnter');
 		const ctx = this.makeContext(el);
 		const promises: Promise<void>[] = [];
 		const instAE = this._runningInstance.value;
@@ -423,6 +456,7 @@ export class PageTransitionManager<
 
 		this._stage.value = 'cleanup';
 		applyLifecycleClasses('cleanup', this.lifecycleClassPrefix, key);
+		this._emitStage('cleanup');
 
 		const cleanupCtx = this.makeContext(undefined);
 
@@ -472,6 +506,7 @@ export class PageTransitionManager<
 				? (nxt ?? cur)
 				: (cur ?? nxt);
 		return {
+			...this._contextExtensions,
 			name: this._runningName.value! as string,
 			fromHref: String(opts?.fromHref ?? ''),
 			toHref: String(opts?.toHref ?? ''),

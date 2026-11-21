@@ -13,6 +13,7 @@ interface Recording {
 	clones: Array<{ outgoing: string | null; h1: string | null }>;
 	cloneClasses: string[];
 	samples: Array<{ path: string; h1s: string[] }>;
+	enterOffsets: number[];
 }
 
 async function setup(
@@ -30,7 +31,13 @@ async function setup(
 				});
 			}
 
-			const rec: Recording = { keys: [], clones: [], cloneClasses: [], samples: [] };
+			const rec: Recording = {
+				keys: [],
+				clones: [],
+				cloneClasses: [],
+				samples: [],
+				enterOffsets: [],
+			};
 			(window as unknown as { __rec: Recording }).__rec = rec;
 
 			new MutationObserver(mutations => {
@@ -70,6 +77,15 @@ async function setup(
 					last = serialized;
 					rec.samples.push(entry);
 				}
+				if (document.documentElement.classList.contains('flyva-enter-active')) {
+					const content = document.querySelector(
+						'main [data-demo-page-content]:not(.flyva-clone *)',
+					);
+					const wrapper = content?.closest('main > div');
+					if (content && wrapper) {
+						rec.enterOffsets.push(Math.round(wrapper.getBoundingClientRect().top + window.scrollY));
+					}
+				}
 				requestAnimationFrame(sample);
 			};
 			requestAnimationFrame(sample);
@@ -89,6 +105,7 @@ async function resetRecording(page: Page) {
 		rec.clones = [];
 		rec.cloneClasses = [];
 		rec.samples = [];
+		rec.enterOffsets = [];
 	});
 }
 
@@ -159,6 +176,14 @@ test.describe('history', () => {
 			rec.samples.some(s => s.path === '/' && s.h1s.includes('About') && s.h1s.includes('Home')),
 		).toBe(true);
 		expect(await navigationAttr(page)).toBe('back:-1:snapshot');
+
+		const settledOffset = await page.evaluate(() =>
+			Math.round(
+				document.querySelector('main > div')!.getBoundingClientRect().top + window.scrollY,
+			),
+		);
+		expect(rec.enterOffsets.length).toBeGreaterThan(0);
+		expect(Math.max(...rec.enterOffsets)).toBe(settledOffset);
 	});
 
 	test('snapshot: forward is detected', async ({ page }) => {

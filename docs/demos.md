@@ -11,7 +11,7 @@ const demos = [
 		slug: 'next',
 		title: 'Next.js (App Router)',
 		description:
-			'Default Flyva setup: FlyvaRoot, FlyvaTransitionWrapper, hook-driven transitions, concurrent mode, and the History demo (`/history-demo`) for back / forward strategies.',
+			'Default Flyva setup: FlyvaRoot, FlyvaTransitionWrapper, hook-driven transitions, concurrent mode, History (`/history-demo`) and Scroll (`/scroll-demo`) demos.',
 		source: 'https://github.com/owlsdepartment/flyva/tree/main/playground/next',
 		run: 'pnpm dev:next',
 	},

@@ -1,6 +1,6 @@
 'use client';
 
-import type { FlyvaNavigation, OutgoingHook } from '@flyva/shared';
+import type { FlyvaNavigation, OutgoingHook, PageTransitionMatchContext } from '@flyva/shared';
 import { createContext, useContext } from 'react';
 
 /**
@@ -15,11 +15,66 @@ import { createContext, useContext } from 'react';
  */
 export type FlyvaHistoryStrategy = 'noop' | 'snapshot' | 'intercept';
 
+/** Where the page should land: an absolute top, an anchor, an element, or `null` to leave it as is. */
+export type FlyvaScrollTarget = { top: number } | { hash: string } | { element: Element } | null;
+
+/** When the scroll target is applied; `manual` waits for `ctx.scroll.restore()` (or cleanup). */
+export type FlyvaScrollRestoreAt = 'beforeEnter' | 'enter' | 'afterEnter' | 'manual';
+
+/** Bridge to the thing that actually scrolls (window by default, or e.g. Lenis). */
+export interface FlyvaScrollAdapter {
+	get(): number;
+	/** Must jump immediately, without smoothing. */
+	set(top: number): void;
+	/** Called when a transition starts, e.g. `lenis.stop()`. */
+	lock?(): void;
+	/** Called right before the target is applied, and on cleanup. */
+	unlock?(): void;
+}
+
+export interface FlyvaScrollContext {
+	/** Resolved target for the incoming page. */
+	target: FlyvaScrollTarget;
+	/** Scroll position the outgoing page was left at. */
+	from: number;
+	/** Applies the target now; later calls return the same promise. */
+	restore(): Promise<void>;
+	/** Resolves once the target was reached, or after `restoreTimeout`. */
+	restored: Promise<void>;
+}
+
 declare module '@flyva/shared' {
 	interface FlyvaNavigation {
 		/** Strategy Flyva used for this history move (`@flyva/next` only). */
 		strategy?: FlyvaHistoryStrategy;
 	}
+
+	interface PageTransitionContext {
+		/** Present when `config.scroll` is set (`@flyva/next` only). */
+		scroll?: FlyvaScrollContext;
+	}
+
+	interface PageTransition {
+		/**
+		 * When `config.scroll` applies the target for this transition (`@flyva/next` only). Defaults to
+		 * `config.scroll.restoreAt`, or `afterEnter` for concurrent transitions and `beforeEnter` otherwise.
+		 */
+		scrollRestoreAt?: FlyvaScrollRestoreAt;
+		/** Overrides the computed scroll target, e.g. keep the position on filter-only navigations. */
+		scrollTarget?(
+			context: PageTransitionMatchContext,
+			fallback: FlyvaScrollTarget,
+		): FlyvaScrollTarget;
+	}
+}
+
+export interface FlyvaScrollConfig {
+	/** Defaults to the window. A function is resolved lazily, for scrollers created after mount. */
+	adapter?: FlyvaScrollAdapter | (() => FlyvaScrollAdapter | null | undefined);
+	/** Default restore point; per transition via `scrollRestoreAt`. */
+	restoreAt?: FlyvaScrollRestoreAt;
+	/** Max ms to keep re-applying a target the page is not tall enough for yet (default 1000). */
+	restoreTimeout?: number;
 }
 
 export interface FlyvaHistoryMatchContext {
@@ -50,6 +105,11 @@ export interface FlyvaConfig<K extends string = string> {
 	prepareOutgoing?: OutgoingHook | OutgoingHook[];
 	/** Opt-in handling of browser back / forward navigation. Omit to leave history moves alone. */
 	history?: FlyvaHistoryConfig<K>;
+	/**
+	 * Opt-in scroll handling: Flyva switches the browser to manual restoration, saves positions per
+	 * history entry and applies them (or top / the link's hash on push) during the transition.
+	 */
+	scroll?: FlyvaScrollConfig;
 }
 
 export const FlyvaConfigContext = createContext<FlyvaConfig>(null!);

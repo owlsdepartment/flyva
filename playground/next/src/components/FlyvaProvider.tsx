@@ -45,6 +45,7 @@ export function FlyvaProvider({ children }: PropsWithChildren) {
 						return readHistoryDemoSettings().interceptTimeout;
 					},
 				},
+				scroll: {},
 			}}
 		>
 			{children}

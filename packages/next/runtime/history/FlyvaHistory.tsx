@@ -7,7 +7,12 @@ import { createClone, insertClone, transitionState } from '../hooks/internalStat
 import { type FlyvaHistoryStrategy, useFlyvaConfig } from '../hooks/useFlyvaConfig';
 import { useFlyvaManager } from '../hooks/useFlyvaManager';
 import { useFlyvaTransition } from '../hooks/useFlyvaTransition';
-import { consumeTraversal, installHistoryTracking } from './historyTracking';
+import {
+	installHistoryTracking,
+	onTraverse,
+	replayPopState,
+	type Traversal,
+} from './historyTracking';
 
 const DEFAULT_INTERCEPT_TIMEOUT_MS = 8000;
 
@@ -31,7 +36,6 @@ export function FlyvaHistory() {
 		installHistoryTracking();
 
 		let generation = 0;
-		let replaying = false;
 		let holding = false;
 		let releaseGate: (() => void) | null = null;
 
@@ -169,12 +173,7 @@ export function FlyvaHistory() {
 				holding = false;
 
 				const commitSeq = transitionState.commitSeq;
-				replaying = true;
-				try {
-					window.dispatchEvent(new PopStateEvent('popstate', { state }));
-				} finally {
-					replaying = false;
-				}
+				replayPopState(state);
 
 				const timeout =
 					live.current.config.history?.interceptTimeout ?? DEFAULT_INTERCEPT_TIMEOUT_MS;
@@ -222,9 +221,7 @@ export function FlyvaHistory() {
 			return typeof strategy === 'function' ? strategy(navigation) : strategy;
 		};
 
-		const onPopState = (event: PopStateEvent) => {
-			if (replaying) return;
-
+		const onPopState = (traversal: Traversal, event: PopStateEvent) => {
 			const { config, manager } = live.current;
 			if (!config.history) return;
 
@@ -236,7 +233,7 @@ export function FlyvaHistory() {
 				return;
 			}
 
-			const { navigation: base, fromHref, toHref, sameDocument } = consumeTraversal(event.state);
+			const { navigation: base, fromHref, toHref, sameDocument } = traversal;
 			if (sameDocument) return;
 
 			if (holding || manager.isRunning) {
@@ -261,8 +258,7 @@ export function FlyvaHistory() {
 			}
 		};
 
-		window.addEventListener('popstate', onPopState, { capture: true });
-		return () => window.removeEventListener('popstate', onPopState, { capture: true });
+		return onTraverse(onPopState);
 	}, []);
 
 	return null;

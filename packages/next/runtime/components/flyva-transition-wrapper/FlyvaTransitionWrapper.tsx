@@ -7,6 +7,7 @@ import { getCapturedClone, isVtActive, resolveDomSwap, useFlyvaTransition } from
 import { takeEnterGate, transitionState } from '../../hooks/internalState';
 import { useFlyvaConfig } from '../../hooks/useFlyvaConfig';
 import { useFlyvaManager } from '../../hooks/useFlyvaManager';
+import { notifyScrollCommit } from '../../scroll/scrollController';
 
 export function FlyvaTransitionWrapper({ children }: PropsWithChildren) {
 	const pathname = usePathname();
@@ -53,6 +54,7 @@ export function FlyvaTransitionWrapper({ children }: PropsWithChildren) {
 		}
 
 		transitionState.commitSeq += 1;
+		notifyScrollCommit();
 		const enterGate = takeEnterGate();
 
 		const commitContent = () => {
@@ -72,8 +74,13 @@ export function FlyvaTransitionWrapper({ children }: PropsWithChildren) {
 
 			if (clone && contentRef.current) {
 				contentRef.current.style.removeProperty('display');
-				cloneRef.current = clone;
-				manager.setContentElements(clone, contentRef.current);
+				if (manager.runningInstance?.concurrent) {
+					cloneRef.current = clone;
+					manager.setContentElements(clone, contentRef.current);
+				} else {
+					clone.remove();
+					manager.setContentElements(undefined, contentRef.current);
+				}
 			} else if (contentRef.current) {
 				manager.setContentElements(undefined, contentRef.current);
 			}

@@ -53,6 +53,7 @@ export default withMermaid(
 								{ text: 'Overview', link: '/guide/next/' },
 								{ text: 'Transition modes', link: '/guide/next/transition-modes' },
 								{ text: 'History navigation', link: '/guide/next/history' },
+								{ text: 'Scroll restoration', link: '/guide/next/scroll' },
 								{ text: 'prepareOutgoing', link: '/guide/prepare-outgoing' },
 								{ text: 'View Transition API', link: '/guide/next/view-transition-api' },
 								{ text: 'Writing transitions', link: '/guide/next/writing-transitions' },

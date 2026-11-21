@@ -144,6 +144,10 @@ When `viewTransition` is `true`, `FlyvaLink` uses `document.startViewTransition`
 
 Opt-in via `config.history` (`noop` / `snapshot` / `intercept`). See [History navigation](/guide/next/history). Without that config, Flyva does not listen to `popstate`.
 
+### Scroll restoration
+
+Opt-in via `config.scroll`. Saves per history entry and applies top / hash / restored positions during transitions. See [Scroll restoration](/guide/next/scroll).
+
 ### Concurrent mode and content cloning
 
 Concurrent page transition operation (equivalent to Vue's `in-out` Transition) is a holy grail for page transitions in Next App Router websites. While this is natively impossible with Next's current architecture, we were motivated to do some alchemy and make this cursed solution possible. It lets you temporarily keep the previous page content while animating in the new one - a highly desired effect that opens interesting creative frontiers.

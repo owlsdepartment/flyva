@@ -39,7 +39,12 @@ export const historyTransition = defineTransition({
 		const target = ctx.container;
 		if (!target) return;
 
-		await animate(target, { opacity: 1, duration: 420, ease: 'outQuad' });
+		const fade = animate(target, { opacity: 1, duration: 420, ease: 'outQuad' });
+		if (ctx.scroll) {
+			await ctx.scroll.restored;
+			document.documentElement.dataset.demoScrollRestored = String(Math.round(window.scrollY));
+		}
+		await fade;
 	},
 
 	cleanup(ctx) {

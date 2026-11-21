@@ -9,6 +9,7 @@ import { FlyvaConfig, FlyvaConfigContext } from '../../hooks';
 import { FlyvaManagerContext } from '../../hooks/useFlyvaManager';
 import type { RefState } from '../../hooks/useRefState';
 import { PageTransition, PageTransitionManager } from '../../page-transition-manager';
+import { FlyvaScroll } from '../../scroll/FlyvaScroll';
 
 let singleton: PageTransitionManager | null = null;
 let _vtWarned = false;
@@ -60,6 +61,7 @@ export function FlyvaRoot<
 		<div className="flyva-root">
 			<FlyvaConfigContext.Provider value={configWithDefaults}>
 				<FlyvaManagerContext.Provider value={manager}>
+					{config?.scroll && <FlyvaScroll />}
 					{config?.history && <FlyvaHistory />}
 					{children}
 				</FlyvaManagerContext.Provider>

@@ -12,7 +12,7 @@ import {
 	useRef,
 } from 'react';
 
-import { useFlyvaTransition } from '../../hooks';
+import { useFlyvaConfig, useFlyvaTransition } from '../../hooks';
 import { useFlyvaLifecycle } from '../../hooks/useFlyvaLifecycle';
 import { omitKeys } from '../../utils/omitKeys';
 import type { FlyvaLinkAugment, FlyvaLinkProps } from './types';
@@ -53,6 +53,7 @@ const FLYVA_LINK_PROP_KEYS = [
 const FlyvaLink = forwardRef<HTMLAnchorElement, PropsWithChildren<FlyvaLinkProps>>((props, ref) => {
 	const rootEl = useRef<HTMLAnchorElement>(null);
 	const transition = useFlyvaTransition();
+	const config = useFlyvaConfig();
 	const router = useRouter();
 	const pathname = usePathname();
 
@@ -127,6 +128,9 @@ const FlyvaLink = forwardRef<HTMLAnchorElement, PropsWithChildren<FlyvaLinkProps
 
 		e.preventDefault();
 
+		const navigate = () =>
+			config.scroll ? router.push(href, { scroll: false }) : router.push(href);
+
 		const currentUrl = window.location.origin + pathname;
 
 		const isCurrent = normalizeUrl(currentUrl) === normalizeUrl(href);
@@ -149,16 +153,16 @@ const FlyvaLink = forwardRef<HTMLAnchorElement, PropsWithChildren<FlyvaLinkProps
 		);
 
 		if (transition.isViewTransition) {
-			await transition.leaveWithViewTransition(() => router.push(href));
+			await transition.leaveWithViewTransition(navigate);
 		} else if (transition.isConcurrent) {
 			const deferredLeave = await transition.beginConcurrentLeaveForNavigation();
-			router.push(href);
+			navigate();
 			if (deferredLeave) {
 				await transition.completeConcurrentLeaveAfterNavigation();
 			}
 		} else {
 			await transition.leave();
-			router.push(href);
+			navigate();
 		}
 	}
 
